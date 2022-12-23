@@ -1,6 +1,6 @@
 {
   "name": "react-native-paypal-reborn",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "React Native library that implements PayPal Checkout flow using purely native code",
   "main": "index.js",
   "typings": "index.d.ts",

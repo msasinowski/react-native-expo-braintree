@@ -85,8 +85,12 @@ CODE_OF_CONDUCT.md
 android/.settings
 README.md
 /src
+.husky/
 *.coverage.json
 .opensource
 .circleci
 .eslintignore
 codecov.yml
+commitlint.config.js
+exampleServer/
+paypalExample/
