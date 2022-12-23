@@ -4,7 +4,7 @@
 
 ## General
 
-#### It si a fork from [Checkout](https://github.com/appsbakery/react-native-paypal)
+#### It si a fork from [React Native Paypal](https://github.com/appsbakery/react-native-paypal)
 
 #### React Native library that implements PayPal Checkout Flows using purely native code. for IOS and Android devices
 
