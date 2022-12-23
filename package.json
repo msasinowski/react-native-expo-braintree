@@ -1,0 +1,36 @@
+{
+  "name": "react-native-paypal-reborn",
+  "version": "0.0.0",
+  "description": "React Native library that implements PayPal Checkout flow using purely native code",
+  "main": "index.js",
+  "typings": "index.d.ts",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "react-native",
+    "paypal",
+    "checkout",
+    "paypal-checkout",
+    "braintree",
+    "android",
+    "ios",
+    "payment",
+    "reborn"
+  ],
+  "author": "Maciej Sasinowski",
+  "license": "MIT",
+  "homepage": "https://github.com/msasinowski/react-native-paypal-reborn#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:msasinowski/react-native-paypal-reborn.git"
+  },
+  "peerDependencies": {
+    "react-native": ">=0.41.2"
+  },
+  "devDependencies": {
+    "husky": "^8.0.0",
+    "@commitlint/cli": "^12.1.4",
+    "@commitlint/config-conventional": "^12.1.4"
+  }
+}
