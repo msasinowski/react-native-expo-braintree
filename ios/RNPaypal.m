@@ -56,7 +56,7 @@ RCT_EXPORT_METHOD(
             else if ([@"order" isEqualToString:intent])
                 request.intent = BTPayPalRequestIntentOrder;
         }
-        
+
         [payPalDriver tokenizePayPalAccountWithPayPalRequest:request completion:^(BTPayPalAccountNonce * _Nullable tokenizedPayPalAccount, NSError * _Nullable error) {
                 if (tokenizedPayPalAccount) {
                     NSDictionary* result = @{
@@ -85,7 +85,7 @@ RCT_EXPORT_METHOD(
                             @"region" : (tokenizedPayPalAccount.shippingAddress.region ?: [NSNull null]),
                         },
                     };
-    
+
                     resolve(result);
                     return;
                 } else if (error) {
@@ -118,9 +118,11 @@ RCT_EXPORT_METHOD(
         BTPayPalVaultRequest *request = [BTPayPalVaultRequest alloc];
         NSString* localeCode = options[@"localeCode"];
         if (localeCode) request.localeCode = localeCode;
-        
+        NSString* displayName = options[@"displayName"];
+        if (displayName) request.displayName = displayName;
+
         [payPalDriver tokenizePayPalAccountWithPayPalRequest:request completion:^(BTPayPalAccountNonce * _Nullable tokenizedPayPalAccount, NSError * _Nullable error) {
-            
+
             if (tokenizedPayPalAccount) {
                 NSDictionary* result = @{
                     @"nonce" : (tokenizedPayPalAccount.nonce ?: [NSNull null]),
