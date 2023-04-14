@@ -170,6 +170,8 @@ public class RNPaypalModule extends ReactContextBaseJavaModule implements Activi
       request.currencyCode(options.getString("currency"));
     if (options.hasKey("localeCode"))
       request.localeCode(options.getString("localeCode"));
+    if (options.hasKey("displayName"))
+      request.localeCode(options.getString("displayName"));
 
     PayPal.requestBillingAgreement(braintreeFragment, request);
   }

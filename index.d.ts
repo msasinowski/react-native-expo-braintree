@@ -104,11 +104,13 @@ declare function requestOneTimePayment(token: string, {
 declare function requestBillingAgreement(token: string, {
     billingAgreementDescription,
     currency,
-    localeCode
+    localeCode,
+    displayName
 }: {
     billingAgreementDescription: string,
     currency ? : paypalSupportedCurrencies,
     localeCode ? : paypalLocalCodes,
+    displayName? : string,
 }): Promise <PaypalResponse> ;
 
 declare function requestDeviceData(token: string): Promise <DeviceDataResponse> ;
