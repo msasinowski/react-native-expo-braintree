@@ -3,21 +3,23 @@ package com.smarkets.paypal;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
-import com.braintreepayments.api.BraintreeFragment;
-import com.braintreepayments.api.PayPal;
-import com.braintreepayments.api.exceptions.ErrorWithResponse;
-import com.braintreepayments.api.exceptions.InvalidArgumentException;
-import com.braintreepayments.api.interfaces.BraintreeCancelListener;
-import com.braintreepayments.api.interfaces.BraintreeErrorListener;
-import com.braintreepayments.api.interfaces.BraintreeResponseListener;
-import com.braintreepayments.api.interfaces.PaymentMethodNonceCreatedListener;
-import com.braintreepayments.api.models.PayPalAccountNonce;
-import com.braintreepayments.api.models.PayPalRequest;
-import com.braintreepayments.api.models.PaymentMethodNonce;
-import com.braintreepayments.api.models.PostalAddress;
+
+import com.braintreepayments.api.BraintreeClient;
+import com.braintreepayments.api.PayPalClient;
+import com.braintreepayments.api.PayPalAccountNonce;
+import com.braintreepayments.api.PayPalVaultRequest;
+import com.braintreepayments.api.PayPalCheckoutRequest;
+import com.braintreepayments.api.PayPalPaymentIntent;
+import com.braintreepayments.api.PostalAddress;
+import com.braintreepayments.api.PayPalListener;
+import com.braintreepayments.api.UserCanceledException;
+
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -25,161 +27,156 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.UiThreadUtil;
 
-public class RNPaypalModule extends ReactContextBaseJavaModule implements ActivityEventListener {
+public class RNPaypalModule extends ReactContextBaseJavaModule implements PayPalListener {
 
-  private static final String TAG = "RNPaypal";
-  private Promise promise;
+    private static final String TAG = "RNPaypal";
+    private Promise promise;
+    private final ActivityEventListener activityEventListener = new BaseActivityEventListener() {
+        @Override
+        public void onNewIntent(Intent intent) {
+            Activity currentActivity = getCurrentActivity();
+            if (currentActivity != null) {
+                currentActivity.setIntent(intent);
+            }
+        }
+    };
 
-  public RNPaypalModule(ReactApplicationContext reactContext) {
-    super(reactContext);
-  }
-
-  @Override
-  public String getName() {
-    return TAG;
-  }
-
-  @ReactMethod
-  public void requestOneTimePayment(
-      String token,
-      ReadableMap options,
-      Promise promise) {
-    this.promise = promise;
-    BraintreeFragment braintreeFragment = null;
-    try {
-      braintreeFragment = initializeBraintreeFragment(token);
-    } catch (Exception e) {
-      promise.reject("braintree_sdk_setup_failed", e);
-      return;
+    public RNPaypalModule(ReactApplicationContext reactContext) {
+        super(reactContext);
+        reactContext.addActivityEventListener(activityEventListener);
     }
 
-    PayPalRequest request = new PayPalRequest(options.getString("amount"))
-        .intent(PayPalRequest.INTENT_AUTHORIZE);
-
-    if (options.hasKey("currency"))
-        request.currencyCode(options.getString("currency"));
-    if (options.hasKey("displayName"))
-        request.displayName(options.getString("displayName"));
-    if (options.hasKey("localeCode"))
-        request.localeCode(options.getString("localeCode"));
-    if (options.hasKey("shippingAddressRequired"))
-        request.shippingAddressRequired(options.getBoolean("shippingAddressRequired"));
-
-    if (options.hasKey("userAction") &&
-        PayPalRequest.USER_ACTION_COMMIT.equals(options.getString("userAction")))
-      request.userAction(PayPalRequest.USER_ACTION_COMMIT);
-
-    if (options.hasKey("intent")) {
-      String intent = options.getString("intent");
-      switch (intent) {
-        case PayPalRequest.INTENT_SALE:
-          request.intent(PayPalRequest.INTENT_SALE);
-          break;
-        case PayPalRequest.INTENT_ORDER:
-          request.intent(PayPalRequest.INTENT_ORDER);
-      }
+    @Override
+    public String getName() {
+        return TAG;
     }
 
-    PayPal.requestOneTimePayment(braintreeFragment, request);
-  }
+    @ReactMethod
+    public void requestOneTimePayment(
+            String token,
+            ReadableMap options,
+            Promise promise) {
+        this.promise = promise;
+        FragmentActivity activity = (FragmentActivity) getCurrentActivity();
 
-  protected WritableMap postalAddressToMap(PostalAddress address) {
-    WritableMap result = Arguments.createMap();
-    result.putString("recipientName", address.getRecipientName());
-    result.putString("streetAddress", address.getStreetAddress());
-    result.putString("extendedAddress", address.getExtendedAddress());
-    result.putString("locality", address.getLocality());
-    result.putString("countryCodeAlpha2", address.getCountryCodeAlpha2());
-    result.putString("postalCode", address.getPostalCode());
-    result.putString("region", address.getRegion());
-    return result;
-  }
+        if (activity == null) {
+            promise.reject("creation_error", "Something went wrong");
+            return;
+        }
 
-  protected BraintreeFragment initializeBraintreeFragment(
-      String token) throws InvalidArgumentException {
-    FragmentActivity activity = (FragmentActivity) getCurrentActivity();
+        try {
+            BraintreeClient braintreeClient = new BraintreeClient(activity, "token");
+        } catch (Exception e) {
+            promise.reject("braintree_sdk_setup_failed", e);
+            return;
+        }
 
-    if (activity == null) {
-      promise.reject("creation_error", "Something went wrong");
-      return null;
+
+        BraintreeClient braintreeClient = new BraintreeClient(activity, token);
+
+        UiThreadUtil.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                PayPalClient payPalClient = new PayPalClient(activity, braintreeClient);
+                payPalClient.setListener(RNPaypalModule.this);
+                PayPalCheckoutRequest request = new PayPalCheckoutRequest(options.getString("amount"));
+                if (options.hasKey("currency"))
+                    request.setCurrencyCode(options.getString("billingAgreementDescription"));
+                if (options.hasKey("localeCode"))
+                    request.setLocaleCode(options.getString("localeCode"));
+                if (options.hasKey("displayName"))
+                    request.setDisplayName(options.getString("displayName"));
+                if (options.hasKey("shippingAddressRequired"))
+                    request.setShippingAddressRequired(options.getBoolean("shippingAddressRequired"));
+                if (options.hasKey("intent")) {
+                    String intent = options.getString("intent");
+                    switch (intent) {
+                        case PayPalPaymentIntent.SALE:
+                            request.setIntent(PayPalPaymentIntent.SALE);
+                            break;
+                        case PayPalPaymentIntent.ORDER:
+                            request.setIntent(PayPalPaymentIntent.ORDER);
+                    }
+                } else {
+                    request.setIntent(PayPalPaymentIntent.AUTHORIZE);
+                }
+
+                payPalClient.tokenizePayPalAccount(activity, request);
+            }
+        });
     }
 
-    BraintreeFragment braintreeFragment = BraintreeFragment.newInstance(activity, token);
-    braintreeFragment.addListener(new BraintreeCancelListener() {
-      @Override
-      public void onCancel(int requestCode) {
-        promise.reject("user_cancellation", "User cancelled one time payment");
-      }
-    });
-    braintreeFragment.addListener(new PaymentMethodNonceCreatedListener() {
-      @Override
-      public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
+    protected WritableMap postalAddressToMap(PostalAddress address) {
         WritableMap result = Arguments.createMap();
-        result.putString("nonce", paymentMethodNonce.getNonce());
-        if (paymentMethodNonce instanceof PayPalAccountNonce) {
-          PayPalAccountNonce payPalAccountNonce = (PayPalAccountNonce)paymentMethodNonce;
-          // Access additional information
-          result.putString("payerId", payPalAccountNonce.getPayerId());
-          result.putString("email", payPalAccountNonce.getEmail());
-          result.putString("firstName", payPalAccountNonce.getFirstName());
-          result.putString("lastName", payPalAccountNonce.getLastName());
-          result.putString("phone", payPalAccountNonce.getPhone());
-          result.putMap("billingAddress", postalAddressToMap(payPalAccountNonce.getBillingAddress()));
-          result.putMap("shippingAddress", postalAddressToMap(payPalAccountNonce.getShippingAddress()));
-        }
-
-        promise.resolve(result);
-      }
-    });
-    braintreeFragment.addListener(new BraintreeErrorListener() {
-      @Override
-      public void onError(Exception error) {
-        if (error instanceof ErrorWithResponse) {
-          ErrorWithResponse errorWithResponse = (ErrorWithResponse) error;
-          promise.reject("request_one_time_payment_error", errorWithResponse.getErrorResponse());
-        }
-      }
-    });
-
-    return braintreeFragment;
-  }
-
-  @ReactMethod
-  public void requestBillingAgreement(
-          String token,
-          ReadableMap options,
-          Promise promise
-  ) {
-    this.promise = promise;
-    BraintreeFragment braintreeFragment = null;
-
-    try {
-      if (!options.hasKey("billingAgreementDescription")) throw new Exception("billingAgreementDescription prop is required");
-
-      braintreeFragment = initializeBraintreeFragment(token);
-    } catch (Exception e) {
-      promise.reject("braintree_sdk_setup_failed", e);
-      return;
+        result.putString("recipientName", address.getRecipientName());
+        result.putString("streetAddress", address.getStreetAddress());
+        result.putString("extendedAddress", address.getExtendedAddress());
+        result.putString("locality", address.getLocality());
+        result.putString("countryCodeAlpha2", address.getCountryCodeAlpha2());
+        result.putString("postalCode", address.getPostalCode());
+        result.putString("region", address.getRegion());
+        return result;
     }
 
-    PayPalRequest request = new PayPalRequest()
-        .billingAgreementDescription(options.getString("billingAgreementDescription"));
+    @ReactMethod
+    public void requestBillingAgreement(
+            String token,
+            ReadableMap options,
+            Promise promise
+    ) {
+        this.promise = promise;
+        FragmentActivity activity = (FragmentActivity) getCurrentActivity();
 
-    if (options.hasKey("currency"))
-      request.currencyCode(options.getString("currency"));
-    if (options.hasKey("localeCode"))
-      request.localeCode(options.getString("localeCode"));
-    if (options.hasKey("displayName"))
-      request.localeCode(options.getString("displayName"));
+        if (activity == null) {
+            promise.reject("creation_error", "Something went wrong");
+            return;
+        }
 
-    PayPal.requestBillingAgreement(braintreeFragment, request);
-  }
+        BraintreeClient braintreeClient = new BraintreeClient(activity, token);
 
-  @Override
-  public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
+        UiThreadUtil.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                PayPalClient payPalClient = new PayPalClient(activity, braintreeClient);
+                payPalClient.setListener(RNPaypalModule.this);
+                PayPalVaultRequest request = new PayPalVaultRequest();
+                if (options.hasKey("billingAgreementDescription"))
+                    request.setBillingAgreementDescription(options.getString("billingAgreementDescription"));
+                if (options.hasKey("localeCode"))
+                    request.setLocaleCode(options.getString("localeCode"));
+                if (options.hasKey("displayName"))
+                    request.setDisplayName(options.getString("displayName"));
+                payPalClient.tokenizePayPalAccount(activity, request);
+            }
+        });
+    }
 
-  }
+    @Override
+    public void onPayPalSuccess(@NonNull PayPalAccountNonce payPalAccountNonce) {
+        WritableMap result = Arguments.createMap();
+        result.putString("nonce", payPalAccountNonce.getString());
+        result.putString("payerId", payPalAccountNonce.getPayerId());
+        result.putString("email", payPalAccountNonce.getEmail());
+        result.putString("firstName", payPalAccountNonce.getFirstName());
+        result.putString("lastName", payPalAccountNonce.getLastName());
+        result.putString("phone", payPalAccountNonce.getPhone());
+        result.putMap("billingAddress", postalAddressToMap(payPalAccountNonce.getBillingAddress()));
+        result.putMap("shippingAddress", postalAddressToMap(payPalAccountNonce.getShippingAddress()));
+        promise.resolve(result);
 
-  public void onNewIntent(Intent intent){}
+    }
+
+    @Override
+    public void onPayPalFailure(@NonNull Exception error) {
+        if (error instanceof UserCanceledException) {
+            // user canceled
+            promise.reject("user_cancellation", error);
+
+        } else {
+            // handle error
+            promise.reject("request_one_time_payment_error", error);
+        }
+    }
 }
