@@ -4,7 +4,7 @@
 
 ## General
 
-#### It si a fork from [React Native Paypal](https://github.com/appsbakery/react-native-paypal)
+#### It is a fork from [React Native Paypal](https://github.com/appsbakery/react-native-paypal)
 
 #### React Native library that implements PayPal Checkout Flows using purely native code. for IOS and Android devices
 
@@ -14,7 +14,7 @@
 
 ###### - Checkout with PayPal [Checkout](https://developers.braintreepayments.com/guides/paypal/checkout-with-paypal/)
 
-##### Android Implementation uses Android v3 SDK (Rewriting to the v4 SDK will be comming soon) and provides such actions as :
+##### Android Implementation uses Android v4 SDK and provides such actions as :
 
 ###### - Checkout with Vault [Checkout](https://developer.paypal.com/braintree/docs/guides/paypal/vault)
 
@@ -26,8 +26,17 @@
 
 ### Mostly automatic installation
 
-1. `$ react-native link react-native-paypal`. Check the result, if iOS and/or Android project files are unchanged, do the steps described in Manual installation.
-1. [Android] Add `implementation "com.braintreepayments.api:braintree:3.+"` and `implementation "com.braintreepayments.api:data-collector:3.+"` in `android/app/build.gradle`.
+1. `$ react-native link react-native-paypal-reborn`. Check the result, if iOS and/or Android project files are unchanged, do the steps described in Manual installation.
+1. [Android] Add `implementation "com.braintreepayments.api:paypal:4.27.2"` in `android/app/build.gradle`.
+2. [Android] Add below `intent-filter` to your application `activity` in `android/app/src/main/AndroidManifest.xml` file.
+    ```xml
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="${applicationId}.braintree"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+    </intent-filter>
+    ```
 1. [iOS] Add `pod 'Braintree', '~> 5'` to your Podfile.
 1. [iOS] Run `pod install`
 1. [iOS] Register a URL scheme in Xcode (**must** always start with your Bundle Identifier and end in `.payments` - e.g. `your.app.id.payments`). See details [here](https://developers.braintreepayments.com/guides/paypal/client-side/ios/v4#register-a-url-type).
@@ -60,21 +69,22 @@
 
 At this point you should be able to build both Android and iOS.
 
-#### Extra setup step
+#### Extra setup step 
 
 If your application ID has underscores in it (e.g. `com.example_app`), an additional setup step is required. Otherwise, you can skip this section.
 
-Inside `ApplicationManifest.xml` add a `BraintreeBrowserSwitchActivity`. Specify the `android:scheme` to be your application id without underscores and `.braintree` appended to it:
+Inside `ApplicationManifest.xml`, specify the `android:scheme` to be your application id without underscores and `.braintree` appended to it:
 
 ```xml
-<activity android:name="com.braintreepayments.api.BraintreeBrowserSwitchActivity"
-  android:launchMode="singleTask">
+<activity android:name="...your app activity...">
+    ...
   <intent-filter>
       <action android:name="android.intent.action.VIEW" />
       <category android:name="android.intent.category.DEFAULT" />
       <category android:name="android.intent.category.BROWSABLE" />
       <data android:scheme="com.exampleapp.braintree" />
   </intent-filter>
+    ...
 </activity>
 ```
 
