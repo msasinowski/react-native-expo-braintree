@@ -66,14 +66,6 @@ public class RNPaypalModule extends ReactContextBaseJavaModule implements PayPal
             return;
         }
 
-        try {
-            BraintreeClient braintreeClient = new BraintreeClient(activity, "token");
-        } catch (Exception e) {
-            promise.reject("braintree_sdk_setup_failed", e);
-            return;
-        }
-
-
         BraintreeClient braintreeClient = new BraintreeClient(activity, token);
 
         UiThreadUtil.runOnUiThread(new Runnable() {
