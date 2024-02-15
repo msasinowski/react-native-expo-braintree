@@ -27,7 +27,7 @@
 ### Mostly automatic installation
 
 1. `$ react-native link react-native-paypal-reborn`. Check the result, if iOS and/or Android project files are unchanged, do the steps described in Manual installation.
-1. [Android] Add `implementation "com.braintreepayments.api:paypal:4.27.2"` in `android/app/build.gradle`.
+1. [Android] Add `implementation "com.braintreepayments.api:paypal:4.41.0"` in `android/app/build.gradle`.
 2. [Android] Add below `intent-filter` to your application `activity` in `android/app/src/main/AndroidManifest.xml` file.
     ```xml
     <intent-filter>
@@ -88,32 +88,6 @@ Inside `ApplicationManifest.xml`, specify the `android:scheme` to be your applic
 </activity>
 ```
 
-### Manual installation
-
-#### iOS
-
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-1. Go to `node_modules` ➜ `react-native-paypal` and add `RNPaypal.xcodeproj`
-1. In XCode, in the project navigator, select your project. Add `libRNPaypal.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
-1. In XCode, in the project navigator, select your project. Add `$(SRCROOT)/../node_modules/react-native-paypal/ios` to your project's `Build Settings` ➜ `Header Search Paths`
-
-#### Android
-
-1. Open up `android/app/src/main/java/[...]/MainApplication.java`
-
-- Add `import com.smarkets.paypal.RNPaypalPackage;` to the imports at the top of the file
-- Add `new RNPaypalPackage()` to the list returned by the `getPackages()` method
-
-1. Append the following lines to `android/settings.gradle`:
-   ```
-   include ':react-native-paypal'
-   project(':react-native-paypal').projectDir = new File(rootProject.projectDir, 	'../node_modules/react-native-paypal/android')
-   ```
-1. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
-   ```
-     implementation project(':react-native-paypal')
-   ```
-
 ## Usage
 
 First you need to get a valid token from your server. Refer to [this](https://developers.braintreepayments.com/start/hello-client/ios/v3#get-a-client-token).
@@ -124,7 +98,7 @@ Then you can execute the following code, for example reacting to a button press.
 import {
   requestOneTimePayment,
   requestBillingAgreement,
-} from "react-native-paypal";
+} from "react-native-paypal-reborn";
 
 // For one time payments
 const { nonce, payerId, email, firstName, lastName, phone } =
