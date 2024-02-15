@@ -54,6 +54,5 @@ repositories {
 
 dependencies {
     api 'com.facebook.react:react-native:+'
-
-    compileOnly 'com.braintreepayments.api:paypal:4.27.2'
+    compileOnly 'com.braintreepayments.api:paypal:4.41.0'
 }
