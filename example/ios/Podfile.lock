@@ -947,7 +947,7 @@ PODS:
   - React-Mapbuffer (0.74.0):
     - glog
     - React-debug
-  - react-native-paypal-reborn (0.1.0):
+  - react-native-paypal-reborn (2.0.0-alpha):
     - Braintree (= 6.17.0)
     - DoubleConversion
     - glog
@@ -1409,7 +1409,7 @@ SPEC CHECKSUMS:
   React-jsitracing: 36a2bbc272300313653d980de5ab700ec86c534a
   React-logger: 03f2f7b955cfe24593a2b8c9705c23e142d1ad24
   React-Mapbuffer: 5e05d78fe6505f4a054b86f415733d4ad02dd314
-  react-native-paypal-reborn: 60c434de1c87856a03eee03c6f02eb1db43d99fe
+  react-native-paypal-reborn: 69d3970f35669924c76a3e65cd5fa03b53d7a6cc
   React-nativeconfig: 951ec32f632e81cbd7d40aebb3211313251c092e
   React-NativeModulesApple: 0b3a42ca90069119ef79d8b2327d01441d71abd4
   React-perflogger: 271f1111779fef70f9502d1d38da5132e5585230
