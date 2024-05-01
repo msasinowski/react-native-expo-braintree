@@ -1,6 +1,6 @@
 {
   "name": "react-native-paypal-reborn",
-  "version": "2.0.0-alpha",
+  "version": "2.0.0-alpha.1",
   "description": "React Native Wrapper Around Braintree SDk",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
