@@ -1,152 +1,184 @@
 # react-native-paypal-reborn
 
-[![GitHub license](https://img.shields.io/github/license/smarkets/react-native-paypal.svg)](https://github.com/smarkets/react-native-paypal/blob/master/LICENSE)
+## Important Information
+Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
 
-## General
+1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum (Android or IOS) SDK please user versions 1.x.x.
 
-#### It is a fork from [React Native Paypal](https://github.com/appsbakery/react-native-paypal)
-
-#### React Native library that implements PayPal Checkout Flows using purely native code. for IOS and Android devices
-
-##### iOS Implementation uses iOS v5 SDK and provides such actions as :
-
-###### - Checkout with Vault [Checkout](https://developer.paypal.com/braintree/docs/guides/paypal/vault)
-
-###### - Checkout with PayPal [Checkout](https://developers.braintreepayments.com/guides/paypal/checkout-with-paypal/)
-
-##### Android Implementation uses Android v4 SDK and provides such actions as :
-
-###### - Checkout with Vault [Checkout](https://developer.paypal.com/braintree/docs/guides/paypal/vault)
-
-###### - Checkout with PayPal [Checkout](https://developers.braintreepayments.com/guides/paypal/checkout-with-paypal/)
 
 ## Getting started
+React Native Paypal Reborn package is a pure native implementation of Braintree SDK
+https://developer.paypal.com/braintree/docs/start/overview
 
-`$ npm install react-native-paypal-reborn --save` or `$ yarn add react-native-paypal-reborn`
+| React Native Paypal reborn Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
+| :--------------------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
+|               0.0.1                |         v3.x          |       v5.x        |         21         |      13.0       |
+|               0.1.0                |         v3.x          |       v5.x        |         21          |      13.0       |
+|               1.0.0                |        v4.2.x         |       v5.x        |         21          |      13.0       |
+|               1.1.0                |        v4.41.x        |       v5.x        |         21          |      13.0       |
+|               2.0.0                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 
-### Mostly automatic installation
 
-1. `$ react-native link react-native-paypal-reborn`. Check the result, if iOS and/or Android project files are unchanged, do the steps described in Manual installation.
-1. [Android] Add `implementation "com.braintreepayments.api:paypal:4.41.0"` in `android/app/build.gradle`.
-2. [Android] Add below `intent-filter` to your application `activity` in `android/app/src/main/AndroidManifest.xml` file.
-    ```xml
-    <intent-filter>
-        <action android:name="android.intent.action.VIEW"/>
-        <data android:scheme="${applicationId}.braintree"/>
-        <category android:name="android.intent.category.DEFAULT"/>
-        <category android:name="android.intent.category.BROWSABLE"/>
-    </intent-filter>
-    ```
-1. [iOS] Add `pod 'Braintree', '~> 5'` to your Podfile.
-1. [iOS] Run `pod install`
-1. [iOS] Register a URL scheme in Xcode (**must** always start with your Bundle Identifier and end in `.payments` - e.g. `your.app.id.payments`). See details [here](https://developers.braintreepayments.com/guides/paypal/client-side/ios/v4#register-a-url-type).
-1. [iOS] Edit your `AppDelegate.m` as follows:
 
-   ```objc
-   #import "RNPaypal.h"
+## Android Specific
 
-   - (BOOL)application:(UIApplication *)application
-     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-   {
-     [[RNPaypal sharedInstance] configure];
-   }
+In Your `AndroidManifest.xml`, `android:allowBackup="false"` can be replaced `android:allowBackup="true"`, it is responsible for app backup.
 
-   // if you support only iOS 9+, add the following method
-   - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
-     options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-   {
-     return [[RNPaypal sharedInstance] application:application openURL:url options:options];
-   }
-
-   // otherwise, if you support iOS 8, add the following method
-   - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
-     sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
-   {
-     return [[RNPaypal sharedInstance] application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
-   }
-
-   ```
-
-At this point you should be able to build both Android and iOS.
-
-#### Extra setup step 
-
-If your application ID has underscores in it (e.g. `com.example_app`), an additional setup step is required. Otherwise, you can skip this section.
-
-Inside `ApplicationManifest.xml`, specify the `android:scheme` to be your application id without underscores and `.braintree` appended to it:
+Also, add this intent-filter to your main activity in `AndroidManifest.xml`
 
 ```xml
-<activity android:name="...your app activity...">
+<activity>
     ...
-  <intent-filter>
-      <action android:name="android.intent.action.VIEW" />
-      <category android:name="android.intent.category.DEFAULT" />
-      <category android:name="android.intent.category.BROWSABLE" />
-      <data android:scheme="com.exampleapp.braintree" />
-  </intent-filter>
-    ...
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="${applicationId}.braintree" />
+    </intent-filter>
 </activity>
+
 ```
+
+## iOS Specific
+```bash
+cd ios
+pod install
+```
+###### Configure a new URL scheme
+Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like: 
+
+```xml 
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLName</key>
+        <string>com.myapp</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>com.myapp.braintree</string>
+        </array>
+    </dict>
+</array>
+```
+###### Update your code
+From version 2.0.0 of the react-native-paypal-reborn, for the IOS part of the setup there is need to make few more additional steps to integrate the library into your project. The reason is that Braintree SDk from version v6, reimplement all the IOS resources to use swift. Because of that we not longer can use Braintree Header files into AppDelegate.m file. And we need to create our own swift wrapper that can be accessible in AppDelegate.m file.
+
+- Open your React Native ios Project in xCode
+- Create PaypalRebornConfig.swift in your project, while creating the .swift file xCode will ask if you want to automatically create your {AppName}-Bridging-Header.h - Allow that
+- Put following content into PaypalRebornConfig.swift
+
+```swift
+import Braintree
+import Foundation
+
+@objc public class PaypalRebornConfig: NSObject {
+
+  @objc(configure)
+  public static func configure() {
+    BTAppContextSwitcher.sharedInstance.returnURLScheme = self.getPaymentUrlScheme()
+  }
+
+  @objc(getPaymentUrlScheme)
+  public static func getPaymentUrlScheme() -> String {
+    let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+    return bundleIdentifier + ".braintree"
+  }
+
+  @objc(handleUrl:)
+  public static func handleUrl(url: URL) -> Bool {
+    return BTAppContextSwitcher.sharedInstance.handleOpen(url)
+  }
+}
+```
+- Update Content of you AppDelegate.m
+
+
+```objective-c
+#import "{AppName}}-Swift.h"
+#import <React/RCTLinkingManager.h>
+
+...
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    ...
+    [PaypalRebornConfig configure];
+}
+
+- (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+
+    if ([url.scheme localizedCaseInsensitiveCompare:[PaypalRebornConfig getPaymentUrlScheme]] == NSOrderedSame) {
+        return [PaypalRebornConfig handleUrl:url];
+    }
+    
+    return [RCTLinkingManager application:application openURL:url options:options];
+}
+
+```
+The same steps are already implemented into example app, if you have any issues please check it.
 
 ## Usage
 
-First you need to get a valid token from your server. Refer to [this](https://developers.braintreepayments.com/start/hello-client/ios/v3#get-a-client-token).
-
-Then you can execute the following code, for example reacting to a button press.
+##### Request One Time Payment
 
 ```javascript
 import {
   requestOneTimePayment,
+} from "react-native-paypal-reborn";
+
+const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestOneTimePayment({
+    clientToken: 'Token',
+    amount: '5.0',
+    currencyCode: 'USD'
+    })
+
+```
+
+##### Card tokenization
+```javascript
+import {
+  tokenizeCard,
+} from "react-native-paypal-reborn";
+
+const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard({
+    clientToken: 'Token,
+    number: '1111222233334444',
+    expirationMonth: '11',
+    expirationYear: '24',
+    cvv: '123',
+    postalCode: '',
+    })
+
+```
+
+##### Request PayPal billing agreement
+```javascript
+import {
   requestBillingAgreement,
 } from "react-native-paypal-reborn";
 
-// For one time payments
-const { nonce, payerId, email, firstName, lastName, phone } =
-  await requestOneTimePayment(token, {
-    amount: "5", // required
-    // any PayPal supported currency (see here: https://developer.paypal.com/docs/integration/direct/rest/currency-codes/#paypal-account-payments)
-    currency: "GBP",
-    // any PayPal supported locale (see here: https://braintree.github.io/braintree_ios/Classes/BTPayPalRequest.html#/c:objc(cs)BTPayPalRequest(py)localeCode)
-    localeCode: "en_GB",
-    shippingAddressRequired: false,
-    userAction: "commit", // display 'Pay Now' on the PayPal review page
-    // one of 'authorize', 'sale', 'order'. defaults to 'authorize'. see details here: https://developer.paypal.com/docs/api/payments/v1/#payment-create-request-body
-    intent: "authorize",
-  });
+const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestBillingAgreement({
+    clientToken: 'Token',
+    billingAgreementDescription: 'Description,
+    localeCode: 'en-US'
+    })
+    .then(result => console.log(result))
+    .catch((error) => console.log(error));
+```
+##### Call Data Collector and get correlation id
+```javascript
+import {
+  getDeviceDataFromDataCollector,
+} from "react-native-paypal-reborn";
 
-// For vaulting paypal account see: https://developers.braintreepayments.com/guides/paypal/vault
-const { nonce, payerId, email, firstName, lastName, phone } =
-  await requestBillingAgreement(token, {
-    billingAgreementDescription: "Your agreement description", // required
-    // any PayPal supported currency (see here: https://developer.paypal.com/docs/integration/direct/rest/currency-codes/#paypal-account-payments)
-    currency: "GBP",
-    // any PayPal supported locale (see here: https://braintree.github.io/braintree_ios/Classes/BTPayPalRequest.html#/c:objc(cs)BTPayPalRequest(py)localeCode)
-    localeCode: "en_GB",
-  });
+const result: string = await getDeviceDataFromDataCollector("Token")
 
-// For device data collection see: https://developers.braintreepayments.com/guides/advanced-fraud-management-tools/device-data-collection/
-const { deviceData } = await requestDeviceData(token);
 ```
 
-## Creating/Finding client token
+## TODO
 
-Note that the client token should be served via a backend service but can be hardcoded:
-
-1. Go to https://www.braintreegateway.com or https://sandbox.braintreegateway.com/ and login or create an account
-2. Click the gear at the top and select to API
-3. You can find your token under `Tokenization Keys`. You will need to create one if none exists
-
-## Backend implementation
-
-For an overview of the braintree payment flow see https://developers.braintreepayments.com/start/overview
-
-This library covers the client setup here: https://developers.braintreepayments.com/start/hello-client
-
-It does NOT however cover the server portion here: https://developers.braintreepayments.com/start/hello-server
-
-You will need the server portion in order to complete your transactions. See a simple example of this server in /exampleServer. The example app is pointed to this on default
-
-## Troubleshooting
-
-- Check native code logs (in xCode for iOS or `adb logcat *:E` for Android). These may give additional information about issues
-- Try comparing your app implementation to the example app. It may help you find a step you missed. If you experience any issues with the example app or instructions missing from the Readme, please open an issue (or fix with a PR :))
+- [ ] Add Missing Methods from Braintree SDK ApplePay, Google Pay, 3D
+- [ ] Based on swift and kotlin implementation create expo working version library 
