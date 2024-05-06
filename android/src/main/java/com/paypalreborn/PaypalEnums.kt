@@ -6,6 +6,7 @@ enum class EXCEPTION_TYPES(val value: String) {
   TOKENIZE_EXCEPTION("ReactNativePaypalReborn:`TokenizeException"),
   PAYPAL_DISABLED_IN_CONFIGURATION("ReactNativePaypalReborn:`Paypal disabled in configuration")
 }
+
 enum class ERROR_TYPES(val value: String) {
   API_CLIENT_INITIALIZATION_ERROR("API_CLIENT_INITIALIZATION_ERROR"),
   TOKENIZE_VAULT_PAYMENT_ERROR("TOKENIZE_VAULT_PAYMENT_ERROR"),

@@ -6,7 +6,7 @@ https://developer.paypal.com/braintree/docs/start/overview
 
 | React Native Paypal reborn Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
 | :--------------------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
-|               0.0.1                |         v3.x          |       v5.x        |         241         |      13.0       |
+|               0.0.1                |         v3.x          |       v5.x        |         21         |      13.0       |
 |               0.1.0                |         v3.x          |       v5.x        |         21          |      13.0       |
 |               1.0.0                |        v4.2.x         |       v5.x        |         21          |      13.0       |
 |               1.1.0                |        v4.41.x        |       v5.x        |         21          |      13.0       |
@@ -39,7 +39,7 @@ cd ios
 pod install
 ```
 ###### Configure a new URL scheme
-Add a bundle url scheme {BUNDLE_IDENTIFIER}.payments in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like: 
+Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like: 
 
 ```xml 
 <key>CFBundleURLTypes</key>
@@ -51,7 +51,7 @@ Add a bundle url scheme {BUNDLE_IDENTIFIER}.payments in your app Info via XCode 
         <string>com.myapp</string>
         <key>CFBundleURLSchemes</key>
         <array>
-            <string>com.myapp.payments</string>
+            <string>com.myapp.braintree</string>
         </array>
     </dict>
 </array>
@@ -123,7 +123,7 @@ import {
   requestOneTimePayment,
 } from "react-native-paypal-reborn";
 
-const result: BTPayPalGetDeviceDataResult | BTPayPalError  = await requestOneTimePayment({
+const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestOneTimePayment({
     clientToken: 'Token',
     amount: '5.0',
     currencyCode: 'USD'
@@ -137,7 +137,7 @@ import {
   tokenizeCard,
 } from "react-native-paypal-reborn";
 
-tokenizeCard({
+const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard({
     clientToken: 'Token,
     number: '1111222233334444',
     expirationMonth: '11',
@@ -145,8 +145,6 @@ tokenizeCard({
     cvv: '123',
     postalCode: '',
     })
-    .then(result => console.log(result))
-    .catch((error) => console.log(error));
 
 ```
 
@@ -156,7 +154,7 @@ import {
   requestBillingAgreement,
 } from "react-native-paypal-reborn";
 
-const result: BTPayPalGetDeviceDataResult | BTPayPalError  = await requestBillingAgreement({
+const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestBillingAgreement({
     clientToken: 'Token',
     billingAgreementDescription: 'Description,
     localeCode: 'en-US'

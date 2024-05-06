@@ -1,7 +1,7 @@
 package com.paypalreborn
 
 import android.app.Activity
-import android.content.Context;
+import android.content.Context
 import android.content.Intent
 import androidx.fragment.app.FragmentActivity
 
@@ -10,9 +10,12 @@ import com.braintreepayments.api.BraintreeRequestCodes
 import com.braintreepayments.api.BrowserSwitchResult
 import com.braintreepayments.api.DataCollector
 import com.braintreepayments.api.PayPalAccountNonce
+import com.braintreepayments.api.CardNonce
+import com.braintreepayments.api.PayPalCheckoutRequest
 import com.braintreepayments.api.PayPalClient
 import com.braintreepayments.api.PayPalVaultRequest
-import com.braintreepayments.api.PayPalCheckoutRequest
+import com.braintreepayments.api.CardClient
+import com.braintreepayments.api.Card
 
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.LifecycleEventListener
@@ -21,7 +24,6 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
 
 
 class PaypalRebornModule(reactContext: ReactApplicationContext) :
@@ -57,10 +59,11 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
           handlePayPalAccountNonceResult(null, e)
         }
       } else {
-        throw Exception("Not Initialized")
+        throw Exception()
       }
     } catch (ex: Exception) {
-      localPromise.reject("-1", ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+      localPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
         PaypalDataConverter.createError(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message
         ))
@@ -83,7 +86,8 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
         throw Exception("Not Initialized")
       }
     } catch (ex: Exception) {
-      promiseRef.reject("-1", ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+      promiseRef.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
         PaypalDataConverter.createError(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
           ex.message
@@ -109,47 +113,54 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
           handlePayPalAccountNonceResult(null, e)
         }
       } else {
-        throw Exception("Not Initialized")
+        throw Exception()
       }
     } catch (ex: Exception) {
-      localPromise.reject("-1", ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+      localPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
         PaypalDataConverter.createError(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message
         ))
     }
   }
 
+  @ReactMethod
+  fun tokenizeCardData(data: ReadableMap, localPromise: Promise) {
+    try {
+      promiseRef = localPromise
+      currentActivityRef = getCurrentActivity() as FragmentActivity
+      braintreeClientRef = BraintreeClient(currentActivityRef, data.getString("clientToken") ?: "")
 
-//  @ReactMethod
-//  fun requestOneTimePayment(data: ReadableMap, localPromise: Promise) {
-//    try {
-//      this.promise = localPromise
-//      val activity = getCurrentActivity() as FragmentActivity
-//      val braintreeClient = BraintreeClient(activity, data.getString("clientToken") ?: "")
-//      if (localPromise == null || braintreeClient == null) {
-//        localPromise.reject("-1", ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-//          PaypalDataConverter.createError(
-//            EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-//          ))
-//        return
-//      }
-//        val payPalClient = PayPalClient(activity as FragmentActivity, braintreeClient)
-//        payPalClient.setListener(this@PaypalRebornModule)
-//        val checkoutRequest: PayPalCheckoutRequest = PaypalDataConverter.createCheckoutRequest(data)
-//        payPalClient.tokenizePayPalAccount(activity, checkoutRequest)
-//    } catch (ex: Exception) {
-//      localPromise.reject("-1", ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-//        PaypalDataConverter.createError(
-//          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-//        ))
-//    }
-//  }
+      if (this::currentActivityRef.isInitialized && this::braintreeClientRef.isInitialized) {
+        val cardClient = CardClient(braintreeClientRef)
+        val cardRequest: Card = PaypalDataConverter.createTokenizeCardRequest(data)
+        cardClient.tokenize(cardRequest) { cardNonce, error ->
+          handleCardTokenizeResult(cardNonce, error)
+        }
+      } else {
+        throw Exception()
+      }
+    } catch (ex: Exception) {
+      localPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+        PaypalDataConverter.createError(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message
+        ))
+    }
+  }
 
-//  @ReactMethod
-//  fun tokenizeCardData(data: ReadableMap, localPromise: Promise) {
-//    this.promise = promise
-//  }
-//
+  public fun handleCardTokenizeResult(
+    cardNonce: CardNonce?,
+    error: Exception?,
+  ) {
+    if (error != null) {
+      paypalRebornModuleHandlers.onCardTokenizeFailure(error, promiseRef)
+      return
+    }
+    if (cardNonce != null) {
+      paypalRebornModuleHandlers.onCardTokenizeSuccessHandler(cardNonce, promiseRef)
+    }
+  }
 
   public fun handlePayPalAccountNonceResult(
     payPalAccountNonce: PayPalAccountNonce?,

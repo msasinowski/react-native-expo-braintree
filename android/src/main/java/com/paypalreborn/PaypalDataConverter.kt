@@ -5,6 +5,9 @@ import com.braintreepayments.api.PayPalCheckoutRequest
 import com.braintreepayments.api.PayPalPaymentIntent
 import com.braintreepayments.api.PayPalVaultRequest
 import com.braintreepayments.api.PostalAddress
+import com.braintreepayments.api.Card;
+import com.braintreepayments.api.CardNonce;
+
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -26,13 +29,28 @@ class PaypalDataConverter {
     }
 
     fun convertPaypalDataAccountNonce(payPalAccountNonce: PayPalAccountNonce): WritableMap {
-      val result: WritableMap = Arguments.createMap();
+      val result: WritableMap = Arguments.createMap()
       result.putString("nonce", payPalAccountNonce.string)
       result.putString("payerId", payPalAccountNonce.payerId)
       result.putString("email", payPalAccountNonce.email)
       result.putString("firstName", payPalAccountNonce.firstName)
       result.putString("lastName", payPalAccountNonce.lastName)
       result.putString("phone", payPalAccountNonce.phone)
+      return result
+    }
+
+    fun createTokenizeCardDataNonce(cardNonce: CardNonce): WritableMap {
+      val result: WritableMap = Arguments.createMap()
+      result.putString("nonce", cardNonce.string)
+      if (cardNonce.cardType == "Unknown") {
+        result.putString("cardNetwork", "")
+      } else {
+        result.putString("cardNetwork", cardNonce.cardType)
+      }
+      result.putString("lastFour", cardNonce.getLastFour())
+      result.putString("lastTwo", cardNonce.getLastTwo())
+      result.putString("expirationMonth", cardNonce.getExpirationMonth())
+      result.putString("expirationYear", cardNonce.getExpirationYear())
       return result
     }
 
@@ -54,7 +72,6 @@ class PaypalDataConverter {
       if (options.hasKey("displayName")) {
         request.setDisplayName(options.getString("displayName"))
       }
-
       if (options.hasKey("offerCredit")) {
         val offerCredit: String = options.getString("offerCredit") ?: ""
         when (offerCredit) {
@@ -94,13 +111,35 @@ class PaypalDataConverter {
       if (options.hasKey("intent")) {
         val intent: String = options.getString("intent") ?: ""
         when (intent) {
-          PayPalPaymentIntent.SALE -> request.intent = PayPalPaymentIntent.SALE
-          PayPalPaymentIntent.ORDER -> request.intent = PayPalPaymentIntent.ORDER
+          "sale" -> request.intent = PayPalPaymentIntent.SALE
+          "order" -> request.intent = PayPalPaymentIntent.ORDER
         }
       } else {
         request.intent = PayPalPaymentIntent.AUTHORIZE
       }
       return request
     }
+
+    fun createTokenizeCardRequest(options: ReadableMap): Card {
+      val card: Card = Card()
+      if (options.hasKey("number")) {
+        card.setNumber(options.getString("number"))
+      }
+      if (options.hasKey("expirationMonth")) {
+        card.setExpirationMonth(options.getString("expirationMonth"))
+      }
+      if (options.hasKey("expirationYear")) {
+        card.setExpirationYear(options.getString("expirationYear"))
+      }
+      if (options.hasKey("cvv")) {
+        card.setCvv(options.getString("cvv"))
+      }
+      if (options.hasKey("postalCode")) {
+        card.setCvv(options.getString("postalCode"))
+      }
+      return card
+    }
+
+
   }
 }

@@ -11,7 +11,6 @@ func prepareCardData(options: [String: String]) -> BTCard {
   card.number = options["number"]
   card.expirationMonth = options["expirationMonth"]
   card.expirationYear = options["expirationYear"]
-  card.expirationYear = options["expirationYear"]
   card.cvv = options["cvv"]
   card.postalCode = options["postalCode"]
   // Validation on the client side is not yet supported on BT side

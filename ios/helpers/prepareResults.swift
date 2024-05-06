@@ -27,6 +27,7 @@ func prepareBTPayPalAccountNonceResult(accountNonce: BTPayPalAccountNonce)
   result["email"] = accountNonce.email ?? ""
   result["payerID"] = accountNonce.payerID ?? ""
   result["nonce"] = accountNonce.nonce
+  result["phone"] = accountNonce.phone
   result["firstName"] = accountNonce.firstName ?? ""
   result["lastName"] = accountNonce.lastName ?? ""
   result["billingAddress"] = prepareAddressResult(address: accountNonce.billingAddress)
