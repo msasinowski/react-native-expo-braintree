@@ -1,5 +1,9 @@
 # react-native-paypal-reborn
 
+## Important Information
+Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
+
+
 ## Getting started
 React Native Paypal Reborn package is a pure native implementation of Braintree SDK
 https://developer.paypal.com/braintree/docs/start/overview
@@ -175,3 +179,4 @@ const result: string = await getDeviceDataFromDataCollector("Token")
 ## TODO
 
 - [ ] Add Missing Methods from Braintree SDK ApplePay, Google Pay, 3D
+- [ ] Based on swift and kotlin implementation create expo working version library 
