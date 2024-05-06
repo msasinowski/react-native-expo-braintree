@@ -3,7 +3,7 @@
 ## Important Information
 Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
 
-1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum SDK please user versions 1.x.x.
+1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum (Android or IOS) SDK please user versions 1.x.x.
 
 
 ## Getting started
