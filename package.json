@@ -1,6 +1,6 @@
 {
   "name": "react-native-paypal-reborn",
-  "version": "2.0.1-alpha.0",
+  "version": "2.0.1",
   "description": "React Native Wrapper Around Braintree SDk",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -13,6 +13,7 @@
     "android",
     "ios",
     "cpp",
+    "app.plugin.js",
     "*.podspec",
     "!ios/build",
     "!android/build",
