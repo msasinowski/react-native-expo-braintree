@@ -12,15 +12,40 @@ https://developer.paypal.com/braintree/docs/start/overview
 
 | React Native Paypal reborn Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
 | :--------------------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
-|               0.0.1                |         v3.x          |       v5.x        |         21         |      13.0       |
+|               0.0.1                |         v3.x          |       v5.x        |         21          |      13.0       |
 |               0.1.0                |         v3.x          |       v5.x        |         21          |      13.0       |
 |               1.0.0                |        v4.2.x         |       v5.x        |         21          |      13.0       |
 |               1.1.0                |        v4.41.x        |       v5.x        |         21          |      13.0       |
-|               2.0.0                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|               2.0.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|               2.1.0                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 
+## Integration
+### Expo Based Project (expo SDK 50) (Alpha)
+From version 2.1.0 of the package, react-native-paypal-reborn added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
 
+Expo based project needs minimum integration from the app perspective.
+In Your `app.config.ts` or `app.config.json` or `app.config.js` please add react-native-paypal-reborn plugin into plugins section.
+```javascript
+...
+  plugins: [
+    [
+      "react-native-paypal-reborn",
+      {
+        xCodeProjectAppName: "xCodeProjectAppName",
+      },
+    ],
+...
+```
+`xCodeProjectAppName` - Name of your xCode project in case of example app in this repository it will be `PaypalRebornExample`
 
-## Android Specific
+#### Android Specific
+Currently expo-plugin written for making changes into Android settings files, using non danger modifiers from expo-config-plugins
+
+#### iOS Specific
+Currently expo-plugin written for making changes into IOS settings files, using one danger modifier from expo-config-plugins called `withAppDelegate`
+### React Native Bare Project (react-native-cli)
+
+#### Android Specific
 
 In Your `AndroidManifest.xml`, `android:allowBackup="false"` can be replaced `android:allowBackup="true"`, it is responsible for app backup.
 
@@ -39,7 +64,7 @@ Also, add this intent-filter to your main activity in `AndroidManifest.xml`
 
 ```
 
-## iOS Specific
+#### iOS Specific
 ```bash
 cd ios
 pod install
