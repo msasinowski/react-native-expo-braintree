@@ -10,13 +10,13 @@ import {
 } from './types';
 
 const LINKING_ERROR =
-  `The package 'react-native-paypal-reborn' doesn't seem to be linked. Make sure: \n\n` +
+  `The package 'expo-braintree' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const PaypalReborn = NativeModules.PaypalReborn
-  ? NativeModules.PaypalReborn
+const ExpoBraintree = NativeModules.ExpoBraintree
+  ? NativeModules.ExpoBraintree
   : new Proxy(
       {},
       {
@@ -31,7 +31,7 @@ export async function requestBillingAgreement(
 ): Promise<BTPayPalAccountNonceResult | BTPayPalError> {
   try {
     const result: BTPayPalAccountNonceResult =
-      PaypalReborn.requestBillingAgreement(options);
+      ExpoBraintree.requestBillingAgreement(options);
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
@@ -43,7 +43,7 @@ export async function requestOneTimePayment(
 ): Promise<BTPayPalAccountNonceResult | BTPayPalError> {
   try {
     const result: BTPayPalAccountNonceResult =
-      await PaypalReborn.requestOneTimePayment(options);
+      await ExpoBraintree.requestOneTimePayment(options);
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
@@ -55,7 +55,7 @@ export async function getDeviceDataFromDataCollector(
 ): Promise<BTPayPalGetDeviceDataResult | BTPayPalError> {
   try {
     const result: BTPayPalGetDeviceDataResult =
-      await PaypalReborn.getDeviceDataFromDataCollector(clientToken);
+      await ExpoBraintree.getDeviceDataFromDataCollector(clientToken);
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
@@ -67,7 +67,7 @@ export async function tokenizeCardData(
 ): Promise<BTCardTokenizationNonceResult | BTPayPalError> {
   try {
     const result: BTCardTokenizationNonceResult =
-      await PaypalReborn.tokenizeCardData(options);
+      await ExpoBraintree.tokenizeCardData(options);
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;

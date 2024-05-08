@@ -12,7 +12,7 @@ import {
   requestBillingAgreement,
   requestOneTimePayment,
   tokenizeCardData,
-} from 'react-native-paypal-reborn';
+} from 'react-native-expo-braintree';
 
 export const clientToken = 'sandbox_9dbg82cq_dcpspy2brwdjr3qn';
 

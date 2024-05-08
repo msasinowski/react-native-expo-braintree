@@ -1,13 +1,13 @@
-# react-native-paypal-reborn
-
+# react-native-expo-braintree
+This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn with changed more generic name and all the updates will be under the new react-native-expo-braintree package.
 ## Important Information
 Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
 
-1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum (Android or IOS) SDK please user versions 1.x.x.
+1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum (Android or IOS) SDK please use versions 1.x.x.
 
 
 ## Getting started
-React Native Paypal Reborn package is a pure native implementation of Braintree SDK
+React Native Expo Braintree package is a pure native implementation of Braintree SDK
 https://developer.paypal.com/braintree/docs/start/overview
 
 | React Native Paypal reborn Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
@@ -19,24 +19,28 @@ https://developer.paypal.com/braintree/docs/start/overview
 |               2.0.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 |               2.1.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 
+| React Native Expo Braintree Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
+| :--------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
+|         2.2.0          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+
 ## Integration
 ### Expo Based Project (expo SDK 50) (Alpha)
-From version 2.1.1 of the package, react-native-paypal-reborn added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
+From version 2.1.1 of the package, expo-braintree added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
 
 Expo based project needs minimum integration from the app perspective.
-In Your `app.config.ts` or `app.config.json` or `app.config.js` please add react-native-paypal-reborn plugin into plugins section.
+In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-braintree plugin into plugins section.
 ```javascript
 ...
   plugins: [
     [
-      "react-native-paypal-reborn",
+      "react-native-expo-braintree",
       {
         xCodeProjectAppName: "xCodeProjectAppName",
       },
     ],
 ...
 ```
-`xCodeProjectAppName` - Name of your xCode project in case of example app in this repository it will be `PaypalRebornExample`
+`xCodeProjectAppName` - Name of your xCode project in case of example app in this repository it will be `ExpoBraintreeExample`
 
 #### Android Specific
 Currently expo-plugin written for making changes into Android settings files, using non danger modifiers from expo-config-plugins
@@ -88,17 +92,17 @@ Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode
 </array>
 ```
 ###### Update your code
-From version 2.0.0 of the react-native-paypal-reborn, for the IOS part of the setup there is need to make few more additional steps to integrate the library into your project. The reason is that Braintree SDk from version v6, reimplement all the IOS resources to use swift. Because of that we not longer can use Braintree Header files into AppDelegate.m file. And we need to create our own swift wrapper that can be accessible in AppDelegate.m file.
+From version 2.0.0 of the expo-braintree, for the IOS part of the setup there is need to make few more additional steps to integrate the library into your project. The reason is that Braintree SDk from version v6, reimplement all the IOS resources to use swift. Because of that we not longer can use Braintree Header files into AppDelegate.m file. And we need to create our own swift wrapper that can be accessible in AppDelegate.m file.
 
 - Open your React Native ios Project in xCode
-- Create PaypalRebornConfig.swift in your project, while creating the .swift file xCode will ask if you want to automatically create your {AppName}-Bridging-Header.h - Allow that
-- Put following content into PaypalRebornConfig.swift
+- Create ExpoBraintreeConfig.swift in your project, while creating the .swift file xCode will ask if you want to automatically create your {AppName}-Bridging-Header.h - Allow that
+- Put following content into ExpoBraintreeConfig.swift
 
 ```swift
 import Braintree
 import Foundation
 
-@objc public class PaypalRebornConfig: NSObject {
+@objc public class ExpoBraintreeConfig: NSObject {
 
   @objc(configure)
   public static func configure() {
@@ -128,15 +132,15 @@ import Foundation
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     ...
-    [PaypalRebornConfig configure];
+    [ExpoBraintreeConfig configure];
 }
 
 - (BOOL)application:(UIApplication *)application
             openURL:(NSURL *)url
             options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
 
-    if ([url.scheme localizedCaseInsensitiveCompare:[PaypalRebornConfig getPaymentUrlScheme]] == NSOrderedSame) {
-        return [PaypalRebornConfig handleUrl:url];
+    if ([url.scheme localizedCaseInsensitiveCompare:[ExpoBraintreeConfig getPaymentUrlScheme]] == NSOrderedSame) {
+        return [ExpoBraintreeConfig handleUrl:url];
     }
     
     return [RCTLinkingManager application:application openURL:url options:options];
@@ -152,7 +156,7 @@ The same steps are already implemented into example app, if you have any issues 
 ```javascript
 import {
   requestOneTimePayment,
-} from "react-native-paypal-reborn";
+} from "expo-braintree";
 
 const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestOneTimePayment({
     clientToken: 'Token',
@@ -166,7 +170,7 @@ const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestOneTime
 ```javascript
 import {
   tokenizeCard,
-} from "react-native-paypal-reborn";
+} from "expo-braintree";
 
 const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard({
     clientToken: 'Token,
@@ -183,7 +187,7 @@ const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard
 ```javascript
 import {
   requestBillingAgreement,
-} from "react-native-paypal-reborn";
+} from "expo-braintree";
 
 const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestBillingAgreement({
     clientToken: 'Token',
@@ -197,7 +201,7 @@ const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestBilling
 ```javascript
 import {
   getDeviceDataFromDataCollector,
-} from "react-native-paypal-reborn";
+} from "expo-braintree";
 
 const result: string = await getDeviceDataFromDataCollector("Token")
 
@@ -206,4 +210,5 @@ const result: string = await getDeviceDataFromDataCollector("Token")
 ## TODO
 
 - [ ] Add Missing Methods from Braintree SDK ApplePay, Google Pay, 3D
-- [ ] Based on swift and kotlin implementation create expo working version library 
+- [x] Based on swift and kotlin implementation create expo working version library 
+- [x] rename the package to react-native-expo-braintree 

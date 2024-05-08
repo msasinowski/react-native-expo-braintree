@@ -1,6 +1,6 @@
 //
 //  BTPayPalCheckout.swift
-//  react-native-paypal-reborn
+//  expo-braintree
 //
 //  Created by Maciej Sasinowski on 28/04/2024.
 //
