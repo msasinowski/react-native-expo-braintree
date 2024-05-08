@@ -6,7 +6,7 @@ import {
   withSwiftPaypalRebornWrapperFile,
 } from './withExpoBraintree.ios';
 
-const pkg = require('expo-braintree/package.json');
+const pkg = require('react-native-expo-braintree/package.json');
 
 export type ExpoBraintreePluginProps = {
   /**
