@@ -1,5 +1,5 @@
 # react-native-expo-braintree
-This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn with changed more generic name and all the updated will be under the new react-native-expo-braintree package.
+This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn with changed more generic name and all the updates will be under the new react-native-expo-braintree package.
 ## Important Information
 Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
 
