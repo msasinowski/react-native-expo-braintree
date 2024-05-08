@@ -17,11 +17,11 @@ https://developer.paypal.com/braintree/docs/start/overview
 |               1.0.0                |        v4.2.x         |       v5.x        |         21          |      13.0       |
 |               1.1.0                |        v4.41.x        |       v5.x        |         21          |      13.0       |
 |               2.0.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|               2.1.0                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|               2.1.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 
 ## Integration
 ### Expo Based Project (expo SDK 50) (Alpha)
-From version 2.1.0 of the package, react-native-paypal-reborn added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
+From version 2.1.1 of the package, react-native-paypal-reborn added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
 
 Expo based project needs minimum integration from the app perspective.
 In Your `app.config.ts` or `app.config.json` or `app.config.js` please add react-native-paypal-reborn plugin into plugins section.
