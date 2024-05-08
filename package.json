@@ -1,7 +1,7 @@
 {
-  "name": "react-native-paypal-reborn",
+  "name": "react-native-expo-braintree",
   "version": "2.1.1",
-  "description": "React Native Wrapper Around Braintree SDk",
+  "description": "React native and expo wrapper around braintree sdk fro android and ios",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
@@ -9,11 +9,11 @@
   "source": "src/index",
   "files": [
     "src",
+    "app.plugin.js",
     "lib",
     "android",
     "ios",
     "cpp",
-    "app.plugin.js",
     "*.podspec",
     "!ios/build",
     "!android/build",
@@ -27,7 +27,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace react-native-paypal-reborn-example",
+    "example": "yarn workspace react-native-expo-braintree-example",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -42,14 +42,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/msasinowski/react-native-paypal-reborn.git"
+    "url": "git+https://github.com/msasinowski/react-native-expo-braintree.git"
   },
-  "author": "Maciej Sasinowski <maciej.sasinowski@acaisoft.com> (https://github.com/msasinowski)",
+  "author": "Maciej Sasinowski <maciejsasinowski@gmail.com> (https://github.com/msasinowski)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/msasinowski/react-native-paypal-reborn/issues"
+    "url": "https://github.com/msasinowski/react-native-expo-braintree/issues"
   },
-  "homepage": "https://github.com/msasinowski/react-native-paypal-reborn#readme",
+  "homepage": "https://github.com/msasinowski/react-native-expo-braintree#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -63,7 +63,7 @@
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
-    "eol": "^0.9.1",
+    "eol": "0.9.1",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",

@@ -1,14 +1,14 @@
 //
-//  PaypalRebornConfig.swift
-//  PaypalRebornExample
+//  ExpoBraintreeConfig.swift
+//  ExpoBraintreeExample
 //
-//  Created by Maciej Sasinowski on 28/04/2024.
+//  Created by Maciej Sasinowski on 08/05/2024.
 //
 
 import Braintree
 import Foundation
 
-@objc public class PaypalRebornConfig: NSObject {
+@objc public class BraintreeExpoConfig: NSObject {
 
   @objc(configure)
   public static func configure() {

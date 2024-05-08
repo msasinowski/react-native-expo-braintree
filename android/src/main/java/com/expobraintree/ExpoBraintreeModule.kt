@@ -1,22 +1,20 @@
-package com.paypalreborn
+package com.expobraintree
 
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.fragment.app.FragmentActivity
-
 import com.braintreepayments.api.BraintreeClient
 import com.braintreepayments.api.BraintreeRequestCodes
 import com.braintreepayments.api.BrowserSwitchResult
+import com.braintreepayments.api.Card
+import com.braintreepayments.api.CardClient
+import com.braintreepayments.api.CardNonce
 import com.braintreepayments.api.DataCollector
 import com.braintreepayments.api.PayPalAccountNonce
-import com.braintreepayments.api.CardNonce
 import com.braintreepayments.api.PayPalCheckoutRequest
 import com.braintreepayments.api.PayPalClient
 import com.braintreepayments.api.PayPalVaultRequest
-import com.braintreepayments.api.CardClient
-import com.braintreepayments.api.Card
-
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -25,10 +23,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 
-
-class PaypalRebornModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
-  val NAME = "PaypalReborn"
+class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
+    ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
+  val NAME = "ExpoBraintree"
   private lateinit var promiseRef: Promise
   private lateinit var currentActivityRef: FragmentActivity
   private var reactContextRef: Context
@@ -52,21 +49,18 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
       if (this::currentActivityRef.isInitialized && this::braintreeClientRef.isInitialized) {
         payPalClientRef = PayPalClient(braintreeClientRef)
         val vaultRequest: PayPalVaultRequest = PaypalDataConverter.createVaultRequest(data)
-        payPalClientRef.tokenizePayPalAccount(
-          currentActivityRef,
-          vaultRequest
-        ) { e: Exception? ->
+        payPalClientRef.tokenizePayPalAccount(currentActivityRef, vaultRequest) { e: Exception? ->
           handlePayPalAccountNonceResult(null, e)
         }
       } else {
         throw Exception()
       }
     } catch (ex: Exception) {
-      localPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        PaypalDataConverter.createError(
-          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message
-        ))
+      localPromise.reject(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+          ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+      )
     }
   }
 
@@ -77,22 +71,22 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
       braintreeClientRef = BraintreeClient(reactContextRef, clientToken ?: "")
       if (this::braintreeClientRef.isInitialized) {
         val dataCollectorClient = DataCollector(braintreeClientRef)
-        dataCollectorClient.collectDeviceData(
-          reactContextRef
-        ) { result: String?, e: Exception? ->
-          paypalRebornModuleHandlers.handleGetDeviceDataFromDataCollectorResult(result, e, promiseRef)
+        dataCollectorClient.collectDeviceData(reactContextRef) { result: String?, e: Exception? ->
+          paypalRebornModuleHandlers.handleGetDeviceDataFromDataCollectorResult(
+              result,
+              e,
+              promiseRef
+          )
         }
       } else {
         throw Exception("Not Initialized")
       }
     } catch (ex: Exception) {
-      promiseRef.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        PaypalDataConverter.createError(
+      promiseRef.reject(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-          ex.message
-        ))
-
+          ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+      )
     }
   }
 
@@ -106,21 +100,19 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
       if (this::currentActivityRef.isInitialized && this::braintreeClientRef.isInitialized) {
         payPalClientRef = PayPalClient(braintreeClientRef)
         val checkoutRequest: PayPalCheckoutRequest = PaypalDataConverter.createCheckoutRequest(data)
-        payPalClientRef.tokenizePayPalAccount(
-          currentActivityRef,
-          checkoutRequest
-        ) { e: Exception? ->
+        payPalClientRef.tokenizePayPalAccount(currentActivityRef, checkoutRequest) { e: Exception?
+          ->
           handlePayPalAccountNonceResult(null, e)
         }
       } else {
         throw Exception()
       }
     } catch (ex: Exception) {
-      localPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        PaypalDataConverter.createError(
-          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message
-        ))
+      localPromise.reject(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+          ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+      )
     }
   }
 
@@ -141,17 +133,17 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
         throw Exception()
       }
     } catch (ex: Exception) {
-      localPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        PaypalDataConverter.createError(
-          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message
-        ))
+      localPromise.reject(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+          ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+      )
     }
   }
 
   public fun handleCardTokenizeResult(
-    cardNonce: CardNonce?,
-    error: Exception?,
+      cardNonce: CardNonce?,
+      error: Exception?,
   ) {
     if (error != null) {
       paypalRebornModuleHandlers.onCardTokenizeFailure(error, promiseRef)
@@ -163,8 +155,8 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
   }
 
   public fun handlePayPalAccountNonceResult(
-    payPalAccountNonce: PayPalAccountNonce?,
-    error: Exception?,
+      payPalAccountNonce: PayPalAccountNonce?,
+      error: Exception?,
   ) {
     if (error != null) {
       paypalRebornModuleHandlers.onPayPalFailure(error, promiseRef)
@@ -178,15 +170,16 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
   override fun onHostResume() {
     if (this::braintreeClientRef.isInitialized && this::currentActivityRef.isInitialized) {
       val browserSwitchResult: BrowserSwitchResult? =
-        braintreeClientRef.deliverBrowserSwitchResult(currentActivityRef)
+          braintreeClientRef.deliverBrowserSwitchResult(currentActivityRef)
       if (browserSwitchResult != null) {
         when (browserSwitchResult.requestCode) {
-          BraintreeRequestCodes.PAYPAL -> if (this::payPalClientRef.isInitialized) {
-            payPalClientRef.onBrowserSwitchResult(
-              browserSwitchResult,
-              this::handlePayPalAccountNonceResult
-            )
-          }
+          BraintreeRequestCodes.PAYPAL ->
+              if (this::payPalClientRef.isInitialized) {
+                payPalClientRef.onBrowserSwitchResult(
+                    browserSwitchResult,
+                    this::handlePayPalAccountNonceResult
+                )
+              }
         }
       }
     }
@@ -205,5 +198,10 @@ class PaypalRebornModule(reactContext: ReactApplicationContext) :
   // empty required Implementations from interfaces
   override fun onHostPause() {}
   override fun onHostDestroy() {}
-  override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, intent: Intent?) {}
+  override fun onActivityResult(
+      activity: Activity?,
+      requestCode: Int,
+      resultCode: Int,
+      intent: Intent?
+  ) {}
 }

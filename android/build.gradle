@@ -1,6 +1,6 @@
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["PaypalReborn_kotlinVersion"]
+  def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["ExpoBraintree_kotlinVersion"]
 
   repositories {
     google()
@@ -26,11 +26,11 @@ if (isNewArchitectureEnabled()) {
 }
 
 def getExtOrDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["PaypalReborn_" + name]
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["ExpoBraintree_" + name]
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["PaypalReborn_" + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ExpoBraintree_" + name]).toInteger()
 }
 
 def supportsNamespace() {
@@ -44,7 +44,7 @@ def supportsNamespace() {
 
 android {
   if (supportsNamespace()) {
-    namespace "com.paypalreborn"
+    namespace "com.expobraintree"
 
     sourceSets {
       main {
@@ -88,7 +88,8 @@ dependencies {
   // For < 0.71, this will be from the local maven repo
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
-  implementation 'com.facebook.react:react-native:+'  // From node_modules
+  implementation "com.facebook.react:react-native:+"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation 'com.braintreepayments.api:data-collector:4.41.0'
   implementation 'com.braintreepayments.api:paypal:4.41.0'
   implementation 'com.braintreepayments.api:card:4.41.0'

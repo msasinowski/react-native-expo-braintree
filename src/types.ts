@@ -1,8 +1,8 @@
 export enum EXCEPTION_TYPES {
-  SWIFT_EXCEPTION = 'ReactNativePaypalReborn:`SwiftException',
-  USER_CANCEL_EXCEPTION = 'ReactNativePaypalReborn:`UserCancelException',
-  PAYPAL_DISABLED_IN_CONFIGURATION = 'ReactNativePaypalReborn:`Paypal disabled in configuration',
-  TOKENIZE_EXCEPTION = 'ReactNativePaypalReborn:`TokenizeException',
+  SWIFT_EXCEPTION = 'ExpoBraintree:`SwiftException',
+  USER_CANCEL_EXCEPTION = 'ExpoBraintree:`UserCancelException',
+  PAYPAL_DISABLED_IN_CONFIGURATION = 'ExpoBraintree:`Paypal disabled in configuration',
+  TOKENIZE_EXCEPTION = 'ExpoBraintree:`TokenizeException',
 }
 
 export enum ERROR_TYPES {

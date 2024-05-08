@@ -1,4 +1,4 @@
-package com.paypalreborn
+package com.expobraintree
 
 import com.braintreepayments.api.PayPalAccountNonce
 import com.braintreepayments.api.UserCanceledException

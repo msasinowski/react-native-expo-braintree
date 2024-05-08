@@ -1,10 +1,10 @@
-package com.paypalreborn
+package com.expobraintree
 
 enum class EXCEPTION_TYPES(val value: String) {
-  KOTLIN_EXCEPTION("ReactNativePaypalReborn:`KotlinException"),
-  USER_CANCEL_EXCEPTION("ReactNativePaypalReborn:`UserCancelException"),
-  TOKENIZE_EXCEPTION("ReactNativePaypalReborn:`TokenizeException"),
-  PAYPAL_DISABLED_IN_CONFIGURATION("ReactNativePaypalReborn:`Paypal disabled in configuration")
+  KOTLIN_EXCEPTION("ExpoBraintree:`KotlinException"),
+  USER_CANCEL_EXCEPTION("ExpoBraintree:`UserCancelException"),
+  TOKENIZE_EXCEPTION("ExpoBraintree:`TokenizeException"),
+  PAYPAL_DISABLED_IN_CONFIGURATION("ExpoBraintree:`Paypal disabled in configuration")
 }
 
 enum class ERROR_TYPES(val value: String) {

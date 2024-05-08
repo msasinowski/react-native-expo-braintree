@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-paypal-reborn": ["./src/index"]
+      "react-native-expo-braintree": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

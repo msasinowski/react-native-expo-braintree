@@ -1,6 +1,6 @@
 #import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_MODULE(PaypalReborn, NSObject)
+@interface RCT_EXTERN_MODULE(ExpoBraintree, NSObject)
 
 RCT_EXTERN_METHOD(requestBillingAgreement:(NSDictionary*)options
                  withResolver:(RCTPromiseResolveBlock)resolve
@@ -24,3 +24,4 @@ RCT_EXTERN_METHOD(getDeviceDataFromDataCollector:(NSString*)clientToken
 }
 
 @end
+

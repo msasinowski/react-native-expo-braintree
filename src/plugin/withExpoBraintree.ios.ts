@@ -6,10 +6,10 @@ import {
   IOSConfig,
 } from '@expo/config-plugins';
 import eol from 'eol';
-import type { ReactNativePaypalRebornPluginProps } from './withReactNativePaypalReborn';
+import type { ExpoBraintreePluginProps } from './withExpoBraintree';
 
-export const withReactNativePaypalRebornAppDelegate: ConfigPlugin<
-  ReactNativePaypalRebornPluginProps
+export const withExpoBraintreeAppDelegate: ConfigPlugin<
+  ExpoBraintreePluginProps
 > = (expoConfig, { xCodeProjectAppName }) => {
   return withAppDelegate(expoConfig, (config) => {
     const appDelegate = config.modResults;
@@ -113,7 +113,7 @@ export const withSwiftPaypalRebornWrapperFile: ConfigPlugin = (config) => {
   });
 };
 
-export const withReactNativePaypalRebornPlist: ConfigPlugin = (expoConfig) => {
+export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
   return withInfoPlist(expoConfig, (config) => {
     const bundleIdentifier = config.ios?.bundleIdentifier ?? '';
     const bundleIdentifierWithBraintreeSchema = `${bundleIdentifier}.braintree`;

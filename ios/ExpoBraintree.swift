@@ -1,6 +1,6 @@
 //
 //  BTPayPalVaultRequest.swift
-//  react-native-paypal-reborn
+//  expo-braintree
 //
 //  Created by Maciej Sasinowski on 28/04/2024.
 //
@@ -10,11 +10,11 @@ import Foundation
 import React
 
 enum EXCEPTION_TYPES: String {
-  case SWIFT_EXCEPTION = "ReactNativePaypalReborn:`SwiftException"
-  case USER_CANCEL_EXCEPTION = "ReactNativePaypalReborn:`UserCancelException"
-  case TOKENIZE_EXCEPTION = "ReactNativePaypalReborn:`TokenizeException"
+  case SWIFT_EXCEPTION = "ReactNativeExpoBraintree:`SwiftException"
+  case USER_CANCEL_EXCEPTION = "ReactNativeExpoBraintree:`UserCancelException"
+  case TOKENIZE_EXCEPTION = "ReactNativeExpoBraintree:`TokenizeException"
   case PAYPAL_DISABLED_IN_CONFIGURATION =
-    "ReactNativePaypalReborn:`Paypal disabled in configuration"
+    "ReactNativeExpoBraintree:`Paypal disabled in configuration"
 }
 
 enum ERROR_TYPES: String {
@@ -26,8 +26,8 @@ enum ERROR_TYPES: String {
   case CARD_TOKENIZATION_ERROR = "CARD_TOKENIZATION_ERROR"
 }
 
-@objc(PaypalReborn)
-class PaypalReborn: NSObject {
+@objc(ExpoBraintree)
+class ExpoBraintree: NSObject {
 
   @objc(requestBillingAgreement:withResolver:withRejecter:)
   func requestBillingAgreement(

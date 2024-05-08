@@ -6,9 +6,7 @@ import {
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
-export const withReactNativePaypalRebornAndroid: ConfigPlugin = (
-  expoConfig
-) => {
+export const withExpoBraintreeAndroid: ConfigPlugin = (expoConfig) => {
   return withAndroidManifest(expoConfig, (config) => {
     config.modResults = addPaypalIntentFilter(config.modResults);
     return config;
@@ -47,7 +45,7 @@ export const addPaypalIntentFilter = (
   const intentFilters = mainActivity['intent-filter'];
   if (!intentFilters?.length) {
     console.warn(
-      'withReactNativePaypalRebornAndroid.addPaypalIntentFilter: No .Intent Filters'
+      'withExpoBraintreeAndroid.addPaypalIntentFilter: No .Intent Filters'
     );
     return modResults;
   }
@@ -65,7 +63,7 @@ export const addPaypalIntentFilter = (
     isIntentDataBraintreeExist
   ) {
     console.warn(
-      'withReactNativePaypalRebornAndroid: AndroidManifest not require any changes'
+      'withExpoBraintreeAndroid: AndroidManifest not require any changes'
     );
     return modResults;
   }
