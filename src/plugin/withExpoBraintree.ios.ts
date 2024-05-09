@@ -34,46 +34,46 @@ export const withExpoBraintreeAppDelegate: ConfigPlugin<
     }
     // Step 2 Add configure method in didFinishLaunchingWithOptions
     const didFinishLaunchingWithOptions = 'didFinishLaunchingWithOptions';
-    const payPalRebornConfigureLine = '  [PaypalRebornConfig configure];';
+    const expoBraintreeConfigureLine = '  [BraintreeExpoConfig configure];';
     let didFinishLaunchingWithOptionsElementIndex = contents.findIndex(
       (content) => content.includes(didFinishLaunchingWithOptions)
     );
-    const payPalRebornConfigureLineIndex = contents.findIndex((content) =>
-      content.includes(payPalRebornConfigureLine)
+    const expoBraintreeConfigureLineIndex = contents.findIndex((content) =>
+      content.includes(expoBraintreeConfigureLine)
     );
-    // If didFinishLaunchingWithOptions exist in AppDelegate.mm and payPalRebornConfigureLine do not exist
+    // If didFinishLaunchingWithOptions exist in AppDelegate.mm and expoBraintreeConfigureLine do not exist
     if (
-      !~payPalRebornConfigureLineIndex &&
+      !~expoBraintreeConfigureLineIndex &&
       !!~didFinishLaunchingWithOptionsElementIndex
     ) {
       contents.splice(
         // We are adding +2 to the index to insert content after '{' block
         didFinishLaunchingWithOptionsElementIndex + 2,
         0,
-        payPalRebornConfigureLine
+        expoBraintreeConfigureLine
       );
     }
     // Step 3 Add method to properly handle openUrl method in AppDelegate.m
     const openUrlMethod =
       '- (BOOL)application:(UIApplication *)application openURL';
-    const payPalRebornOpenUrlLines = [
-      '  if ([url.scheme localizedCaseInsensitiveCompare:[PaypalRebornConfig getPaymentUrlScheme]] == NSOrderedSame) {',
-      '    return [PaypalRebornConfig handleUrl:url];',
+    const expoBraintreeOpenUrlLines = [
+      '  if ([url.scheme localizedCaseInsensitiveCompare:[BraintreeExpoConfig getPaymentUrlScheme]] == NSOrderedSame) {',
+      '    return [BraintreeExpoConfig handleUrl:url];',
       '  }',
     ];
     const openUrlMethodElementIndex = contents.findIndex((content) =>
       content.includes(openUrlMethod)
     );
-    const payPalRebornOpenUrlLineIndex = contents.findIndex((content) =>
-      content.includes(payPalRebornOpenUrlLines?.[0] ?? '')
+    const expoBraintreeOpenUrlLineIndex = contents.findIndex((content) =>
+      content.includes(expoBraintreeOpenUrlLines?.[0] ?? '')
     );
-    // If openUrlMethodElementIndex exist in AppDelegate.mm and payPalRebornOpenUrlLineIndex do not exist
-    if (!~payPalRebornOpenUrlLineIndex && !!~openUrlMethodElementIndex) {
+    // If openUrlMethodElementIndex exist in AppDelegate.mm and expoBraintreeOpenUrlLineIndex do not exist
+    if (!~expoBraintreeOpenUrlLineIndex && !!~openUrlMethodElementIndex) {
       contents.splice(
         // We are adding +1 to the index to insert content after '{' block
         openUrlMethodElementIndex + 1,
         0,
-        ...payPalRebornOpenUrlLines
+        ...expoBraintreeOpenUrlLines
       );
     }
     config.modResults.contents = contents.join('\n');
@@ -84,14 +84,14 @@ export const withExpoBraintreeAppDelegate: ConfigPlugin<
 /**
  * Add a new wrapper Swift file to the Xcode project for Swift compatibility.
  */
-export const withSwiftPaypalRebornWrapperFile: ConfigPlugin = (config) => {
+export const withSwiftBraintreeWrapperFile: ConfigPlugin = (config) => {
   return IOSConfig.XcodeProjectFile.withBuildSourceFile(config, {
-    filePath: 'PaypalRebornConfig.swift',
+    filePath: 'BraintreeExpoConfig.swift',
     contents: [
       'import Braintree',
       'import Foundation',
       '',
-      '@objc public class PaypalRebornConfig: NSObject {',
+      '@objc public class BraintreeExpoConfig: NSObject {',
       '',
       '@objc(configure)',
       'public static func configure() {',
