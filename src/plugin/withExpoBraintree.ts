@@ -3,14 +3,14 @@ import { withExpoBraintreeAndroid } from './withExpoBraintree.android';
 import {
   withExpoBraintreeAppDelegate,
   withExpoBraintreePlist,
-  withSwiftPaypalRebornWrapperFile,
+  withSwiftBraintreeWrapperFile,
 } from './withExpoBraintree.ios';
 
 const pkg = require('react-native-expo-braintree/package.json');
 
 export type ExpoBraintreePluginProps = {
   /**
-   * xCode project name, used for importing the swift paypal reborn config header
+   * xCode project name, used for importing the swift expo braintree config header
    */
   xCodeProjectAppName: string;
 };
@@ -22,7 +22,7 @@ export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
   // Android mods
   config = withExpoBraintreeAndroid(config);
   // IOS mods
-  config = withSwiftPaypalRebornWrapperFile(config);
+  config = withSwiftBraintreeWrapperFile(config);
   config = withExpoBraintreeAppDelegate(config, props);
   config = withExpoBraintreePlist(config);
   return config;
