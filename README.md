@@ -22,6 +22,8 @@ https://developer.paypal.com/braintree/docs/start/overview
 | React Native Expo Braintree Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
 | :--------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
 |         2.2.0          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|         2.2.1          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|         2.2.2          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 
 ## Integration
 ### Expo Based Project (expo SDK 50) (Alpha)
