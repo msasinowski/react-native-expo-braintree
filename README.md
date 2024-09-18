@@ -214,5 +214,4 @@ const result: string = await getDeviceDataFromDataCollector("Token")
 ## TODO
 
 - [ ] Add Missing Methods from Braintree SDK ApplePay, Google Pay, 3D
-- [x] Based on swift and kotlin implementation create expo working version library 
-- [x] rename the package to react-native-expo-braintree 
+
