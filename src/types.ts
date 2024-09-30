@@ -58,6 +58,21 @@ export type TokenizeCardOptions = {
   postalCode?: string;
   clientToken: string;
 };
+export type ThreeDSecureCheckOptions = {
+  clientToken: string;
+  amount: string;
+  nonce: string;
+  email?: string;
+  givenName?: string;
+  surName?: string;
+  phoneNumber?: string;
+  streetAddress?: string;
+  extendedAddress?: string;
+  city?: string;
+  postalCode?: string;
+  region?: string;
+  countryCodeAlpha2?: string;
+};
 
 export type BTPayPalAccountNonceAddressResult = {
   recipientName?: string;

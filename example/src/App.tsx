@@ -12,6 +12,7 @@ import {
   requestBillingAgreement,
   requestOneTimePayment,
   tokenizeCardData,
+  request3DSecurePaymentCheck,
 } from 'react-native-expo-braintree';
 
 export const clientToken = 'sandbox_9dbg82cq_dcpspy2brwdjr3qn';
@@ -95,6 +96,39 @@ export default function App() {
             setIsLoading(false);
             setResult(JSON.stringify(tokenizedCard));
             console.log(JSON.stringify(tokenizedCard));
+          } catch (ex) {
+            console.log(JSON.stringify(ex));
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+      />
+
+      <Button
+        title="Click Me To Tokenize Card and Run 3DS Check"
+        onPress={async () => {
+          try {
+            setIsLoading(true);
+            const tokenizedCard = await tokenizeCardData({
+              clientToken,
+              number: '1111222233334444',
+              expirationMonth: '11',
+              expirationYear: '24',
+              cvv: '123',
+              postalCode: '',
+            });
+
+            if ('nonce' in tokenizedCard) {
+              console.log(tokenizedCard?.nonce);
+              const secureCheckResult = await request3DSecurePaymentCheck({
+                clientToken,
+                amount: '10.50',
+                nonce: tokenizedCard?.nonce,
+              });
+              setIsLoading(false);
+              setResult(JSON.stringify(secureCheckResult));
+              console.log(JSON.stringify(secureCheckResult));
+            }
           } catch (ex) {
             console.log(JSON.stringify(ex));
           } finally {

@@ -24,6 +24,8 @@ enum ERROR_TYPES: String {
   case PAYPAL_DISABLED_IN_CONFIGURATION_ERROR = "PAYPAL_DISABLED_IN_CONFIGURATION_ERROR"
   case DATA_COLLECTOR_ERROR = "DATA_COLLECTOR_ERROR"
   case CARD_TOKENIZATION_ERROR = "CARD_TOKENIZATION_ERROR"
+  case D_SECURE_CARD_TOKENIZATION_ERROR = "D_SECURE_CARD_TOKENIZATION_ERROR"
+  case D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR = "D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR"
 }
 
 @objc(ExpoBraintree)
@@ -213,5 +215,54 @@ class ExpoBraintree: NSObject {
       }
     }
   }
+  
+  @objc(request3DSecurePaymentCheck:withResolver:withRejecter:)
+  func request3DSecurePaymentCheck(
+    options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let clientToken = options["clientToken"] ?? ""
+    let nonce = options["nonce"] ?? ""
+    let amount = options["amount"] ?? ""
+
+    // Step 1: Initialize Braintree API Client
+    let apiClientOptional = BTAPIClient(authorization: clientToken)
+    guard let apiClient = apiClientOptional else {
+      return reject(
+        EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue,
+        NSError(domain: ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue, code: -1))
+    }
+    if amount.isEmpty || nonce.isEmpty {
+      return reject(
+        EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue,
+        ERROR_TYPES.D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR.rawValue,
+        NSError(domain: ERROR_TYPES.D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR.rawValue, code: -1))
+    }
+    
+    let dsSecureRequest = prepare3DSecureData(options: options)
+    
+    let threeDSecureClient = BTThreeDSecureClient(apiClient: apiClient)
+    // Step 3: Try To Collect Device Data and make a corelation Id if that is possible
+    threeDSecureClient.startPaymentFlow(dsSecureRequest) {
+      (dSecureNonce, error) -> Void in
+      if let dSecureNonce = dSecureNonce {
+        // Step 4: Return corelation id
+        return resolve("Succces")
+      } else if let error = error {
+        // Step 4: Handle Error: DataCollector error
+        return reject(
+          EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue,
+          error.localizedDescription,
+          NSError(
+            domain: ERROR_TYPES.D_SECURE_CARD_TOKENIZATION_ERROR.rawValue,
+            code: -1)
+        )
+      }
+    }
+  }
+  
+  
+  
 
 }

@@ -7,6 +7,7 @@ import {
   type BTPayPalGetDeviceDataResult,
   type BTCardTokenizationNonceResult,
   type TokenizeCardOptions,
+  type ThreeDSecureCheckOptions,
 } from './types';
 
 const LINKING_ERROR =
@@ -68,6 +69,18 @@ export async function tokenizeCardData(
   try {
     const result: BTCardTokenizationNonceResult =
       await ExpoBraintree.tokenizeCardData(options);
+    return result;
+  } catch (ex: unknown) {
+    return ex as BTPayPalError;
+  }
+}
+
+export async function request3DSecurePaymentCheck(
+  options: ThreeDSecureCheckOptions
+): Promise<any | BTPayPalError> {
+  try {
+    const result: BTCardTokenizationNonceResult =
+      await ExpoBraintree.request3DSecurePaymentCheck(options);
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
