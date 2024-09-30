@@ -240,11 +240,13 @@ class ExpoBraintree: NSObject {
         NSError(domain: ERROR_TYPES.D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR.rawValue, code: -1))
     }
     
-    let dsSecureRequest = prepare3DSecureData(options: options)
+    let threeDSSecureRequest = prepare3DSecureData(options: options)
+    threeDSSecureRequest.threeDSecureRequestDelegate = self
     
     let threeDSecureClient = BTThreeDSecureClient(apiClient: apiClient)
+    threeDSSecureRequest.threeDSecureRequestDelegate = self
     // Step 3: Try To Collect Device Data and make a corelation Id if that is possible
-    threeDSecureClient.startPaymentFlow(dsSecureRequest) {
+    threeDSecureClient.startPaymentFlow(threeDSSecureRequest) {
       (dSecureNonce, error) -> Void in
       if let dSecureNonce = dSecureNonce {
         // Step 4: Return corelation id
@@ -262,7 +264,12 @@ class ExpoBraintree: NSObject {
     }
   }
   
-  
-  
-
+  func onLookupComplete(
+      _ request: BTThreeDSecureRequest,
+      lookupResult: BTThreeDSecureResult,
+      next: @escaping () -> Void
+  ) {
+      // Optionally inspect the result and prepare UI if a challenge is required
+      next()
+  }
 }

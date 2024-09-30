@@ -13,7 +13,7 @@ func prepare3DSecureData(options: [String: String]) -> BTThreeDSecureRequest {
   formatter.generatesDecimalNumbers = true
   threeDSecureRequest.amount = formatter.number(from: amount) as? NSDecimalNumber ?? 0
   threeDSecureRequest.nonce = options["nonce"]
-  
+
   // Not required optional params 
   threeDSecureRequest.email = options["email"]
   let threeDsRequestPostalAddress = BTThreeDSecurePostalAddress()
