@@ -14,7 +14,7 @@ enum EXCEPTION_TYPES: String {
   case USER_CANCEL_EXCEPTION = "ReactNativeExpoBraintree:`UserCancelException"
   case TOKENIZE_EXCEPTION = "ReactNativeExpoBraintree:`TokenizeException"
   case PAYPAL_DISABLED_IN_CONFIGURATION =
-    "ReactNativeExpoBraintree:`Paypal disabled in configuration"
+        "ReactNativeExpoBraintree:`Paypal disabled in configuration"
 }
 
 enum ERROR_TYPES: String {
@@ -26,11 +26,17 @@ enum ERROR_TYPES: String {
   case CARD_TOKENIZATION_ERROR = "CARD_TOKENIZATION_ERROR"
   case D_SECURE_CARD_TOKENIZATION_ERROR = "D_SECURE_CARD_TOKENIZATION_ERROR"
   case D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR = "D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR"
+  case D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY = "D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY"
+  case D_SECURE_LIABILITY_NOT_SHIFTED = "D_SECURE_LIABILITY_NOT_SHIFTED"
+  case PAYMENT_3D_SECURE_FAILED = "PAYMENT_3D_SECURE_FAILED"
 }
 
 @objc(ExpoBraintree)
-class ExpoBraintree: NSObject {
-
+class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate {
+  
+  var threeDSecureClient: BTThreeDSecureClient? = nil
+  
+  
   @objc(requestBillingAgreement:withResolver:withRejecter:)
   func requestBillingAgreement(
     options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
@@ -88,7 +94,7 @@ class ExpoBraintree: NSObject {
       }
     }
   }
-
+  
   @objc(requestOneTimePayment:withResolver:withRejecter:)
   func requestOneTimePayment(
     options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
@@ -146,7 +152,7 @@ class ExpoBraintree: NSObject {
       }
     }
   }
-
+  
   @objc(getDeviceDataFromDataCollector:withResolver:withRejecter:)
   func getDeviceDataFromDataCollector(
     clientToken: String, resolve: @escaping RCTPromiseResolveBlock,
@@ -179,7 +185,7 @@ class ExpoBraintree: NSObject {
       }
     }
   }
-
+  
   @objc(tokenizeCardData:withResolver:withRejecter:)
   func tokenizeCardData(
     options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
@@ -224,7 +230,7 @@ class ExpoBraintree: NSObject {
     let clientToken = options["clientToken"] ?? ""
     let nonce = options["nonce"] ?? ""
     let amount = options["amount"] ?? ""
-
+    
     // Step 1: Initialize Braintree API Client
     let apiClientOptional = BTAPIClient(authorization: clientToken)
     guard let apiClient = apiClientOptional else {
@@ -240,17 +246,52 @@ class ExpoBraintree: NSObject {
         NSError(domain: ERROR_TYPES.D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR.rawValue, code: -1))
     }
     
+    self.threeDSecureClient = BTThreeDSecureClient(apiClient: apiClient)
+    guard let secureClient = self.threeDSecureClient else {
+      return reject(
+        EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue,
+        NSError(domain: ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue, code: -1))
+    }
+    
     let threeDSSecureRequest = prepare3DSecureData(options: options)
     threeDSSecureRequest.threeDSecureRequestDelegate = self
     
-    let threeDSecureClient = BTThreeDSecureClient(apiClient: apiClient)
-    threeDSSecureRequest.threeDSecureRequestDelegate = self
-    // Step 3: Try To Collect Device Data and make a corelation Id if that is possible
-    threeDSecureClient.startPaymentFlow(threeDSSecureRequest) {
-      (dSecureNonce, error) -> Void in
-      if let dSecureNonce = dSecureNonce {
-        // Step 4: Return corelation id
-        return resolve("Succces")
+    secureClient.startPaymentFlow(threeDSSecureRequest) {
+      (threeDSecureNonceOptional, error) -> Void in
+      if let tokenizedCard = threeDSecureNonceOptional?.tokenizedCard {
+        
+        if tokenizedCard.threeDSecureInfo.liabilityShiftPossible && tokenizedCard.threeDSecureInfo.wasVerified {
+          return reject(
+            EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue,
+            ERROR_TYPES.D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY.rawValue,
+            NSError(
+              domain: ERROR_TYPES.D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY.rawValue,
+              code: -1)
+          )
+        }
+        
+        if tokenizedCard.threeDSecureInfo.liabilityShifted && tokenizedCard.threeDSecureInfo.wasVerified{
+          return reject(
+            EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue,
+            ERROR_TYPES.D_SECURE_LIABILITY_NOT_SHIFTED.rawValue,
+            NSError(
+              domain: ERROR_TYPES.D_SECURE_LIABILITY_NOT_SHIFTED.rawValue,
+              code: -1)
+          )
+        }
+        
+        if (tokenizedCard.nonce ?? "").isEmpty {
+          return reject(
+            EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue,
+            ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.rawValue,
+            NSError(
+              domain: ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.rawValue,
+              code: -1)
+          )
+        }
+        
+        return resolve(prepare3DSecureNonceResult(tokenizedCard:tokenizedCard))
       } else if let error = error {
         // Step 4: Handle Error: DataCollector error
         return reject(
@@ -264,12 +305,12 @@ class ExpoBraintree: NSObject {
     }
   }
   
+  //  Function needed for BTThreeDSecureRequestDelegate
   func onLookupComplete(
-      _ request: BTThreeDSecureRequest,
-      lookupResult: BTThreeDSecureResult,
-      next: @escaping () -> Void
+    _ request: BTThreeDSecureRequest,
+    lookupResult: BTThreeDSecureResult,
+    next: @escaping () -> Void
   ) {
-      // Optionally inspect the result and prepare UI if a challenge is required
-      next()
+    next()
   }
 }

@@ -12,6 +12,9 @@ export enum ERROR_TYPES {
   PAYPAL_DISABLED_IN_CONFIGURATION_ERROR = 'PAYPAL_DISABLED_IN_CONFIGURATION_ERROR',
   DATA_COLLECTOR_ERROR = 'DATA_COLLECTOR_ERROR',
   CARD_TOKENIZATION_ERROR = 'CARD_TOKENIZATION_ERROR',
+  D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY = 'D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY',
+  D_SECURE_LIABILITY_NOT_SHIFTED = 'D_SECURE_LIABILITY_NOT_SHIFTED',
+  PAYMENT_3D_SECURE_FAILED = 'PAYMENT_3D_SECURE_FAILED',
 }
 
 export enum BTPayPalCheckoutIntent {
@@ -95,6 +98,15 @@ export type BTPayPalAccountNonceResult = {
 };
 
 export type BTCardTokenizationNonceResult = {
+  nonce: string;
+  cardNetwork?: string;
+  lastTwo?: string;
+  lastFour?: string;
+  expirationMonth?: string;
+  expirationYear?: string;
+};
+
+export type BTCardTokenization3DSNonceResult = {
   nonce: string;
   cardNetwork?: string;
   lastTwo?: string;

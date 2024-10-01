@@ -1,0 +1,27 @@
+{
+  "name": "simple-braintree-server",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
+    "@react-native/babel-preset": "0.74.83",
+    "@react-native/metro-config": "0.74.83",
+    "@react-native/typescript-config": "0.74.83",
+    "babel-plugin-module-resolver": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "server.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "braintree": "^3.25.0",
+    "dotenv": "^16.4.5"
+  }
+}

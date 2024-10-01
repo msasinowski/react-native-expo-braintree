@@ -13,8 +13,8 @@ func prepare3DSecureData(options: [String: String]) -> BTThreeDSecureRequest {
   formatter.generatesDecimalNumbers = true
   threeDSecureRequest.amount = formatter.number(from: amount) as? NSDecimalNumber ?? 0
   threeDSecureRequest.nonce = options["nonce"]
-
-  // Not required optional params 
+  
+  // Not required optional params
   threeDSecureRequest.email = options["email"]
   let threeDsRequestPostalAddress = BTThreeDSecurePostalAddress()
   threeDsRequestPostalAddress.givenName = options["givenName"]
@@ -26,26 +26,26 @@ func prepare3DSecureData(options: [String: String]) -> BTThreeDSecureRequest {
   threeDsRequestPostalAddress.postalCode = options["postalCode"]
   threeDsRequestPostalAddress.region = options["region"]
   threeDsRequestPostalAddress.countryCodeAlpha2 = options["countryCodeAlpha2"]
-
+  
   let threeDsRequestAdditionalInformation = BTThreeDSecureAdditionalInformation()
   threeDsRequestAdditionalInformation.shippingAddress = threeDsRequestPostalAddress
-
+  
   threeDSecureRequest.additionalInformation = threeDsRequestAdditionalInformation
   threeDSecureRequest.billingAddress = threeDsRequestPostalAddress;
-  
+  //  TODO Add posibility to customize UI
   
   return threeDSecureRequest
 }
 
-func prepare3DSecureNonceResult(cardNonce: BTCardNonce)
-  -> NSDictionary
+func prepare3DSecureNonceResult(tokenizedCard: BTCardNonce)
+-> NSDictionary
 {
   let result = NSMutableDictionary()
-  result["nonce"] = cardNonce.nonce
-  result["cardNetwork"] = cardNonce.cardNetwork
-  result["lastFour"] = cardNonce.lastFour
-  result["lastTwo"] = cardNonce.lastTwo
-  result["expirationMonth"] = cardNonce.expirationMonth
-  result["expirationYear"] = cardNonce.expirationYear
+  result["nonce"] = tokenizedCard.nonce
+  result["cardNetwork"] = tokenizedCard.cardNetwork
+  result["lastFour"] = tokenizedCard.lastFour
+  result["lastTwo"] = tokenizedCard.lastTwo
+  result["expirationMonth"] = tokenizedCard.expirationMonth
+  result["expirationYear"] = tokenizedCard.expirationYear
   return result
 }

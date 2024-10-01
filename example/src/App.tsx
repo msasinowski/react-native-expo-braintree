@@ -110,19 +110,22 @@ export default function App() {
           try {
             setIsLoading(true);
             const tokenizedCard = await tokenizeCardData({
-              clientToken,
-              number: '1111222233334444',
-              expirationMonth: '11',
-              expirationYear: '24',
+              // Only client Token will work Tokenized Key will do not work for 3DS
+              // Take a look on the example/src/simple-braintree-server to generate clientToken
+              clientToken: '',
+              number: '4000000000001000',
+              expirationMonth: '01',
+              expirationYear: '2024',
               cvv: '123',
-              postalCode: '',
             });
 
             if ('nonce' in tokenizedCard) {
               console.log(tokenizedCard?.nonce);
               const secureCheckResult = await request3DSecurePaymentCheck({
-                clientToken,
-                amount: '10.50',
+                // Only client Token will work Tokenized Key will do not work for 3DS
+                // Take a look on the example/src/simple-braintree-server to generate clientToken
+                clientToken: '',
+                amount: '10',
                 nonce: tokenizedCard?.nonce,
               });
               setIsLoading(false);
