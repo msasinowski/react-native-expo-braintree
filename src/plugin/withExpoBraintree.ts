@@ -4,6 +4,7 @@ import {
   withExpoBraintreeAppDelegate,
   withExpoBraintreePlist,
   withSwiftBraintreeWrapperFile,
+  withVenmoScheme,
 } from './withExpoBraintree.ios';
 
 const pkg = require('react-native-expo-braintree/package.json');
@@ -25,6 +26,8 @@ export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
   config = withSwiftBraintreeWrapperFile(config);
   config = withExpoBraintreeAppDelegate(config, props);
   config = withExpoBraintreePlist(config);
+  config = withVenmoScheme(config);
+
   return config;
 };
 

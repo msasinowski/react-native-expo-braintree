@@ -139,3 +139,25 @@ export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
     return config;
   });
 };
+
+/*
+ * Add allowlist Venmo URL scheme
+ * @see https://developer.paypal.com/braintree/docs/guides/venmo/client-side/ios/v6#allowlist-venmo-url-scheme
+ */
+export const withVenmoScheme: ConfigPlugin = (expoConfig) => {
+  return withInfoPlist(expoConfig, (config) => {
+    // Ensure LSApplicationQueriesSchemes exists in Info.plist
+    config.modResults.LSApplicationQueriesSchemes =
+      config.modResults.LSApplicationQueriesSchemes || [];
+
+    // Hardcoded scheme for Venmo
+    const venmoScheme = 'com.venmo.touch.v2';
+
+    // Add the Venmo scheme to the LSApplicationQueriesSchemes array if not already present
+    if (!config.modResults.LSApplicationQueriesSchemes.includes(venmoScheme)) {
+      config.modResults.LSApplicationQueriesSchemes.push(venmoScheme);
+    }
+
+    return config;
+  });
+};

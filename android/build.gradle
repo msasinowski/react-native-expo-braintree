@@ -93,5 +93,6 @@ dependencies {
   implementation 'com.braintreepayments.api:data-collector:4.41.0'
   implementation 'com.braintreepayments.api:paypal:4.41.0'
   implementation 'com.braintreepayments.api:card:4.41.0'
+  implementation 'com.braintreepayments.api:venmo:4.41.0'
 }
 
