@@ -34,3 +34,19 @@ func prepareBTPayPalAccountNonceResult(accountNonce: BTPayPalAccountNonce)
   result["shippingAddress"] = prepareAddressResult(address: accountNonce.shippingAddress)
   return result
 }
+
+func prepareBTVenmoAccountNonceResult(accountNonce: BTVenmoAccountNonce)
+  -> NSDictionary
+{
+  let result = NSMutableDictionary()
+  result["email"] = accountNonce.email ?? ""
+  result["externalID"] = accountNonce.externalID ?? ""
+  result["nonce"] = accountNonce.nonce
+  result["phoneNumber"] = accountNonce.phoneNumber ?? ""
+  result["firstName"] = accountNonce.firstName ?? ""
+  result["lastName"] = accountNonce.lastName ?? ""
+  result["username"] = accountNonce.username ?? ""
+  result["billingAddress"] = prepareAddressResult(address: accountNonce.billingAddress)
+  result["shippingAddress"] = prepareAddressResult(address: accountNonce.shippingAddress)
+  return result
+}

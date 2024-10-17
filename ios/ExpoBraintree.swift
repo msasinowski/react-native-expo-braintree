@@ -15,6 +15,8 @@ enum EXCEPTION_TYPES: String {
   case TOKENIZE_EXCEPTION = "ReactNativeExpoBraintree:`TokenizeException"
   case PAYPAL_DISABLED_IN_CONFIGURATION =
     "ReactNativeExpoBraintree:`Paypal disabled in configuration"
+  case VENMO_DISABLED_IN_CONFIGURATION =
+    "ReactNativeExpoBraintree:`Venmo disabled in configuration"
 }
 
 enum ERROR_TYPES: String {
@@ -22,6 +24,7 @@ enum ERROR_TYPES: String {
   case TOKENIZE_VAULT_PAYMENT_ERROR = "TOKENIZE_VAULT_PAYMENT_ERROR"
   case USER_CANCEL_TRANSACTION_ERROR = "USER_CANCEL_TRANSACTION_ERROR"
   case PAYPAL_DISABLED_IN_CONFIGURATION_ERROR = "PAYPAL_DISABLED_IN_CONFIGURATION_ERROR"
+  case VENMO_DISABLED_IN_CONFIGURATION_ERROR = "VENMO_DISABLED_IN_CONFIGURATION_ERROR"
   case DATA_COLLECTOR_ERROR = "DATA_COLLECTOR_ERROR"
   case CARD_TOKENIZATION_ERROR = "CARD_TOKENIZATION_ERROR"
 }
@@ -210,6 +213,68 @@ class ExpoBraintree: NSObject {
             domain: ERROR_TYPES.CARD_TOKENIZATION_ERROR.rawValue,
             code: -1)
         )
+      }
+    }
+  }
+
+  @objc(requestVenmoNonce:withResolver:withRejecter:)
+  func requestVenmoNonce(
+    options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let clientToken = options["clientToken"] ?? ""
+
+    // Step 1: Initialize Braintree API Client
+    let apiClientOptional = BTAPIClient(authorization: clientToken)
+    guard let apiClient = apiClientOptional else {
+      return reject(
+        EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue,
+        NSError(domain: ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue, code: -1))
+    }
+
+    // Step 2: Initialize BTVenmoClient API Client
+    let venmoClient = BTVenmoClient(apiClient: apiClient)
+    let vaultRequest = prepareBTVenmoRequest(options: options)
+
+    venmoClient.tokenize(vaultRequest) {
+      (accountNonce, error) -> Void in
+      if let accountNonce = accountNonce {
+
+        // Step 3: Handle Success: Venmo Nonce Created resolved
+        return resolve(
+          prepareBTVenmoAccountNonceResult(
+            accountNonce: accountNonce
+          ))
+      } else if let error = error as? BTPVenmoError {
+        // Step 3: Handle Error: Tokenize error
+        switch error.errorCode {
+        case BTVenmoError.disabled.errorCode:
+          return reject(
+            EXCEPTION_TYPES.VENMO_DISABLED_IN_CONFIGURATION.rawValue,
+            ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.rawValue,
+            NSError(
+              domain: ERROR_TYPES.VENMO_DISABLED_IN_CONFIGURATION_ERROR.rawValue,
+              code: BTPayPalError.disabled.errorCode)
+          )
+        case BTVenmoError.canceled.errorCode:
+          return reject(
+            EXCEPTION_TYPES.USER_CANCEL_EXCEPTION.rawValue,
+            ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.rawValue,
+            NSError(
+              domain: ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.rawValue,
+              code: BTPayPalError.canceled.errorCode)
+          )
+        default:
+          return reject(
+            EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
+            ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue,
+            NSError(
+              domain: error.localizedDescription,
+              code: -1
+            )
+          )
+        }
       }
     }
   }

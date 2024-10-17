@@ -43,6 +43,11 @@ export enum BoolValue {
   false = 'false',
 }
 
+export enum BTVenmoPaymntMethodUsage {
+  multiUse = 'multiUse',
+  singleUse = 'singleUse',
+}
+
 export type RequestBillingAgreementOptions = {
   clientToken: string;
   billingAgreementDescription?: string;
@@ -100,6 +105,23 @@ export type BTCardTokenizationNonceResult = {
   lastFour?: string;
   expirationMonth?: string;
   expirationYear?: string;
+};
+
+export type RequestVenmoNonceOptions = {
+  clientToken: string;
+  profileID?: string;
+  vault?: BoolValue;
+  paymentMethodUsage?: BTVenmoPaymntMethodUsage;
+  displayName?: string;
+  collectCustomerBillingAddress?: BoolValue;
+  collectCustomerShippingAddress?: BoolValue;
+  isFinalAmount?: BoolValue;
+  subTotalAmount?: string;
+  discountAmount?: string;
+  taxAmount?: string;
+  shippingAmount?: string;
+  totalAmount?: string;
+  fallbackToWeb?: BoolValue;
 };
 
 export type BTVenmoNonceResult = {

@@ -1,14 +1,15 @@
 import { NativeModules, Platform } from 'react-native';
 import type {
-  RequestOneTimePaymentOptions,
-  RequestBillingAgreementOptions,
+  BTCardTokenizationNonceResult,
   BTPayPalAccountNonceResult,
   BTPayPalError,
   BTPayPalGetDeviceDataResult,
-  BTCardTokenizationNonceResult,
-  TokenizeCardOptions,
-  BTVenmoNonceResult,
   BTVenmoError,
+  BTVenmoNonceResult,
+  RequestBillingAgreementOptions,
+  RequestOneTimePaymentOptions,
+  RequestVenmoNonceOptions,
+  TokenizeCardOptions,
 } from './types';
 
 const LINKING_ERROR =
@@ -77,7 +78,7 @@ export async function tokenizeCardData(
 }
 
 export async function requestVenmoNonce(
-  _: string
+  _: RequestVenmoNonceOptions
 ): Promise<BTVenmoNonceResult | BTVenmoError> {
   try {
     const result: BTVenmoNonceResult = {} as unknown as BTVenmoNonceResult;
