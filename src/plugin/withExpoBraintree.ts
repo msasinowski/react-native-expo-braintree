@@ -1,5 +1,8 @@
 import { createRunOncePlugin, type ConfigPlugin } from '@expo/config-plugins';
-import { withExpoBraintreeAndroid } from './withExpoBraintree.android';
+import {
+  withExpoBraintreeAndroid,
+  withExpoBraintreeAndroidGradle,
+} from './withExpoBraintree.android';
 import {
   withExpoBraintreeAppDelegate,
   withExpoBraintreePlist,
@@ -21,6 +24,7 @@ export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
 ) => {
   // Android mods
   config = withExpoBraintreeAndroid(config);
+  config = withExpoBraintreeAndroidGradle(config);
   // IOS mods
   config = withSwiftBraintreeWrapperFile(config);
   config = withExpoBraintreeAppDelegate(config, props);
