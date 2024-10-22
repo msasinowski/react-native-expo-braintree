@@ -29,7 +29,7 @@ export default function App() {
           try {
             setIsLoading(true);
             const localResult = await requestBillingAgreement({
-              clientToken,
+              clientToken: '',
             });
             setIsLoading(false);
             setResult(JSON.stringify(localResult));
@@ -113,12 +113,11 @@ export default function App() {
               // Only client Token will work Tokenized Key will do not work for 3DS
               // Take a look on the example/src/simple-braintree-server to generate clientToken
               clientToken: '',
-              number: '4000000000001000',
+              number: '4000000000001091',
               expirationMonth: '01',
               expirationYear: '2024',
               cvv: '123',
             });
-
             if ('nonce' in tokenizedCard) {
               console.log(tokenizedCard?.nonce);
               const secureCheckResult = await request3DSecurePaymentCheck({
@@ -132,6 +131,7 @@ export default function App() {
               setResult(JSON.stringify(secureCheckResult));
               console.log(JSON.stringify(secureCheckResult));
             }
+            console.log('test');
           } catch (ex) {
             console.log(JSON.stringify(ex));
           } finally {

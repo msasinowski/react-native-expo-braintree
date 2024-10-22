@@ -79,7 +79,15 @@ android {
 
 repositories {
   mavenCentral()
+  maven {
+    url "https://cardinalcommerceprod.jfrog.io/artifactory/android"
+    credentials {
+      username 'braintree_team_sdk'
+      password 'AKCp8jQcoDy2hxSWhDAUQKXLDPDx6NYRkqrgFLRc3qDrayg6rrCbJpsKKyMwaykVL8FWusJpp'
+    }
+  }
   google()
+  jcenter()
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -90,8 +98,9 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.braintreepayments.api:data-collector:4.41.0'
-  implementation 'com.braintreepayments.api:paypal:4.41.0'
-  implementation 'com.braintreepayments.api:card:4.41.0'
+  implementation 'com.braintreepayments.api:data-collector:5.0.0'
+  implementation 'com.braintreepayments.api:paypal:5.0.0'
+  implementation 'com.braintreepayments.api:card:5.0.0'
+  implementation 'com.braintreepayments.api:three-d-secure:5.0.0'
 }
 

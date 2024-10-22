@@ -2,7 +2,48 @@ import {
   withAndroidManifest,
   AndroidConfig,
   type ConfigPlugin,
+  withProjectBuildGradle,
 } from '@expo/config-plugins';
+import {
+  createGeneratedHeaderComment,
+  type MergeResults,
+  removeGeneratedContents,
+} from '@expo/config-plugins/build/utils/generateCode';
+
+// Because we need the package to be added AFTER the React and Google maven packages, we create a new all projects.
+// It's ok to have multiple all projects.repositories, so we create a new one since it's cheaper than tokenizing
+// the existing block to find the correct place to insert our camera maven.
+const gradle3DSecureBraintreeRepo = [
+  `allprojects {`,
+  ` repositories {`,
+  `   maven {`,
+  `     url "https://cardinalcommerceprod.jfrog.io/artifactory/android"`,
+  `     credentials {`,
+  `       username 'braintree_team_sdk'`,
+  `       password 'AKCp8jQcoDy2hxSWhDAUQKXLDPDx6NYRkqrgFLRc3qDrayg6rrCbJpsKKyMwaykVL8FWusJpp'`,
+  `     }`,
+  `   }`,
+  `  }`,
+  `}`,
+].join('\n');
+
+export const withExpoBraintreeAndroidGradle: ConfigPlugin = (expoConfig) => {
+  return withProjectBuildGradle(expoConfig, (config) => {
+    if (config.modResults.language === 'groovy') {
+      config.modResults.contents = appendContents({
+        tag: 'expo-braintree-import',
+        src: config.modResults.contents,
+        newSrc: gradle3DSecureBraintreeRepo,
+        comment: '//',
+      }).contents;
+    } else {
+      throw new Error(
+        'Cannot add expo-braintree-import maven gradle because the build.gradle is not groovy'
+      );
+    }
+    return config;
+  });
+};
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
@@ -124,3 +165,36 @@ const isElementInAndroidManifestExist = (
       }
     })
   );
+
+export const appendContents = ({
+  src,
+  newSrc,
+  tag,
+  comment,
+}: {
+  src: string;
+  newSrc: string;
+  tag: string;
+  comment: string;
+}): MergeResults => {
+  const header = createGeneratedHeaderComment(newSrc, tag, comment);
+  if (!src.includes(header)) {
+    // Ensure the old generated contents are removed.
+    const sanitizedTarget = removeGeneratedContents(src, tag);
+    const contentsToAdd = [
+      // @something
+      header,
+      // contents
+      newSrc,
+      // @end
+      `${comment} @generated end ${tag}`,
+    ].join('\n');
+
+    return {
+      contents: sanitizedTarget ?? src + contentsToAdd,
+      didMerge: true,
+      didClear: !!sanitizedTarget,
+    };
+  }
+  return { contents: src, didClear: false, didMerge: false };
+};
