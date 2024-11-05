@@ -15,6 +15,10 @@ import com.braintreepayments.api.PayPalAccountNonce
 import com.braintreepayments.api.PayPalCheckoutRequest
 import com.braintreepayments.api.PayPalClient
 import com.braintreepayments.api.PayPalVaultRequest
+import com.braintreepayments.api.VenmoClient
+import com.braintreepayments.api.VenmoRequest
+import com.braintreepayments.api.VenmoAccountNonce
+import com.braintreepayments.api.VenmoListener
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -24,14 +28,15 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 
 class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
+    ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener, VenmoListener {
   val NAME = "ExpoBraintree"
   private lateinit var promiseRef: Promise
   private lateinit var currentActivityRef: FragmentActivity
   private var reactContextRef: Context
   private lateinit var braintreeClientRef: BraintreeClient
   private lateinit var payPalClientRef: PayPalClient
-  private val paypalRebornModuleHandlers: PaypalRebornModuleHandlers = PaypalRebornModuleHandlers()
+  private lateinit var venmoClientRef: VenmoClient
+  private val moduleHandlers: ExpoBraintreeModuleHandlers = ExpoBraintreeModuleHandlers()
 
   init {
     this.reactContextRef = reactContext
@@ -59,7 +64,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       localPromise.reject(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
           ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+          SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -72,7 +77,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       if (this::braintreeClientRef.isInitialized) {
         val dataCollectorClient = DataCollector(braintreeClientRef)
         dataCollectorClient.collectDeviceData(reactContextRef) { result: String?, e: Exception? ->
-          paypalRebornModuleHandlers.handleGetDeviceDataFromDataCollectorResult(
+          moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
               result,
               e,
               promiseRef
@@ -85,7 +90,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       promiseRef.reject(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
           ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+          SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -111,7 +116,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       localPromise.reject(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
           ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+          SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -136,9 +141,43 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       localPromise.reject(
           EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
           ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-          PaypalDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+          SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
+  }
+
+  @ReactMethod
+  fun requestVenmoNonce(data: ReadableMap, localPromise: Promise) {
+    try {
+      promiseRef = localPromise
+      currentActivityRef = getCurrentActivity() as FragmentActivity
+      braintreeClientRef = BraintreeClient(currentActivityRef, data.getString("clientToken") ?: "")
+
+      if (this::currentActivityRef.isInitialized && this::braintreeClientRef.isInitialized) {
+        venmoClientRef = VenmoClient(braintreeClientRef)
+        venmoClientRef.setListener(this)
+        val request: VenmoRequest = VenmoDataConverter.createRequest(data)
+        venmoClientRef.tokenizeVenmoAccount((currentActivityRef, request) { e: Exception? ->
+          handleVenmoAccountNonceResult(null, e)
+        }
+      } else {
+        throw Exception()
+      }
+    } catch (ex: Exception) {
+      localPromise.reject(
+        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+        SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+      )
+    }
+  }
+
+  override fun onVenmoSuccess(venmoAccountNonce: VenmoAccountNonce) {
+    handleVenmoAccountNonceResult(venmoAccountNonce, null)
+  }
+
+  override fun onVenmoFailure(error: Exception) {
+    handleVenmoAccountNonceResult(null, error)
   }
 
   public fun handleCardTokenizeResult(
@@ -146,11 +185,11 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       error: Exception?,
   ) {
     if (error != null) {
-      paypalRebornModuleHandlers.onCardTokenizeFailure(error, promiseRef)
+      moduleHandlers.onCardTokenizeFailure(error, promiseRef)
       return
     }
     if (cardNonce != null) {
-      paypalRebornModuleHandlers.onCardTokenizeSuccessHandler(cardNonce, promiseRef)
+      moduleHandlers.onCardTokenizeSuccessHandler(cardNonce, promiseRef)
     }
   }
 
@@ -159,13 +198,26 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       error: Exception?,
   ) {
     if (error != null) {
-      paypalRebornModuleHandlers.onPayPalFailure(error, promiseRef)
+      moduleHandlers.onFailure(error, promiseRef)
       return
     }
     if (payPalAccountNonce != null) {
-      paypalRebornModuleHandlers.onPayPalSuccessHandler(payPalAccountNonce, promiseRef)
+      moduleHandlers.onPayPalSuccessHandler(payPalAccountNonce, promiseRef)
     }
   }
+
+  public fun handleVenmoAccountNonceResult(
+    nonce: VenmoAccountNonce?,
+    error: Exception?,
+) {
+  if (error != null) {
+    moduleHandlers.onFailure(error, promiseRef)
+    return
+  }
+  if (nonce != null) {
+    moduleHandlers.onVenmoSuccessHandler(nonce, promiseRef)
+  }
+}
 
   override fun onHostResume() {
     if (this::braintreeClientRef.isInitialized && this::currentActivityRef.isInitialized) {
