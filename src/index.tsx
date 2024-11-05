@@ -78,10 +78,11 @@ export async function tokenizeCardData(
 }
 
 export async function requestVenmoNonce(
-  _: RequestVenmoNonceOptions
+  options: RequestVenmoNonceOptions
 ): Promise<BTVenmoNonceResult | BTVenmoError> {
   try {
-    const result: BTVenmoNonceResult = {} as unknown as BTVenmoNonceResult;
+    const result: BTVenmoNonceResult =
+      await ExpoBraintree.requestVenmoNonce(options);
     return result;
   } catch (ex: unknown) {
     return ex as BTVenmoError;
