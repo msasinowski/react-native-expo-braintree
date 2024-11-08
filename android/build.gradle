@@ -8,7 +8,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.android.tools.build:gradle:7.2.1"
+    classpath "com.android.tools.build:gradle:8.5.1"
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
@@ -90,9 +90,10 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.braintreepayments.api:data-collector:4.41.0'
-  implementation 'com.braintreepayments.api:paypal:4.41.0'
-  implementation 'com.braintreepayments.api:card:4.41.0'
-  implementation 'com.braintreepayments.api:venmo:4.41.0'
+  implementation 'androidx.appcompat:appcompat:1.7.0'
+  implementation 'com.braintreepayments.api:data-collector:5.2.0'
+  implementation 'com.braintreepayments.api:paypal:5.2.0'
+  implementation 'com.braintreepayments.api:card:5.2.0'
+  implementation 'com.braintreepayments.api:venmo:5.2.0'
 }
 

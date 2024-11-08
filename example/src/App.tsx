@@ -32,6 +32,7 @@ export default function App() {
             setIsLoading(true);
             const localResult = await requestBillingAgreement({
               clientToken,
+              merchantAppLink: 'https://merchant-app.com/braintree_payments',
             });
             setIsLoading(false);
             setResult(JSON.stringify(localResult));
@@ -70,6 +71,7 @@ export default function App() {
             const resultDeviceData = await requestOneTimePayment({
               clientToken,
               amount: '5',
+              merchantAppLink: 'https://merchant-app.com/braintree_payments',
             });
             setIsLoading(false);
             setResult(JSON.stringify(resultDeviceData));

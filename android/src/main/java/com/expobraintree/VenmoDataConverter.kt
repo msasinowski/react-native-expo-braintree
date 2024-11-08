@@ -1,9 +1,8 @@
 package com.expobraintree
 
-import com.braintreepayments.api.VenmoRequest 
-import com.braintreepayments.api.VenmoPaymentMethodUsage
-import com.braintreepayments.api.VenmoAccountNonce
-
+import com.braintreepayments.api.venmo.VenmoAccountNonce
+import com.braintreepayments.api.venmo.VenmoPaymentMethodUsage
+import com.braintreepayments.api.venmo.VenmoRequest
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -25,32 +24,32 @@ class VenmoDataConverter {
     }
 
     fun createRequest(options: ReadableMap): VenmoRequest {
-      val request: VenmoRequest;
       val paymentMethodUsage: String = options.getString("paymentMethodUsage") ?: ""
-      when (paymentMethodUsage) {
+      val request = when (paymentMethodUsage) {
         "multiUse" -> VenmoRequest(VenmoPaymentMethodUsage.MULTI_USE)
         "singleUse" -> VenmoRequest(VenmoPaymentMethodUsage.SINGLE_USE)
+        else -> throw IllegalArgumentException("Invalid payment method usage")
       }
       if (options.hasKey("profileId")) {
-        request.setProfileId(options.getString("profileId"))
+        request.profileId = options.getString("profileId")
       }
       if (options.hasKey("displayName")) {
-        request.setDisplayName(options.getString("displayName"))
+        request.displayName = options.getString("displayName")
       }
       if (options.hasKey("subTotalAmount")) {
-        request.setSubTotalAmount(options.getString("subTotalAmount"))
+        request.subTotalAmount = options.getString("subTotalAmount")
       }
       if (options.hasKey("discountAmount")) {
-        request.setDiscountAmount(options.getString("discountAmount"))
+        request.discountAmount = options.getString("discountAmount")
       }
       if (options.hasKey("taxAmount")) {
-        request.setTaxAmount(options.getString("taxAmount"))
+        request.taxAmount =  options.getString("taxAmount")
       }
       if (options.hasKey("shippingAmount")) {
-        request.setShippingAmount(options.getString("shippingAmount"))
+        request.shippingAmount = options.getString("shippingAmount")
       }
       if (options.hasKey("totalAmount")) {
-        request.setTotalAmount(options.getString("totalAmount"))
+        request.totalAmount = options.getString("totalAmount")
       }
       if (options.hasKey("shouldVault")) {
         val shouldVault: String = options.getString("shouldVault") ?: ""
@@ -61,19 +60,13 @@ class VenmoDataConverter {
       if (options.hasKey("collectCustomerBillingAddress")) {
         val collectCustomerBillingAddress: String = options.getString("collectCustomerBillingAddress") ?: ""
         when (collectCustomerBillingAddress) {
-          "true" -> request.collectCustomerBillingAddress(true)
+          "true" -> request.collectCustomerBillingAddress = true
         }
       }
       if (options.hasKey("collectCustomerShippingAddress")) {
         val collectCustomerShippingAddress: String = options.getString("collectCustomerShippingAddress") ?: ""
         when (collectCustomerShippingAddress) {
-          "true" -> request.collectCustomerShippingAddress(true)
-        }
-      }
-      if (options.hasKey("isFinalAmount")) {
-        val isFinalAmount: String = options.getString("isFinalAmount") ?: ""
-        when (isFinalAmount) {
-          "true" -> request.isFinalAmount(true)
+          "true" -> request.collectCustomerShippingAddress = true
         }
       }
       return request

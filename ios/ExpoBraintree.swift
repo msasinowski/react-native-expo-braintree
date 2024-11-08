@@ -150,10 +150,11 @@ class ExpoBraintree: NSObject {
 
   @objc(getDeviceDataFromDataCollector:withResolver:withRejecter:)
   func getDeviceDataFromDataCollector(
-    clientToken: String, resolve: @escaping RCTPromiseResolveBlock,
+    options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
     // Step 1: Initialize Braintree API Client
+    let clientToken = options["clientToken"] ?? ""
     let apiClientOptional = BTAPIClient(authorization: clientToken)
     guard let apiClient = apiClientOptional else {
       return reject(
@@ -246,7 +247,7 @@ class ExpoBraintree: NSObject {
           prepareBTVenmoAccountNonceResult(
             accountNonce: accountNonce
           ))
-      } else if let error = error as? BTPVenmoError {
+      } else if let error = error as? BTVenmoError {
         // Step 3: Handle Error: Tokenize error
         switch error.errorCode {
         case BTVenmoError.disabled.errorCode:

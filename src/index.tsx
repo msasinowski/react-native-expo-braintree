@@ -54,11 +54,17 @@ export async function requestOneTimePayment(
 }
 
 export async function getDeviceDataFromDataCollector(
-  clientToken: string
+  clientToken: string,
+  hasUserLocationConsent?: boolean,
+  riskCorrelationId?: string
 ): Promise<BTPayPalGetDeviceDataResult | BTPayPalError> {
   try {
     const result: BTPayPalGetDeviceDataResult =
-      await ExpoBraintree.getDeviceDataFromDataCollector(clientToken);
+      await ExpoBraintree.getDeviceDataFromDataCollector({
+        clientToken,
+        hasUserLocationConsent,
+        riskCorrelationId,
+      });
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;

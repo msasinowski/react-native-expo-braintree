@@ -58,6 +58,8 @@ export type RequestBillingAgreementOptions = {
   isShippingAddressRequired?: BoolValue;
   isShippingAddressEditable?: BoolValue;
   isAccessibilityElement?: BoolValue;
+  hasUserLocationConsent?: BoolValue;
+  merchantAppLink: string;
 };
 export type RequestOneTimePaymentOptions = {
   amount: string;
@@ -66,7 +68,9 @@ export type RequestOneTimePaymentOptions = {
   offerPayLater?: BoolValue;
   currencyCode?: string;
   requestBillingAgreement?: BoolValue;
+  hasUserLocationConsent?: BoolValue;
   clientToken: string;
+  merchantAppLink: string;
 };
 
 export type TokenizeCardOptions = {
