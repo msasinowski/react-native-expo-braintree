@@ -17,7 +17,8 @@ import {
   tokenizeCardData,
 } from 'react-native-expo-braintree';
 
-export const clientToken = 'sandbox_9dbg82cq_dcpspy2brwdjr3qn';
+export const clientToken = 'sandbox_x62mvdjj_p8ngm2sczm8248vg';
+export const merchantAppLink = 'https://braintree-example-app.web.app';
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
@@ -32,7 +33,7 @@ export default function App() {
             setIsLoading(true);
             const localResult = await requestBillingAgreement({
               clientToken,
-              merchantAppLink: 'https://merchant-app.com/braintree_payments',
+              merchantAppLink,
             });
             setIsLoading(false);
             setResult(JSON.stringify(localResult));
@@ -49,9 +50,8 @@ export default function App() {
         onPress={async () => {
           try {
             setIsLoading(true);
-            const resultDeviceData = await getDeviceDataFromDataCollector(
-              'sandbox_9dbg82cq_dcpspy2brwdjr3qn'
-            );
+            const resultDeviceData =
+              await getDeviceDataFromDataCollector(clientToken);
             setIsLoading(false);
             setResult(JSON.stringify(resultDeviceData));
             console.log(JSON.stringify(resultDeviceData));
@@ -71,7 +71,7 @@ export default function App() {
             const resultDeviceData = await requestOneTimePayment({
               clientToken,
               amount: '5',
-              merchantAppLink: 'https://merchant-app.com/braintree_payments',
+              merchantAppLink,
             });
             setIsLoading(false);
             setResult(JSON.stringify(resultDeviceData));
@@ -123,7 +123,7 @@ export default function App() {
             setResult(JSON.stringify(nonce));
             console.log(JSON.stringify(nonce));
           } catch (ex) {
-            console.log(JSON.stringify(ex));
+            console.log(ex);
           } finally {
             setIsLoading(false);
           }

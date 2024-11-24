@@ -1,0 +1,1 @@
+# Simple braintree gateway Server for Testing The e.g 3DS integration which require the clientToken to be used, also new android v5 sdk require setup on the braintree side
