@@ -1,16 +1,19 @@
 import * as React from 'react';
 
 import {
-  StyleSheet,
-  View,
-  Button,
   ActivityIndicator,
+  Button,
+  StyleSheet,
   Text,
+  View,
 } from 'react-native';
 import {
+  BTVenmoPaymntMethodUsage,
+  BoolValue,
   getDeviceDataFromDataCollector,
   requestBillingAgreement,
   requestOneTimePayment,
+  requestVenmoNonce,
   tokenizeCardData,
 } from 'react-native-expo-braintree';
 
@@ -29,6 +32,7 @@ export default function App() {
             setIsLoading(true);
             const localResult = await requestBillingAgreement({
               clientToken,
+              merchantAppLink: 'https://merchant-app.com/braintree_payments',
             });
             setIsLoading(false);
             setResult(JSON.stringify(localResult));
@@ -67,6 +71,7 @@ export default function App() {
             const resultDeviceData = await requestOneTimePayment({
               clientToken,
               amount: '5',
+              merchantAppLink: 'https://merchant-app.com/braintree_payments',
             });
             setIsLoading(false);
             setResult(JSON.stringify(resultDeviceData));
@@ -95,6 +100,28 @@ export default function App() {
             setIsLoading(false);
             setResult(JSON.stringify(tokenizedCard));
             console.log(JSON.stringify(tokenizedCard));
+          } catch (ex) {
+            console.log(JSON.stringify(ex));
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+      />
+
+      <Button
+        title="Click Me To Request a Venmo nonce"
+        onPress={async () => {
+          try {
+            setIsLoading(true);
+            const nonce = await requestVenmoNonce({
+              clientToken,
+              vault: BoolValue.true,
+              paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
+              totalAmount: '5',
+            });
+            setIsLoading(false);
+            setResult(JSON.stringify(nonce));
+            console.log(JSON.stringify(nonce));
           } catch (ex) {
             console.log(JSON.stringify(ex));
           } finally {

@@ -1,9 +1,9 @@
 /* eslint-disable no-bitwise */
 import {
+  IOSConfig,
   withAppDelegate,
   withInfoPlist,
   type ConfigPlugin,
-  IOSConfig,
 } from '@expo/config-plugins';
 import eol from 'eol';
 import type { ExpoBraintreePluginProps } from './withExpoBraintree';
@@ -117,25 +117,47 @@ export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
   return withInfoPlist(expoConfig, (config) => {
     const bundleIdentifier = config.ios?.bundleIdentifier ?? '';
     const bundleIdentifierWithBraintreeSchema = `${bundleIdentifier}.braintree`;
-    const bundleUrlTypes = config.modResults.CFBundleURLTypes;
-    const isBraintreeSchemaNotExist = !bundleUrlTypes?.find((urlTypes) => {
-      urlTypes.CFBundleURLSchemes.includes(bundleIdentifierWithBraintreeSchema);
-    });
-    // If Braintree url schema for specific bundle id not exist then add this entry
-    if (isBraintreeSchemaNotExist) {
-      config.modResults.CFBundleURLTypes = bundleUrlTypes?.map(
-        (bundleUrlType) => {
-          const isUrlSchemaContainBundleIdentifier =
-            bundleUrlType.CFBundleURLSchemes.includes(bundleIdentifier);
-          if (isUrlSchemaContainBundleIdentifier) {
-            bundleUrlType.CFBundleURLSchemes.push(
-              bundleIdentifierWithBraintreeSchema
-            );
-          }
-          return bundleUrlType;
-        }
+    const bundleUrlTypes = config.modResults.CFBundleURLTypes ?? [];
+
+    // Check if an entry with the specific Braintree URL scheme already exists
+    const isBraintreeEntryNotExist = !bundleUrlTypes.find((urlType) => {
+      return urlType.CFBundleURLSchemes?.includes(
+        bundleIdentifierWithBraintreeSchema
       );
+    });
+
+    // If Braintree entry doesn't exist, add a new one
+    if (isBraintreeEntryNotExist) {
+      bundleUrlTypes.push({
+        CFBundleURLSchemes: [bundleIdentifierWithBraintreeSchema],
+      });
     }
+
+    // Assign the modified bundleUrlTypes back to the config
+    config.modResults.CFBundleURLTypes = bundleUrlTypes;
+
+    return config;
+  });
+};
+
+/*
+ * Add allowlist Venmo URL scheme
+ * @see https://developer.paypal.com/braintree/docs/guides/venmo/client-side/ios/v6#allowlist-venmo-url-scheme
+ */
+export const withVenmoScheme: ConfigPlugin = (expoConfig) => {
+  return withInfoPlist(expoConfig, (config) => {
+    // Ensure LSApplicationQueriesSchemes exists in Info.plist
+    config.modResults.LSApplicationQueriesSchemes =
+      config.modResults.LSApplicationQueriesSchemes || [];
+
+    // Hardcoded scheme for Venmo
+    const venmoScheme = 'com.venmo.touch.v2';
+
+    // Add the Venmo scheme to the LSApplicationQueriesSchemes array if not already present
+    if (!config.modResults.LSApplicationQueriesSchemes.includes(venmoScheme)) {
+      config.modResults.LSApplicationQueriesSchemes.push(venmoScheme);
+    }
+
     return config;
   });
 };
