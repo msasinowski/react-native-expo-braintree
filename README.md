@@ -1,10 +1,9 @@
 # react-native-expo-braintree
-This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn with changed more generic name and all the updates will be under the new react-native-expo-braintree package.
-## Important Information
-Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
+This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn , the name change happend beacouse of adding expo support, and all of future updates will be done under react-native-expo-braintree
 
-1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum (Android or IOS) SDK please use versions 1.x.x.
-
+## Important Informations
+- Please note that, from 2.x.x version of the package and whole integration is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
+- Currently we, actively support 2.x.x and 3.x.x versions of the package, the main reason why is, that 3.x.x version of package provides a breaking change for the Android integration
 
 ## Getting started
 React Native Expo Braintree package is a pure native implementation of Braintree SDK
@@ -20,15 +19,15 @@ https://developer.paypal.com/braintree/docs/start/overview
 |               2.1.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 
 | React Native Expo Braintree Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
-| :--------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
-|         2.2.0          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|         2.2.1          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|         2.2.2          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|         2.3.0          |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
+| :---------------------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
+|                2.2.0                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|                2.2.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|                2.2.2                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|                2.3.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
 
 
 ## Integration
-### Expo Based Project (expo SDK 50) (Alpha)
+### Expo Based Project (expo SDK 51) 
 From version 2.1.1 of the package, expo-braintree added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
 
 Expo based project needs minimum integration from the app perspective.
