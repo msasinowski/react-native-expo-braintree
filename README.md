@@ -26,7 +26,7 @@ Please check official Migration Guide from v4 to v5, most likely you do not need
 ## Required Setup For 3.0.0^
 This step is required, to finalize if you want to upgrade this package to the newest version 3.0.0^.
 
-Please follow, the official [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md) Guide, and make sure that 
+Please follow, the official [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md) Guide, and make sure that all the steps was completed.
 
 ### Troubleshooting for 3.0.0^
 - Make sure that the domain/url that you added to the AndroidManifest, and is verified as auto-verified AppLink, you can do that by using command from adb
