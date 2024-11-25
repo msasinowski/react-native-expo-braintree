@@ -18,17 +18,17 @@ https://developer.paypal.com/braintree/docs/start/overview
 |                2.4.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
 |                3.0.1                |        v5.2.x         |      v6.23.3      |         23          |      14.0       |
 
-## !!! Important Information Only For Package Version Above 3.0.0^ !!!
-Package Version 3.0.0, introduce breaking change for the whole Android Integration, long story short [Braintree SDK For Android](https://github.com/braintree/braintree_android), from version 5.X.X , change a way of handling deep link and context switch from the PayPal (Browser) to the App, instead using custom schema Deep Link, SDK Version 5.x.x introduces usage of [AppLinks for Android](https://developer.android.com/training/app-links), with https schema.
+## !!! Important Information Only For Package Version Above 3.x.x^ !!!
+Package Version 3.x.x, introduce breaking change for the whole Android Integration, long story short [Braintree SDK For Android](https://github.com/braintree/braintree_android), from version 5.X.X , change a way of handling deep link and context switch from the PayPal (Browser) to the App, instead using custom schema Deep Link, SDK Version 5.x.x introduces usage of [AppLinks for Android](https://developer.android.com/training/app-links), with https schema.
 
 Please check official Migration Guide from v4 to v5, most likely you do not need to do anything with that, the package itself already handles that. [MIgration Guide v4 to v5](https://github.com/braintree/braintree_android/blob/main/v5_MIGRATION_GUIDE.md)
 
-## Required Setup For 3.0.0^
-This step is required, to finalize if you want to upgrade this package to the newest version 3.0.0^.
+## Required Setup For 3.x.x^
+This step is required, to finalize if you want to upgrade this package to the newest version 3.x.x^.
 
 Please follow, the official [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md) Guide, and make sure that all the steps was completed.
 
-### Troubleshooting for 3.0.0^
+### Troubleshooting for 3.x.x^
 - Make sure that the domain/url that you added to the AndroidManifest, is verified successfully as auto-verified AppLink, you can check that by using command from adb
 
 Command:
