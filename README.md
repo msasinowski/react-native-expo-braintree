@@ -102,6 +102,6 @@ const result: string = await getDeviceDataFromDataCollector("Token")
 ## TODO
 - [ ] Add ApplePay,
 - [ ] Google Pay, 
-- [In Progress] 3DScure
+- [ ] 3D-Secure (In Progress)
 - [x] Venmo
 
