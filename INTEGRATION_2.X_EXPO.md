@@ -1,4 +1,5 @@
 ## Integration
+## Package Version 2.x.x
 ### Expo Based Project (EXPO SDK 50 and EXPO SDK 51) 
 From version 2.1.1 of the package, expo-braintree added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
 
