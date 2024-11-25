@@ -1,6 +1,6 @@
 {
   "name": "react-native-expo-braintree",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "React native and expo wrapper around braintree sdk fro android and ios",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

@@ -1,217 +1,84 @@
 # react-native-expo-braintree
-This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn with changed more generic name and all the updates will be under the new react-native-expo-braintree package.
-## Important Information
-Please note that, 2.0.0 version of the library is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
+This package is a continuation of  https://www.npmjs.com/package/react-native-paypal-reborn , the name change happened because of adding expo support, and all of future updates will be done under react-native-expo-braintree
 
-1.1.0 is stable and well checked version, if you do not need to use v6 IOS Braintree SDK, or have some lower version of minimum (Android or IOS) SDK please use versions 1.x.x.
-
+## Read This Before Usage
+- Please note that, from 2.x.x version of the package and whole integration is rewritten from the scratch using Kotlin (previously Java) and Swift (previously Objective-C) to prepare the whole codebase to migrate it into expo package at some point. If you find any problem or issue in the package do not hesitate and report it via Issue panel.
+- Currently we, actively support 2.x.x and 3.x.x versions of the package, the main reason why is, that 3.x.x version of package provides a breaking change for the Android integration
 
 ## Getting started
 React Native Expo Braintree package is a pure native implementation of Braintree SDK
 https://developer.paypal.com/braintree/docs/start/overview
 
-| React Native Paypal reborn Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
-| :--------------------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
-|               0.0.1                |         v3.x          |       v5.x        |         21          |      13.0       |
-|               0.1.0                |         v3.x          |       v5.x        |         21          |      13.0       |
-|               1.0.0                |        v4.2.x         |       v5.x        |         21          |      13.0       |
-|               1.1.0                |        v4.41.x        |       v5.x        |         21          |      13.0       |
-|               2.0.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|               2.1.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-
 | React Native Expo Braintree Version | Braintree Android SDK | Braintree IOS SDK | Minimum SDK Android | Minimum SDK IOS |
-| :--------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
-|         2.2.0          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|         2.2.1          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|         2.2.2          |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
-|         2.3.0          |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
+| :---------------------------------: | :-------------------: | :---------------: | :-----------------: | :-------------: |
+|                2.2.0                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|                2.2.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|                2.2.2                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
+|                2.3.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
+|                2.4.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
+|                3.0.0                |        v5.2.x         |      v6.23.3      |         23          |      14.0       |
 
+## !!! Important Information Only For Package Version Above 3.0.0^ !!!
+Package Version 3.0.0, introduce breaking change for the whole Android Integration, long story short [Braintree SDK For Android](https://github.com/braintree/braintree_android), from version 5.X.X , change a way of handling deep link and context switch from the PayPal (Browser) to the App, instead using custom schema Deep Link, SDK Version 5.x.x introduces usage of [AppLinks for Android](https://developer.android.com/training/app-links), with https schema.
+
+Please check official Migration Guide from v4 to v5, most likely you do not need to do anything with that, the package itself already handles that. [MIgration Guide v4 to v5](https://github.com/braintree/braintree_android/blob/main/v5_MIGRATION_GUIDE.md)
+
+## Required Setup For 3.0.0^
+This step is required, to finalize if you want to upgrade this package to the newest version 3.0.0^.
+
+Please follow, the official [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md) Guide, and make sure that all the steps was completed.
+
+### Troubleshooting for 3.0.0^
+- Make sure that the domain/url that you added to the AndroidManifest, is verified successfully as auto-verified AppLink, you can check that by using command from adb
+
+Command:
+
+```adb -d shell pm get-app-links com.expobraintreeexample```
+
+Output:
+
+``` com.expobraintreeexample:
+    ID: b3a3a2ff-0148-4bc0-b0d0-dfcaaf047a4b
+    Signatures: [FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C]
+    Domain verification state:
+      braintree-example-app.web.app: verified
+```
+
+- Make Sure that, your .well-known/assetlinks.json on your web page, is using right fingerprint, and the right data to handle the AppLink, an example used for [Example App and for link](https://braintree-example-app.web.app/.well-known/assetlinks.json) is located [here](https://github.com/msasinowski/react-native-expo-braintree-app-link/tree/main)
+- You can have, various other issues related to that upgrade , but most likely they will be related to the AppLink's setup, until Q3 2025 braintree-android v4.x.x will be supported, but after that , everyone will need to switch to the v5.x.x SDK. If you have any other issues please create an Issue, on board
 
 ## Integration
-### Expo Based Project (expo SDK 50) (Alpha)
-From version 2.1.1 of the package, expo-braintree added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
+Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli. Please follow the correct integration guide before you will start a new issue.
 
-Expo based project needs minimum integration from the app perspective.
-In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-braintree plugin into plugins section.
-```javascript
-...
-  plugins: [
-    [
-      "react-native-expo-braintree",
-      {
-        xCodeProjectAppName: "xCodeProjectAppName",
-      },
-    ],
-...
-```
-`xCodeProjectAppName` - Name of your xCode project in case of example app in this repository it will be `ExpoBraintreeExample`
+### EXPO Based Project (EXPO SDK 50 and EXPO SDK 51)
 
-#### Android Specific
-Currently expo-plugin written for making changes into Android settings files, using non danger modifiers from expo-config-plugins
+#### Package Version 2.x.x
+[Integration Expo Based Project Package Version 2.x.x](INTEGRATION_2.X_EXPO.md)
 
-#### iOS Specific
-Currently expo-plugin written for making changes into IOS settings files, using one danger modifier from expo-config-plugins called `withAppDelegate`
+#### Package Version 3.x.x
+[Integration Expo Based Project Package Version 3.x.x](INTEGRATION_3.X_EXPO.md)
+
 ### React Native Bare Project (react-native-cli)
 
-#### Android Specific
+#### Package Version 2.x.x
+[React Native CLI Based Project Package Version 2.x.x](INTEGRATION_2.X_REACT_NATIVE_CLI.md)
 
-In Your `AndroidManifest.xml`, `android:allowBackup="false"` can be replaced `android:allowBackup="true"`, it is responsible for app backup.
-
-Also, add this intent-filter to your main activity in `AndroidManifest.xml`
-
-```xml
-<activity>
-    ...
-    <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="${applicationId}.braintree" />
-    </intent-filter>
-</activity>
-
-```
-
-#### iOS Specific
-```bash
-cd ios
-pod install
-```
-###### Configure a new URL scheme
-Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like: 
-
-```xml 
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLName</key>
-        <string>com.myapp</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>com.myapp.braintree</string>
-        </array>
-    </dict>
-</array>
-```
-###### Update your code
-From version 2.0.0 of the expo-braintree, for the IOS part of the setup there is need to make few more additional steps to integrate the library into your project. The reason is that Braintree SDk from version v6, reimplement all the IOS resources to use swift. Because of that we not longer can use Braintree Header files into AppDelegate.m file. And we need to create our own swift wrapper that can be accessible in AppDelegate.m file.
-
-- Open your React Native ios Project in xCode
-- Create ExpoBraintreeConfig.swift in your project, while creating the .swift file xCode will ask if you want to automatically create your {AppName}-Bridging-Header.h - Allow that
-- Put following content into ExpoBraintreeConfig.swift
-
-```swift
-import Braintree
-import Foundation
-
-@objc public class ExpoBraintreeConfig: NSObject {
-
-  @objc(configure)
-  public static func configure() {
-    BTAppContextSwitcher.sharedInstance.returnURLScheme = self.getPaymentUrlScheme()
-  }
-
-  @objc(getPaymentUrlScheme)
-  public static func getPaymentUrlScheme() -> String {
-    let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-    return bundleIdentifier + ".braintree"
-  }
-
-  @objc(handleUrl:)
-  public static func handleUrl(url: URL) -> Bool {
-    return BTAppContextSwitcher.sharedInstance.handleOpen(url)
-  }
-}
-```
-- Update Content of you AppDelegate.m
+#### Package Version 3.x.x
+[React Native CLI Based Project Package Version 3.x.x](INTEGRATION_3.X_REACT_NATIVE_CLI.md)
 
 
-```objective-c
-#import "{AppName}}-Swift.h"
-#import <React/RCTLinkingManager.h>
+## Usage and Examples
+You can find it in [Example App](example/src/App.tsx) or in dedicated, usage pages:
+- 2.x.x -> [Usage](USAGE_2.X.md)
+- 3.x.x -> [Usage](USAGE_3.X.md)
 
-...
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    ...
-    [ExpoBraintreeConfig configure];
-}
 
-- (BOOL)application:(UIApplication *)application
-            openURL:(NSURL *)url
-            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-
-    if ([url.scheme localizedCaseInsensitiveCompare:[ExpoBraintreeConfig getPaymentUrlScheme]] == NSOrderedSame) {
-        return [ExpoBraintreeConfig handleUrl:url];
-    }
-    
-    return [RCTLinkingManager application:application openURL:url options:options];
-}
-
-```
-The same steps are already implemented into example app, if you have any issues please check it.
-
-## Usage
-
-##### Request One Time Payment
-
-```javascript
-import {
-  requestOneTimePayment,
-} from "expo-braintree";
-
-const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestOneTimePayment({
-    clientToken: 'Token',
-    amount: '5.0',
-    currencyCode: 'USD'
-    })
-
-```
-
-##### Card tokenization
-```javascript
-import {
-  tokenizeCard,
-} from "expo-braintree";
-
-const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard({
-    clientToken: 'Token,
-    number: '1111222233334444',
-    expirationMonth: '11',
-    expirationYear: '24',
-    cvv: '123',
-    postalCode: '',
-    })
-
-```
-
-##### Request PayPal billing agreement
-```javascript
-import {
-  requestBillingAgreement,
-} from "expo-braintree";
-
-const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestBillingAgreement({
-    clientToken: 'Token',
-    billingAgreementDescription: 'Description,
-    localeCode: 'en-US'
-    })
-    .then(result => console.log(result))
-    .catch((error) => console.log(error));
-```
-##### Call Data Collector and get correlation id
-```javascript
-import {
-  getDeviceDataFromDataCollector,
-} from "expo-braintree";
-
-const result: string = await getDeviceDataFromDataCollector("Token")
-
-```
+## Special Thanks
+- To iacop0 https://github.com/iacop0 - For introducing Venmo Integration And Android Version Bump 
 
 ## TODO
-
-- [ ] Add Missing Methods from Braintree SDK ApplePay, Google Pay, 3D
+- [ ] Add ApplePay,
+- [ ] Google Pay, 
+- [ ] 3D-Secure (In Progress)
+- [x] Venmo
 

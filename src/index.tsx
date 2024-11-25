@@ -1,12 +1,15 @@
 import { NativeModules, Platform } from 'react-native';
-import {
-  type RequestOneTimePaymentOptions,
-  type RequestBillingAgreementOptions,
-  type BTPayPalAccountNonceResult,
-  type BTPayPalError,
-  type BTPayPalGetDeviceDataResult,
-  type BTCardTokenizationNonceResult,
-  type TokenizeCardOptions,
+import type {
+  BTCardTokenizationNonceResult,
+  BTPayPalAccountNonceResult,
+  BTPayPalError,
+  BTPayPalGetDeviceDataResult,
+  BTVenmoError,
+  BTVenmoNonceResult,
+  RequestBillingAgreementOptions,
+  RequestOneTimePaymentOptions,
+  RequestVenmoNonceOptions,
+  TokenizeCardOptions,
 } from './types';
 
 const LINKING_ERROR =
@@ -51,11 +54,17 @@ export async function requestOneTimePayment(
 }
 
 export async function getDeviceDataFromDataCollector(
-  clientToken: string
+  clientToken: string,
+  hasUserLocationConsent?: boolean,
+  riskCorrelationId?: string
 ): Promise<BTPayPalGetDeviceDataResult | BTPayPalError> {
   try {
     const result: BTPayPalGetDeviceDataResult =
-      await ExpoBraintree.getDeviceDataFromDataCollector(clientToken);
+      await ExpoBraintree.getDeviceDataFromDataCollector({
+        clientToken,
+        hasUserLocationConsent,
+        riskCorrelationId,
+      });
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
@@ -71,6 +80,18 @@ export async function tokenizeCardData(
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
+  }
+}
+
+export async function requestVenmoNonce(
+  options: RequestVenmoNonceOptions
+): Promise<BTVenmoNonceResult | BTVenmoError> {
+  try {
+    const result: BTVenmoNonceResult =
+      await ExpoBraintree.requestVenmoNonce(options);
+    return result;
+  } catch (ex: unknown) {
+    return ex as BTVenmoError;
   }
 }
 
