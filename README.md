@@ -41,9 +41,10 @@ Output:
     ID: b3a3a2ff-0148-4bc0-b0d0-dfcaaf047a4b
     Signatures: [FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C]
     Domain verification state:
-      braintree-example-app.web.app: verified```
+      braintree-example-app.web.app: verified
+```
 
-- Make Sure that, your /.well-known/assetlinks.json on your web page, is using right fingerprint, and the right data to handle the AppLink, an example used for Example App and for link https://braintree-example-app.web.app/.well-known/assetlinks.json is located here https://github.com/msasinowski/react-native-expo-braintree-app-link/tree/main
+- Make Sure that, your .well-known/assetlinks.json on your web page, is using right fingerprint, and the right data to handle the AppLink, an example used for[ Example App and for link] (https://braintree-example-app.web.app/.well-known/assetlinks.json) is located [here](https://github.com/msasinowski/react-native-expo-braintree-app-link/tree/main)
 
 ## Integration
 Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli. Please follow the correct integration guide before you will start a new issue.
