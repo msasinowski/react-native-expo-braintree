@@ -13,6 +13,7 @@ In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-
       {
         xCodeProjectAppName: "xCodeProjectAppName",
         host: "braintree-example-app.web.app",
+        pathPrefix: "/braintree-payments" // Optional,
       },
     ],
 ...
