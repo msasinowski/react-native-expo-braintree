@@ -1,22 +1,38 @@
 # React Native Bare Project (react-native-cli)
 ## Package Version 3.x.x
 
+Please follow and Finish [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md), before the next steps.
+
 ### Android Specific
 
-In Your `AndroidManifest.xml`, `android:allowBackup="false"` can be replaced `android:allowBackup="true"`, it is responsible for app backup.
+In Your `AndroidManifest.xml`, add this intent-filter to your main activity in `AndroidManifest.xml`
+`braintree-example-app.web.app` should be replaced with your own domain that you defined in [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md)
 
-Also, add this intent-filter to your main activity in `AndroidManifest.xml`
 
 ```xml
 <activity>
     ...
-    <intent-filter>
+    <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="${applicationId}.braintree" />
+        <data android:scheme="https" />
+        <data android:host="braintree-example-app.web.app" />
     </intent-filter>
 </activity>
+
+```
+
+Initialize, the Braintree, module. in your android/app/src/main/java/com/{app_name}/MainApplication.kt
+
+```
+import com.expobraintree.ExpoBraintreeModule
+
+  override fun onCreate() {
+    ...
+    ExpoBraintreeModule.init()
+    ...
+  }
 
 ```
 
