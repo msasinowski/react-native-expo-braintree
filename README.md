@@ -31,6 +31,8 @@ Please follow, the official [Set Up App Links](https://github.com/braintree/brai
 ### Troubleshooting for 3.0.0^
 - Make sure that the domain/url that you added to the AndroidManifest, and is verified as auto-verified AppLink, you can do that by using command from adb
 
+Command:
+
 ```adb -d shell pm get-app-links com.expobraintreeexample```
 
 Output:
@@ -41,6 +43,7 @@ Output:
     Domain verification state:
       braintree-example-app.web.app: verified```
 
+- Make Sure that, your /.well-known/assetlinks.json on your web page, is using right fingerprint, and the right data to handle the AppLink, an example used for Example App and for link https://braintree-example-app.web.app/.well-known/assetlinks.json is located here https://github.com/msasinowski/react-native-expo-braintree-app-link/tree/main
 
 ## Integration
 Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli. Please follow the correct integration guide before you will start a new issue.
