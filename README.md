@@ -15,7 +15,8 @@ https://developer.paypal.com/braintree/docs/start/overview
 |                2.2.1                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 |                2.2.2                |        v4.41.x        |      v6.17.0      |         21          |      14.0       |
 |                2.3.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
-
+|                2.4.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
+|                3.0.0                |        v5.2.x         |      v6.23.3      |         23          |      14.0       |
 
 ## Integration
 Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli. Please follow the correct integration guide before you will start a new issue.
@@ -95,7 +96,12 @@ const result: string = await getDeviceDataFromDataCollector("Token")
 
 ```
 
-## TODO
+## Special Thanks
+- To iacop0 https://github.com/iacop0 - For introducing Venmo Integration And Android Version Bump 
 
-- [ ] Add Missing Methods from Braintree SDK ApplePay, Google Pay, 3D
+## TODO
+- [ ] Add ApplePay,
+- [ ] Google Pay, 
+- [In Progress] 3DScure
+- [x] Venmo
 
