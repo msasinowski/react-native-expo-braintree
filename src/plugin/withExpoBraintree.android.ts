@@ -4,13 +4,16 @@ import {
   withAndroidManifest,
   withMainActivity,
 } from '@expo/config-plugins';
-import type { StringBoolean } from '@expo/config-plugins/build/android/Manifest';
+import type {
+  ManifestIntentFilter,
+  StringBoolean,
+} from '@expo/config-plugins/build/android/Manifest';
 import { addImports } from '@expo/config-plugins/build/android/codeMod';
 import { mergeContents } from '@expo/config-plugins/build/utils/generateCode';
 
 interface IntentFilterProps {
   host: string;
-  pathPrefix: string;
+  pathPrefix?: string;
 }
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
@@ -189,10 +192,16 @@ const isElementInAndroidManifestExist = (
 export const addPaypalAppLinks = (
   modResults: AndroidConfig.Manifest.AndroidManifest,
   host: string,
-  pathPrefix: string
+  pathPrefix?: string
 ): AndroidConfig.Manifest.AndroidManifest => {
   const mainActivity = getMainActivityOrThrow(modResults);
   const intentFilters = mainActivity['intent-filter'];
+
+  if (!host) {
+    throw Error(
+      'No Host provided for withExpoBraintree.android addPaypalAppLinks'
+    );
+  }
 
   // Check if the intent filter already exists
   if (hasIntentFilter(intentFilters, host, pathPrefix)) {
@@ -202,7 +211,7 @@ export const addPaypalAppLinks = (
     return modResults;
   }
 
-  const newIntentFilter = {
+  const newIntentFilter: ManifestIntentFilter = {
     action: [
       {
         $: {
@@ -238,16 +247,19 @@ export const addPaypalAppLinks = (
           'android:host': host,
         },
       },
-      {
-        $: {
-          'android:pathPrefix': pathPrefix,
-        },
-      },
     ],
     $: {
       'android:autoVerify': 'true' as StringBoolean,
     },
   };
+  // If there is pathPrefix then we add that
+  if (pathPrefix) {
+    newIntentFilter.data?.push({
+      $: {
+        'android:pathPrefix': pathPrefix,
+      },
+    });
+  }
 
   // Add the intent-filter to the main activity
   mainActivity['intent-filter'] = [
@@ -267,7 +279,7 @@ export const addPaypalAppLinks = (
 function hasIntentFilter(
   intentFilters: AndroidConfig.Manifest.ManifestIntentFilter[] | undefined,
   host: string,
-  pathPrefix: string
+  pathPrefix?: string
 ) {
   return intentFilters?.some((filter) => {
     const hasAutoVerify = filter.$ && filter.$['android:autoVerify'] === 'true';
@@ -305,7 +317,7 @@ function hasIntentFilter(
       hasHttpScheme &&
       hasHttpsScheme &&
       hasMatchingHost &&
-      hasMatchingPathPrefix
+      (hasMatchingPathPrefix || !pathPrefix)
     );
   });
 }

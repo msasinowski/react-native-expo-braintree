@@ -23,7 +23,7 @@ export type ExpoBraintreePluginProps = {
   /**
    * Android AppLink pathPrefix
    */
-  pathPrefix: string;
+  pathPrefix?: string;
 };
 
 export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (

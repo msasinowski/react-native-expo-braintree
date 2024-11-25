@@ -71,6 +71,7 @@ export default function App() {
             const resultDeviceData = await requestOneTimePayment({
               clientToken,
               amount: '5',
+              merchantAppLink,
             });
             setIsLoading(false);
             setResult(JSON.stringify(resultDeviceData));
