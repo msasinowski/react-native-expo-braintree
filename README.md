@@ -18,23 +18,23 @@ https://developer.paypal.com/braintree/docs/start/overview
 
 
 ## Integration
-Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli.
+Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli. Please follow the correct integration guide before you will start a new issue.
 
 ### EXPO Based Project (EXPO SDK 50 and EXPO SDK 51)
 
 #### Package Version 2.x.x
-[a relative link](INTEGRATION_2.X_EXPO.md)
+[Integration Expo Based Project Package Version 2.x.x](INTEGRATION_2.X_EXPO.md)
 
 #### Package Version 3.x.x
-[a relative link](INTEGRATION_3.X_EXPO.md)
+[Integration Expo Based Project Package Version 3.x.x](INTEGRATION_3.X_EXPO.md)
 
 ### React Native Bare Project (react-native-cli)
 
 #### Package Version 2.x.x
-[a relative link](INTEGRATION_2.X_REACT_NATIVE_CLI.md)
+[React Native CLI Based Project Package Version 2.x.x](INTEGRATION_2.X_REACT_NATIVE_CLI.md)
 
 #### Package Version 3.x.x
-[a relative link](INTEGRATION_3.X_REACT_NATIVE_CLI.md)
+[React Native CLI Based Project Package Version 3.x.x](INTEGRATION_3.X_REACT_NATIVE_CLI.md)
 
 
 ## Usage
