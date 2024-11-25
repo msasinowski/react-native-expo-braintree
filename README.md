@@ -62,7 +62,7 @@ import {
 } from "expo-braintree";
 
 const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard({
-    clientToken: 'Token,
+    clientToken: 'Token",
     number: '1111222233334444',
     expirationMonth: '11',
     expirationYear: '24',
@@ -92,7 +92,22 @@ import {
   getDeviceDataFromDataCollector,
 } from "expo-braintree";
 
-const result: string = await getDeviceDataFromDataCollector("Token")
+const result: string = await getDeviceDataFromDataCollector({
+    clientToken: 'Token",
+    vault: BoolValue.true,
+    paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
+    totalAmount: '5',
+})
+
+```
+
+##### Get Venmo Once 
+```javascript
+import {
+  requestVenmoNonce,
+} from "expo-braintree";
+
+const result: string = await requestVenmoNonce("Token")
 
 ```
 
