@@ -45,6 +45,7 @@ Output:
 ```
 
 - Make Sure that, your .well-known/assetlinks.json on your web page, is using right fingerprint, and the right data to handle the AppLink, an example used for [Example App and for link](https://braintree-example-app.web.app/.well-known/assetlinks.json) is located [here](https://github.com/msasinowski/react-native-expo-braintree-app-link/tree/main)
+- You can have, various other issues related to that upgrade , but most likely they will be related to the AppLink's setup, until Q3 2025 braintree-android v4.x.x will be supported, but after that , everyone will need to switch to the v5.x.x SDK. If you have any other issues please create an Issue, on board
 
 ## Integration
 Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, which had a bit different integration steps, the documentation about that is separated based on version and based on if your project is using expo or react-native-cli. Please follow the correct integration guide before you will start a new issue.
@@ -66,78 +67,11 @@ Since package, currently is supporting two versions tracks 2.x.x and 3.x.x, whic
 [React Native CLI Based Project Package Version 3.x.x](INTEGRATION_3.X_REACT_NATIVE_CLI.md)
 
 
-## Usage
+## Usage and Examples
+You can find it in [Example App](example/src/App.tsx) or in dedicated, usage pages:
+- 2.x.x -> [Usage](USAGE_2.X.md)
+- 3.x.x -> [Usage](USAGE_3.X.md)
 
-##### Request One Time Payment
-
-```javascript
-import {
-  requestOneTimePayment,
-} from "expo-braintree";
-
-const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestOneTimePayment({
-    clientToken: 'Token',
-    amount: '5.0',
-    currencyCode: 'USD'
-    })
-
-```
-
-##### Card tokenization
-```javascript
-import {
-  tokenizeCard,
-} from "expo-braintree";
-
-const result: BTCardTokenizationNonceResult | BTPayPalError = await tokenizeCard({
-    clientToken: 'Token",
-    number: '1111222233334444',
-    expirationMonth: '11',
-    expirationYear: '24',
-    cvv: '123',
-    postalCode: '',
-    })
-
-```
-
-##### Request PayPal billing agreement
-```javascript
-import {
-  requestBillingAgreement,
-} from "expo-braintree";
-
-const result: BTPayPalAccountNonceResult | BTPayPalError  = await requestBillingAgreement({
-    clientToken: 'Token',
-    billingAgreementDescription: 'Description,
-    localeCode: 'en-US'
-    })
-    .then(result => console.log(result))
-    .catch((error) => console.log(error));
-```
-##### Call Data Collector and get correlation id
-```javascript
-import {
-  getDeviceDataFromDataCollector,
-} from "expo-braintree";
-
-const result: string = await getDeviceDataFromDataCollector({
-    clientToken: 'Token",
-    vault: BoolValue.true,
-    paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
-    totalAmount: '5',
-})
-
-```
-
-##### Get Venmo Once 
-```javascript
-import {
-  requestVenmoNonce,
-} from "expo-braintree";
-
-const result: string = await requestVenmoNonce("Token")
-
-```
 
 ## Special Thanks
 - To iacop0 https://github.com/iacop0 - For introducing Venmo Integration And Android Version Bump 
