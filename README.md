@@ -29,7 +29,7 @@ This step is required, to finalize if you want to upgrade this package to the ne
 Please follow, the official [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md) Guide, and make sure that all the steps was completed.
 
 ### Troubleshooting for 3.0.0^
-- Make sure that the domain/url that you added to the AndroidManifest, and is verified as auto-verified AppLink, you can do that by using command from adb
+- Make sure that the domain/url that you added to the AndroidManifest, is verified successfully as auto-verified AppLink, you can check that by using command from adb
 
 Command:
 
