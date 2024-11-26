@@ -3,24 +3,31 @@ import {
   type ConfigPlugin,
   withAndroidManifest,
   withMainActivity,
+  withProjectBuildGradle,
 } from '@expo/config-plugins';
 import type {
   ManifestIntentFilter,
   StringBoolean,
 } from '@expo/config-plugins/build/android/Manifest';
 import { addImports } from '@expo/config-plugins/build/android/codeMod';
-import { mergeContents } from '@expo/config-plugins/build/utils/generateCode';
+import {
+  mergeContents,
+  createGeneratedHeaderComment,
+  type MergeResults,
+  removeGeneratedContents,
+} from '@expo/config-plugins/build/utils/generateCode';
 
 interface IntentFilterProps {
   host: string;
   pathPrefix?: string;
+  initialize3DSecure?: string;
 }
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
 export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
   expoConfig,
-  { host, pathPrefix }
+  { host, pathPrefix, initialize3DSecure }
 ) => {
   let newConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = addPaypalAppLinks(config.modResults, host, pathPrefix);
@@ -36,6 +43,9 @@ export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
       ['com.expobraintree.ExpoBraintreeModule'],
       language === 'java'
     );
+    const newSrcDefault = `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`;
+    const newSrcWithThreeDSecure = `    ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}
+                                        ExpoBraintreeModule.initThreeDSecure()${language === 'java' ? ';' : ''}`;
 
     const withInit = mergeContents({
       src: withImports,
@@ -43,7 +53,8 @@ export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
       tag: 'braintree-module-init',
       offset: 1,
       anchor: /(?<=^.*super\.onCreate.*$)/m,
-      newSrc: `     ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`,
+      newSrc:
+        initialize3DSecure === 'true' ? newSrcWithThreeDSecure : newSrcDefault,
     });
 
     return {
@@ -204,3 +215,70 @@ function hasIntentFilter(
     );
   });
 }
+// Because we need the package to be added AFTER the React and Google maven packages, we create a new all projects.
+// It's ok to have multiple all projects.repositories, so we create a new one since it's cheaper than tokenizing
+// the existing block to find the correct place to insert our content.
+const gradle3DSecureBraintreeRepo = [
+  `allprojects {`,
+  ` repositories {`,
+  `   maven {`,
+  `     url "https://cardinalcommerceprod.jfrog.io/artifactory/android"`,
+  `     credentials {`,
+  `       username 'braintree_team_sdk'`,
+  `       password 'AKCp8jQcoDy2hxSWhDAUQKXLDPDx6NYRkqrgFLRc3qDrayg6rrCbJpsKKyMwaykVL8FWusJpp'`,
+  `     }`,
+  `   }`,
+  `  }`,
+  `}`,
+].join('\n');
+
+export const withExpoBraintreeAndroidGradle: ConfigPlugin = (expoConfig) => {
+  return withProjectBuildGradle(expoConfig, (config) => {
+    if (config.modResults.language === 'groovy') {
+      config.modResults.contents = appendContents({
+        tag: 'expo-braintree-import',
+        src: config.modResults.contents,
+        newSrc: gradle3DSecureBraintreeRepo,
+        comment: '//',
+      }).contents;
+    } else {
+      throw new Error(
+        'Cannot add expo-braintree-import maven gradle because the build.gradle is not groovy'
+      );
+    }
+    return config;
+  });
+};
+
+export const appendContents = ({
+  src,
+  newSrc,
+  tag,
+  comment,
+}: {
+  src: string;
+  newSrc: string;
+  tag: string;
+  comment: string;
+}): MergeResults => {
+  const header = createGeneratedHeaderComment(newSrc, tag, comment);
+  if (!src.includes(header)) {
+    // Ensure the old generated contents are removed.
+    const sanitizedTarget = removeGeneratedContents(src, tag);
+    const contentsToAdd = [
+      // @something
+      header,
+      // contents
+      newSrc,
+      // @end
+      `${comment} @generated end ${tag}`,
+    ].join('\n');
+
+    return {
+      contents: sanitizedTarget ?? src + contentsToAdd,
+      didMerge: true,
+      didClear: !!sanitizedTarget,
+    };
+  }
+  return { contents: src, didClear: false, didMerge: false };
+};

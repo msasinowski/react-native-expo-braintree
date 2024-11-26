@@ -10,6 +10,9 @@ import type {
   RequestOneTimePaymentOptions,
   RequestVenmoNonceOptions,
   TokenizeCardOptions,
+  BTCardTokenization3DSNonceResult,
+  ThreeDSecureCheckOptions,
+  BTThreeDError,
 } from './types';
 
 const LINKING_ERROR =
@@ -92,6 +95,18 @@ export async function requestVenmoNonce(
     return result;
   } catch (ex: unknown) {
     return ex as BTVenmoError;
+  }
+}
+
+export async function request3DSecurePaymentCheck(
+  options: ThreeDSecureCheckOptions
+): Promise<BTCardTokenization3DSNonceResult | BTThreeDError> {
+  try {
+    const result: BTCardTokenization3DSNonceResult =
+      await ExpoBraintree.request3DSecurePaymentCheck(options);
+    return result;
+  } catch (ex: unknown) {
+    return ex as BTThreeDError;
   }
 }
 

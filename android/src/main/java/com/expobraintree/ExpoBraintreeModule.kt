@@ -7,7 +7,6 @@ import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import com.braintreepayments.api.card.Card
 import com.braintreepayments.api.card.CardClient
-import com.braintreepayments.api.card.CardNonce
 import com.braintreepayments.api.card.CardResult
 import com.braintreepayments.api.datacollector.DataCollector
 import com.braintreepayments.api.datacollector.DataCollectorResult
@@ -20,6 +19,7 @@ import com.braintreepayments.api.paypal.PayPalPaymentAuthResult
 import com.braintreepayments.api.paypal.PayPalPendingRequest
 import com.braintreepayments.api.paypal.PayPalResult
 import com.braintreepayments.api.paypal.PayPalVaultRequest
+import com.braintreepayments.api.threedsecure.ThreeDSecureLauncher
 import com.braintreepayments.api.venmo.VenmoAccountNonce
 import com.braintreepayments.api.venmo.VenmoClient
 import com.braintreepayments.api.venmo.VenmoLauncher
@@ -37,15 +37,15 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 
-
 class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
+        ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
   val NAME = "ExpoBraintree"
   private lateinit var promiseRef: Promise
   private lateinit var currentActivityRef: FragmentActivity
   private var reactContextRef: Context
   private lateinit var payPalClientRef: PayPalClient
   private lateinit var venmoClientRef: VenmoClient
+  private lateinit var threeDSecureClientRef: ThreeDSecureClient
 
   init {
     this.reactContextRef = reactContext
@@ -56,14 +56,36 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
   companion object {
     lateinit var payPalLauncher: PayPalLauncher
     lateinit var venmoLauncher: VenmoLauncher
+    lateinit var threeDSecureLauncher: ThreeDSecureLauncher
     private val moduleHandlers: ExpoBraintreeModuleHandlers = ExpoBraintreeModuleHandlers()
 
     fun init() {
       payPalLauncher = PayPalLauncher()
       venmoLauncher = VenmoLauncher()
     }
-  }
 
+    fun initThreeDSecure() {
+      threeDSecureLauncher =
+              ThreeDSecureLauncher(
+                      this,
+                      { paymentAuthResult ->
+                        threeDSecureClient.tokenize(paymentAuthResult) { result ->
+                          when (result) {
+                            is ThreeDSecureResult.Success -> {
+                              /* send result.nonce to server */
+                            }
+                            is ThreeDSecureResult.Failure -> {
+                              /* handle result.error */
+                            }
+                            is ThreeDSecureResult.Cancel -> {
+                              /* user canceled authentication */
+                            }
+                          }
+                        }
+                      }
+              )
+    }
+  }
 
   @ReactMethod
   fun requestBillingAgreement(data: ReadableMap, localPromise: Promise) {
@@ -72,34 +94,32 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
 
       if (this::currentActivityRef.isInitialized) {
-        payPalClientRef = PayPalClient(
-          currentActivityRef,
-          data.getString("clientToken") ?: "",
-          Uri.parse(data.getString("merchantAppLink") ?: "")
-        )
+        payPalClientRef =
+                PayPalClient(
+                        currentActivityRef,
+                        data.getString("clientToken") ?: "",
+                        Uri.parse(data.getString("merchantAppLink") ?: "")
+                )
         val vaultRequest: PayPalVaultRequest = PaypalDataConverter.createVaultRequest(data)
-        payPalClientRef.createPaymentAuthRequest(
-          reactContextRef,
-          vaultRequest
-        ) { paymentAuthRequest ->
+        payPalClientRef.createPaymentAuthRequest(reactContextRef, vaultRequest) { paymentAuthRequest
+          ->
           when (paymentAuthRequest) {
             is PayPalPaymentAuthRequest.ReadyToLaunch -> {
               val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
               when (pendingRequest) {
-                is PayPalPendingRequest.Started -> { /* store pending request */
-                  PendingRequestStore.getInstance().putPayPalPendingRequest(
-                    reactContextRef,
-                    pendingRequest
-                  )
+                is PayPalPendingRequest.Started -> {
+                  /* store pending request */
+                  PendingRequestStore.getInstance()
+                          .putPayPalPendingRequest(reactContextRef, pendingRequest)
                 }
-
-                is PayPalPendingRequest.Failure -> { /* handle error */
+                is PayPalPendingRequest.Failure -> {
+                  /* handle error */
                   moduleHandlers.onFailure(pendingRequest.error, promiseRef)
                 }
               }
             }
-
-            is PayPalPaymentAuthRequest.Failure -> { /* handle paymentAuthRequest.error */
+            is PayPalPaymentAuthRequest.Failure -> {
+              /* handle paymentAuthRequest.error */
               moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
             }
           }
@@ -109,9 +129,9 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       }
     } catch (ex: Exception) {
       localPromise.reject(
-        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -124,23 +144,22 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
 
       if (this::currentActivityRef.isInitialized) {
         val dataCollectorClient =
-          DataCollector(currentActivityRef, data.getString("clientToken") ?: "")
+                DataCollector(currentActivityRef, data.getString("clientToken") ?: "")
         val dataCollectorRequest = createDataCollectorRequest(data)
         dataCollectorClient.collectDeviceData(reactContextRef, dataCollectorRequest) { result ->
           when (result) {
             is DataCollectorResult.Failure ->
-              moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
-                null,
-                result.error,
-                promiseRef
-              )
-
+                    moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
+                            null,
+                            result.error,
+                            promiseRef
+                    )
             is DataCollectorResult.Success ->
-              moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
-                result.deviceData,
-                null,
-                promiseRef
-              )
+                    moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
+                            result.deviceData,
+                            null,
+                            promiseRef
+                    )
           }
         }
       } else {
@@ -148,9 +167,9 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       }
     } catch (ex: Exception) {
       promiseRef.reject(
-        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -162,47 +181,44 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
 
       if (this::currentActivityRef.isInitialized) {
-          payPalClientRef = PayPalClient(
-            currentActivityRef,
-            data.getString("clientToken") ?: "",
-            Uri.parse(data.getString("merchantAppLink") ?: "")
-          )
-          val checkoutRequest: PayPalCheckoutRequest =
-            PaypalDataConverter.createCheckoutRequest(data)
-          payPalClientRef.createPaymentAuthRequest(
-            reactContextRef,
-            checkoutRequest
-          ) { paymentAuthRequest ->
-            when (paymentAuthRequest) {
-              is PayPalPaymentAuthRequest.ReadyToLaunch -> {
-                val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
-                when (pendingRequest) {
-                  is PayPalPendingRequest.Started -> { /* store pending request */
-                    PendingRequestStore.getInstance().putPayPalPendingRequest(
-                      reactContextRef,
-                      pendingRequest
-                    )
-                  }
-
-                  is PayPalPendingRequest.Failure -> { /* handle error */
-                    localPromise.reject("PayPalPendingRequest.Failure")
-                  }
+        payPalClientRef =
+                PayPalClient(
+                        currentActivityRef,
+                        data.getString("clientToken") ?: "",
+                        Uri.parse(data.getString("merchantAppLink") ?: "")
+                )
+        val checkoutRequest: PayPalCheckoutRequest = PaypalDataConverter.createCheckoutRequest(data)
+        payPalClientRef.createPaymentAuthRequest(reactContextRef, checkoutRequest) {
+                paymentAuthRequest ->
+          when (paymentAuthRequest) {
+            is PayPalPaymentAuthRequest.ReadyToLaunch -> {
+              val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
+              when (pendingRequest) {
+                is PayPalPendingRequest.Started -> {
+                  /* store pending request */
+                  PendingRequestStore.getInstance()
+                          .putPayPalPendingRequest(reactContextRef, pendingRequest)
+                }
+                is PayPalPendingRequest.Failure -> {
+                  /* handle error */
+                  localPromise.reject("PayPalPendingRequest.Failure")
                 }
               }
-
-              is PayPalPaymentAuthRequest.Failure -> { /* handle paymentAuthRequest.error */
-                moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
-              }
+            }
+            is PayPalPaymentAuthRequest.Failure -> {
+              /* handle paymentAuthRequest.error */
+              moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
             }
           }
-        } else {
+        }
+      } else {
         throw Exception()
       }
     } catch (ex: Exception) {
       localPromise.reject(
-        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -220,12 +236,8 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         cardClient.tokenize(cardRequest) { cardResult ->
           when (cardResult) {
             is CardResult.Success -> {
-              moduleHandlers.onCardTokenizeSuccessHandler(
-                cardResult.nonce,
-                promiseRef
-              )
+              moduleHandlers.onCardTokenizeSuccessHandler(cardResult.nonce, promiseRef)
             }
-
             is CardResult.Failure -> {
               moduleHandlers.onCardTokenizeFailure(cardResult.error, promiseRef)
             }
@@ -236,9 +248,9 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       }
     } catch (ex: Exception) {
       localPromise.reject(
-        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
@@ -250,35 +262,31 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
 
       if (this::currentActivityRef.isInitialized) {
-        venmoClientRef = VenmoClient(
-          currentActivityRef,
-          data.getString("clientToken") ?: "",
-          data.getString("returnUrlSchema")
-        )
+        venmoClientRef =
+                VenmoClient(
+                        currentActivityRef,
+                        data.getString("clientToken") ?: "",
+                        data.getString("returnUrlSchema")
+                )
         val request: VenmoRequest = VenmoDataConverter.createRequest(data)
-        venmoClientRef.createPaymentAuthRequest(
-          reactContextRef,
-          request
-        ) { paymentAuthRequest ->
+        venmoClientRef.createPaymentAuthRequest(reactContextRef, request) { paymentAuthRequest ->
           when (paymentAuthRequest) {
             is VenmoPaymentAuthRequest.ReadyToLaunch -> {
               val pendingRequest = venmoLauncher.launch(currentActivityRef, paymentAuthRequest)
               when (pendingRequest) {
-                is VenmoPendingRequest.Started -> { /* store pending request */
-                  PendingRequestStore.getInstance().putVenmoPendingRequest(
-                    reactContextRef,
-                    pendingRequest
-                  )
+                is VenmoPendingRequest.Started -> {
+                  /* store pending request */
+                  PendingRequestStore.getInstance()
+                          .putVenmoPendingRequest(reactContextRef, pendingRequest)
                 }
-
-                is VenmoPendingRequest.Failure -> { /* handle error */
+                is VenmoPendingRequest.Failure -> {
+                  /* handle error */
                   moduleHandlers.onFailure(pendingRequest.error, promiseRef)
                 }
               }
             }
-
             is VenmoPaymentAuthRequest.Failure ->
-              moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
+                    moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
           }
         }
       } else {
@@ -286,16 +294,16 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       }
     } catch (ex: Exception) {
       localPromise.reject(
-        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-        ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-        SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
       )
     }
   }
 
   private fun handlePayPalAccountNonceResult(
-    payPalAccountNonce: PayPalAccountNonce?,
-    error: Exception?,
+          payPalAccountNonce: PayPalAccountNonce?,
+          error: Exception?,
   ) {
     if (error != null) {
       moduleHandlers.onFailure(error, promiseRef)
@@ -307,8 +315,8 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
   }
 
   private fun handleVenmoAccountNonceResult(
-    nonce: VenmoAccountNonce?,
-    error: Exception?,
+          nonce: VenmoAccountNonce?,
+          error: Exception?,
   ) {
     if (error != null) {
       moduleHandlers.onFailure(error, promiseRef)
@@ -350,13 +358,10 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
 
       when (paymentAuthResult) {
         is PayPalPaymentAuthResult.Failure ->
-          handlePayPalAccountNonceResult(null, paymentAuthResult.error)
-
+                handlePayPalAccountNonceResult(null, paymentAuthResult.error)
         PayPalPaymentAuthResult.NoResult ->
-          moduleHandlers.onCancel(Exception("No result"), promiseRef)
-
-        is PayPalPaymentAuthResult.Success ->
-          completePayPalFlow(paymentAuthResult);
+                moduleHandlers.onCancel(Exception("No result"), promiseRef)
+        is PayPalPaymentAuthResult.Success -> completePayPalFlow(paymentAuthResult)
       }
       clearPayPalPendingRequest()
     }
@@ -365,13 +370,10 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
     if (venmoPendingRequest != null) {
       when (val paymentAuthResult = venmoLauncher.handleReturnToApp(venmoPendingRequest, intent)) {
         is VenmoPaymentAuthResult.Failure ->
-          handleVenmoAccountNonceResult(null, paymentAuthResult.error)
-
+                handleVenmoAccountNonceResult(null, paymentAuthResult.error)
         VenmoPaymentAuthResult.NoResult ->
-          moduleHandlers.onCancel(Exception("No result"), promiseRef)
-
-        is VenmoPaymentAuthResult.Success ->
-          completeVenmoFlow(paymentAuthResult);
+                moduleHandlers.onCancel(Exception("No result"), promiseRef)
+        is VenmoPaymentAuthResult.Success -> completeVenmoFlow(paymentAuthResult)
       }
       clearVenmoPendingRequest()
     }
@@ -380,15 +382,16 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
   private fun completePayPalFlow(paymentAuthResult: PayPalPaymentAuthResult.Success) {
     payPalClientRef.tokenize(paymentAuthResult) { result ->
       when (result) {
-        is PayPalResult.Success -> { /* handle result.nonce */
+        is PayPalResult.Success -> {
+          /* handle result.nonce */
           handlePayPalAccountNonceResult(result.nonce, null)
         }
-
-        is PayPalResult.Failure -> { /* handle result.error */
+        is PayPalResult.Failure -> {
+          /* handle result.error */
           handlePayPalAccountNonceResult(null, result.error)
         }
-
-        is PayPalResult.Cancel -> { /* handle user canceled */
+        is PayPalResult.Cancel -> {
+          /* handle user canceled */
           moduleHandlers.onCancel(Exception("Cancel"), promiseRef)
         }
       }
@@ -398,15 +401,16 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
   private fun completeVenmoFlow(paymentAuthResult: VenmoPaymentAuthResult.Success) {
     venmoClientRef.tokenize(paymentAuthResult) { result ->
       when (result) {
-        is VenmoResult.Success -> { /* handle result.nonce */
+        is VenmoResult.Success -> {
+          /* handle result.nonce */
           handleVenmoAccountNonceResult(result.nonce, null)
         }
-
-        is VenmoResult.Failure -> { /* handle result.error */
+        is VenmoResult.Failure -> {
+          /* handle result.error */
           handleVenmoAccountNonceResult(null, result.error)
         }
-
-        is VenmoResult.Cancel -> { /* handle user canceled */
+        is VenmoResult.Cancel -> {
+          /* handle user canceled */
           moduleHandlers.onCancel(Exception("Cancel"), promiseRef)
         }
       }
