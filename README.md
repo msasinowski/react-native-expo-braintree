@@ -18,6 +18,16 @@ https://developer.paypal.com/braintree/docs/start/overview
 |                2.4.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
 |                3.0.1                |        v5.2.x         |      v6.23.3      |         23          |      14.0       |
 
+| React Native Expo Braintree Version |    Expo SDK    |
+| :---------------------------------: | :------------: |
+|                2.2.0                |    50 or 51    |
+|                2.2.1                |    50 or 51    |
+|                2.2.2                |    50 or 51    |
+|                2.4.0                |    50 or 51    |
+|                2.4.1                | 50 or 51 or 52 |
+|                3.0.1                |    50 or 51    |
+|                3.0.2                | 50 or 51 or 52 |
+
 ## !!! Important Information Only For Package Version Above 3.x.x^ !!!
 Package Version 3.x.x, introduce breaking change for the whole Android Integration, long story short [Braintree SDK For Android](https://github.com/braintree/braintree_android), from version 5.X.X , change a way of handling deep link and context switch from the PayPal (Browser) to the App, instead using custom schema Deep Link, SDK Version 5.x.x introduces usage of [AppLinks for Android](https://developer.android.com/training/app-links), with https schema.
 
