@@ -28,6 +28,12 @@ export enum VENMO_ERROR_TYPES {
   VENMO_DISABLED_IN_CONFIGURATION = 'VENMO_DISABLED_IN_CONFIGURATION_ERROR',
 }
 
+export enum THREE_D_SECURE_ERROR_TYPES {
+  D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY = 'D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY',
+  D_SECURE_LIABILITY_NOT_SHIFTED = 'D_SECURE_LIABILITY_NOT_SHIFTED',
+  PAYMENT_3D_SECURE_FAILED = 'PAYMENT_3D_SECURE_FAILED',
+}
+
 export enum BTPayPalCheckoutIntent {
   authorize = 'authorize',
   order = 'order',
@@ -152,4 +158,35 @@ export type BTVenmoError = {
   code?: EXCEPTION_TYPES | VENMO_EXCEPTION_TYPES;
   message?: ERROR_TYPES | VENMO_ERROR_TYPES | string;
   domain?: ERROR_TYPES | VENMO_ERROR_TYPES;
+};
+
+export type BTThreeDError = {
+  code?: EXCEPTION_TYPES | VENMO_EXCEPTION_TYPES;
+  message?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES | string;
+  domain?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES;
+};
+
+export type BTCardTokenization3DSNonceResult = {
+  nonce: string;
+  cardNetwork?: string;
+  lastTwo?: string;
+  lastFour?: string;
+  expirationMonth?: string;
+  expirationYear?: string;
+};
+
+export type ThreeDSecureCheckOptions = {
+  clientToken: string;
+  amount: string;
+  nonce: string;
+  email?: string;
+  givenName?: string;
+  surName?: string;
+  phoneNumber?: string;
+  streetAddress?: string;
+  extendedAddress?: string;
+  city?: string;
+  postalCode?: string;
+  region?: string;
+  countryCodeAlpha2?: string;
 };

@@ -15,9 +15,12 @@ import {
   requestOneTimePayment,
   requestVenmoNonce,
   tokenizeCardData,
+  request3DSecurePaymentCheck,
 } from 'react-native-expo-braintree';
 
 export const clientToken = 'sandbox_x62mvdjj_p8ngm2sczm8248vg';
+// export const clientToken = '';
+
 export const merchantAppLink = 'https://braintree-example-app.web.app';
 
 export default function App() {
@@ -124,6 +127,40 @@ export default function App() {
             console.log(JSON.stringify(nonce));
           } catch (ex) {
             console.log(ex);
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+      />
+      <Button
+        title="Click Me To Tokenize Card and Run 3DS Check"
+        onPress={async () => {
+          try {
+            setIsLoading(true);
+            const tokenizedCard = await tokenizeCardData({
+              // Only client Token will work Tokenized Key will do not work for 3DS
+              // Take a look on the example/src/simple-braintree-server to generate clientToken
+              clientToken,
+              // number: '4000000000001091',
+              number: '5200000000001104',
+              expirationMonth: '01',
+              expirationYear: '2024',
+              cvv: '123',
+            });
+            if ('nonce' in tokenizedCard) {
+              const secureCheckResult = await request3DSecurePaymentCheck({
+                // Only client Token will work Tokenized Key will do not work for 3DS
+                // Take a look on the example/src/simple-braintree-server to generate clientToken
+                clientToken,
+                amount: '10',
+                nonce: tokenizedCard?.nonce,
+              });
+              setIsLoading(false);
+              setResult(JSON.stringify(secureCheckResult));
+              console.log(JSON.stringify(secureCheckResult));
+            }
+          } catch (ex) {
+            console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
           }

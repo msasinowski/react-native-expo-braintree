@@ -21,7 +21,7 @@ func prepareAddressResult(address: BTPostalAddress?) -> NSMutableDictionary {
 }
 
 func prepareBTPayPalAccountNonceResult(accountNonce: BTPayPalAccountNonce)
-  -> NSDictionary
+-> NSDictionary
 {
   let result = NSMutableDictionary()
   result["email"] = accountNonce.email ?? ""
@@ -36,7 +36,7 @@ func prepareBTPayPalAccountNonceResult(accountNonce: BTPayPalAccountNonce)
 }
 
 func prepareBTVenmoAccountNonceResult(accountNonce: BTVenmoAccountNonce)
-  -> NSDictionary
+-> NSDictionary
 {
   let result = NSMutableDictionary()
   result["email"] = accountNonce.email ?? ""

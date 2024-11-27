@@ -1,7 +1,5 @@
 package com.expobraintree
 
-import com.braintreepayments.api.card.Card
-import com.braintreepayments.api.card.CardNonce
 import com.braintreepayments.api.paypal.PayPalAccountNonce
 import com.braintreepayments.api.paypal.PayPalCheckoutRequest
 import com.braintreepayments.api.paypal.PayPalPaymentIntent
@@ -12,7 +10,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 
 
-class PaypalDataConverter {
+class PayPalDataConverter {
 
   companion object {
     fun convertPaypalDataAccountNonce(payPalAccountNonce: PayPalAccountNonce): WritableMap {
@@ -26,21 +24,6 @@ class PaypalDataConverter {
       return result
     }
 
-    fun createTokenizeCardDataNonce(cardNonce: CardNonce): WritableMap {
-      val result: WritableMap = Arguments.createMap()
-      result.putString("nonce", cardNonce.string)
-      if (cardNonce.cardType == "Unknown") {
-        result.putString("cardNetwork", "")
-      } else {
-        result.putString("cardNetwork", cardNonce.cardType)
-      }
-      result.putString("lastFour", cardNonce.lastFour)
-      result.putString("lastTwo", cardNonce.lastTwo)
-      result.putString("expirationMonth", cardNonce.expirationMonth)
-      result.putString("expirationYear", cardNonce.expirationYear)
-      return result
-    }
-
     fun createVaultRequest(options: ReadableMap): PayPalVaultRequest {
       val hasUserLocationConsent: String = options.getString("hasUserLocationConsent") ?: "false"
       val request = when (hasUserLocationConsent) {
@@ -50,7 +33,7 @@ class PaypalDataConverter {
       }
 
       if (options.hasKey("billingAgreementDescription")) {
-        request.billingAgreementDescription =  options.getString("billingAgreementDescription")
+        request.billingAgreementDescription = options.getString("billingAgreementDescription")
       }
       if (options.hasKey("localeCode")) {
         request.localeCode = options.getString("localeCode")
@@ -82,11 +65,12 @@ class PaypalDataConverter {
     fun createCheckoutRequest(options: ReadableMap): PayPalCheckoutRequest {
       val hasUserLocationConsent: String = options.getString("hasUserLocationConsent") ?: "false"
       val request = when (hasUserLocationConsent) {
-        "false" -> PayPalCheckoutRequest(options.getString("amount") ?: "",false)
+        "false" -> PayPalCheckoutRequest(options.getString("amount") ?: "", false)
         "true" -> PayPalCheckoutRequest(options.getString("amount") ?: "", true)
         else -> throw IllegalArgumentException("Invalid hasUserLocationConsent parameter")
       }
-      if (options.hasKey("billingAgreementDescription")) request.billingAgreementDescription = options.getString("billingAgreementDescription")
+      if (options.hasKey("billingAgreementDescription")) request.billingAgreementDescription =
+        options.getString("billingAgreementDescription")
       if (options.hasKey("localeCode")) request.localeCode = options.getString("localeCode")
         ?: "en-US"
       if (options.hasKey("displayName")) request.displayName = options.getString("displayName")
@@ -113,26 +97,6 @@ class PaypalDataConverter {
         request.intent = PayPalPaymentIntent.AUTHORIZE
       }
       return request
-    }
-
-    fun createTokenizeCardRequest(options: ReadableMap): Card {
-      val card: Card = Card()
-      if (options.hasKey("number")) {
-        card.number = options.getString("number")
-      }
-      if (options.hasKey("expirationMonth")) {
-        card.expirationMonth = options.getString("expirationMonth")
-      }
-      if (options.hasKey("expirationYear")) {
-        card.expirationYear = options.getString("expirationYear")
-      }
-      if (options.hasKey("cvv")) {
-        card.cvv = (options.getString("cvv"))
-      }
-      if (options.hasKey("postalCode")) {
-        card.postalCode = options.getString("postalCode")
-      }
-      return card
     }
   }
 }
