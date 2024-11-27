@@ -20,6 +20,8 @@ import {
 interface IntentFilterProps {
   host: string;
   pathPrefix?: string;
+  initializePayPal?: string;
+  initializeVenmo?: string;
   initialize3DSecure?: string;
 }
 
@@ -27,7 +29,7 @@ const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
 export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
   expoConfig,
-  { host, pathPrefix, initialize3DSecure }
+  { host, pathPrefix, initialize3DSecure, initializePayPal, initializeVenmo }
 ) => {
   let newConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = addPaypalAppLinks(config.modResults, host, pathPrefix);
@@ -43,18 +45,29 @@ export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
       ['com.expobraintree.ExpoBraintreeModule'],
       language === 'java'
     );
-    const newSrcDefault = `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`;
-    const newSrcWithThreeDSecure = `    ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}
-                                        ExpoBraintreeModule.initThreeDSecure()${language === 'java' ? ';' : ''}`;
-
+    let newSrc = [];
+    if (initializePayPal === 'true') {
+      newSrc.push(
+        `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`
+      );
+    }
+    if (initializeVenmo === 'true') {
+      newSrc.push(
+        `   ExpoBraintreeModule.initVenmo()${language === 'java' ? ';' : ''}`
+      );
+    }
+    if (initialize3DSecure === 'true') {
+      newSrc.push(
+        `   ExpoBraintreeModule.initThreeDSecure(this)${language === 'java' ? ';' : ''}`
+      );
+    }
     const withInit = mergeContents({
       src: withImports,
       comment: '    // add BraintreeModule import',
       tag: 'braintree-module-init',
       offset: 1,
       anchor: /(?<=^.*super\.onCreate.*$)/m,
-      newSrc:
-        initialize3DSecure === 'true' ? newSrcWithThreeDSecure : newSrcDefault,
+      newSrc: newSrc.join('\n'),
     });
 
     return {

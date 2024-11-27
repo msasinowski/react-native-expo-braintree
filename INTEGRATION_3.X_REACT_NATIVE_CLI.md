@@ -23,17 +23,48 @@ In Your `AndroidManifest.xml`, add this intent-filter to your main activity in `
 
 ```
 
-Initialize, the Braintree, module. in your android/app/src/main/java/com/{app_name}/MainApplication.kt
+Initialize, the Braintree, module. in your android/app/src/main/java/com/{app_name}/MainActivity.kt
+Dependent on what payment method do you need initialize only the method that you will be using in your case
+Each of the init is not connected to each other
 
 ```
 import com.expobraintree.ExpoBraintreeModule
 
   override fun onCreate() {
     ...
-    ExpoBraintreeModule.init()
+    ExpoBraintreeModule.initPayPal()
+    ExpoBraintreeModule.initVenmo()
+    ExpoBraintreeModule.initThreeDSecure(this)
     ...
   }
 
+```
+
+```
+import com.expobraintree.ExpoBraintreeModule
+
+  override fun onCreate() {
+    ...
+    ExpoBraintreeModule.initPayPal()
+    ...
+  }
+
+```
+
+Add new repository to your build.gradle, to download the 3DSecure dependency, you should add it at the end of the file
+
+```
+allprojects {
+    repositories {
+        maven {
+            url "https://cardinalcommerceprod.jfrog.io/artifactory/android"
+            credentials {
+                username 'braintree_team_sdk'
+                password 'AKCp8jQcoDy2hxSWhDAUQKXLDPDx6NYRkqrgFLRc3qDrayg6rrCbJpsKKyMwaykVL8FWusJpp'
+            }
+        }
+    }
+}
 ```
 
 ### iOS Specific

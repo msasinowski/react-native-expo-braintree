@@ -3,6 +3,7 @@ package com.expobraintree
 import com.braintreepayments.api.card.CardNonce
 import com.braintreepayments.api.core.UserCanceledException
 import com.braintreepayments.api.paypal.PayPalAccountNonce
+import com.braintreepayments.api.threedsecure.ThreeDSecureNonce
 import com.braintreepayments.api.venmo.VenmoAccountNonce
 
 import com.facebook.react.bridge.WritableMap
@@ -46,7 +47,7 @@ class ExpoBraintreeModuleHandlers {
   }
 
   fun onPayPalSuccessHandler(payPalAccountNonce: PayPalAccountNonce, mPromise: Promise) {
-    val result: WritableMap = PaypalDataConverter.convertPaypalDataAccountNonce(payPalAccountNonce)
+    val result: WritableMap = PayPalDataConverter.convertPaypalDataAccountNonce(payPalAccountNonce)
     result.putMap("billingAddress", SharedDataConverter.convertAddressData(payPalAccountNonce.billingAddress))
     result.putMap("shippingAddress", SharedDataConverter.convertAddressData(payPalAccountNonce.shippingAddress))
     mPromise.resolve(result)
@@ -68,7 +69,55 @@ class ExpoBraintreeModuleHandlers {
   }
 
   fun onCardTokenizeSuccessHandler(cardNonce: CardNonce, mPromise: Promise) {
-    val result: WritableMap = PaypalDataConverter.createTokenizeCardDataNonce(cardNonce)
+    val result: WritableMap = CardDataConverter.createTokenizeCardDataNonce(cardNonce)
     mPromise.resolve(result)
   }
+
+   fun onThreeDSecureFailure(error: Exception, mPromise: Promise) {
+    mPromise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+      ERROR_TYPES.CARD_TOKENIZATION_ERROR.value,
+      SharedDataConverter.createError(
+        EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, error.localizedMessage
+      ))
+  }
+
+   fun onThreeDSecureSuccessHandler(threeDSecureNonce: ThreeDSecureNonce, mPromise: Promise) {
+     if (threeDSecureNonce.threeDSecureInfo.liabilityShiftPossible && threeDSecureNonce.threeDSecureInfo.wasVerified
+     ) {
+       mPromise.reject(
+         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+         THREE_D_SECURE_ERROR_TYPES.D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY.value,
+         SharedDataConverter.createError(
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value
+         )
+       )
+       return
+     }
+     if (threeDSecureNonce.threeDSecureInfo.liabilityShifted && threeDSecureNonce.threeDSecureInfo.wasVerified
+     ) {
+       mPromise.reject(
+         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+         THREE_D_SECURE_ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.value,
+         SharedDataConverter.createError(
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value
+         )
+       )
+       return
+     }
+
+     if (threeDSecureNonce.string.isEmpty()){
+       mPromise.reject(
+         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+         THREE_D_SECURE_ERROR_TYPES.D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY.value,
+         SharedDataConverter.createError(
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value
+         )
+       )
+       return
+     }
+
+     val result: WritableMap = CardDataConverter.createThreeDSecureDataNonce(threeDSecureNonce)
+     mPromise.resolve(result)
+     return
+   }
 }

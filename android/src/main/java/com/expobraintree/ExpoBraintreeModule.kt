@@ -19,7 +19,11 @@ import com.braintreepayments.api.paypal.PayPalPaymentAuthResult
 import com.braintreepayments.api.paypal.PayPalPendingRequest
 import com.braintreepayments.api.paypal.PayPalResult
 import com.braintreepayments.api.paypal.PayPalVaultRequest
+import com.braintreepayments.api.threedsecure.ThreeDSecureClient
 import com.braintreepayments.api.threedsecure.ThreeDSecureLauncher
+import com.braintreepayments.api.threedsecure.ThreeDSecurePaymentAuthRequest
+import com.braintreepayments.api.threedsecure.ThreeDSecureRequest
+import com.braintreepayments.api.threedsecure.ThreeDSecureResult
 import com.braintreepayments.api.venmo.VenmoAccountNonce
 import com.braintreepayments.api.venmo.VenmoClient
 import com.braintreepayments.api.venmo.VenmoLauncher
@@ -45,45 +49,110 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
   private var reactContextRef: Context
   private lateinit var payPalClientRef: PayPalClient
   private lateinit var venmoClientRef: VenmoClient
-  private lateinit var threeDSecureClientRef: ThreeDSecureClient
 
   init {
     this.reactContextRef = reactContext
     reactContext.addLifecycleEventListener(this)
     reactContext.addActivityEventListener(this)
   }
-
+  // Static references and data that need to be done on onCreate in MainApplication/MainActivity
   companion object {
     lateinit var payPalLauncher: PayPalLauncher
     lateinit var venmoLauncher: VenmoLauncher
     lateinit var threeDSecureLauncher: ThreeDSecureLauncher
     private val moduleHandlers: ExpoBraintreeModuleHandlers = ExpoBraintreeModuleHandlers()
 
-    fun init() {
+    private var threeDSecureClientRefInstance: ThreeDSecureClient? = null
+    private var promiseRefInstance: Promise? = null
+
+    // Init methods is called only if we want ot have that integration,
+    // each of the method have separated static initializer
+    fun initPayPal() {
       payPalLauncher = PayPalLauncher()
+    }
+
+    fun initVenmo() {
       venmoLauncher = VenmoLauncher()
     }
 
-    fun initThreeDSecure() {
+    fun initThreeDSecure(activity: FragmentActivity) {
       threeDSecureLauncher =
               ThreeDSecureLauncher(
-                      this,
+                      activity,
                       { paymentAuthResult ->
-                        threeDSecureClient.tokenize(paymentAuthResult) { result ->
-                          when (result) {
+                        this.getThreeDSecureClientRefInstance().tokenize(paymentAuthResult) { threeDSecureResponse
+                          ->
+                          when (threeDSecureResponse) {
                             is ThreeDSecureResult.Success -> {
-                              /* send result.nonce to server */
+                              moduleHandlers.onThreeDSecureSuccessHandler(threeDSecureResponse.nonce, this.getPromiseRefInstance())
                             }
                             is ThreeDSecureResult.Failure -> {
-                              /* handle result.error */
+                              moduleHandlers.onThreeDSecureFailure(threeDSecureResponse.error,this.getPromiseRefInstance())
                             }
                             is ThreeDSecureResult.Cancel -> {
-                              /* user canceled authentication */
+                              moduleHandlers.onCancel(Exception("Flow Cancelled"), this.getPromiseRefInstance())
                             }
                           }
                         }
                       }
               )
+    }
+
+    fun setupThreeDSecureInstance(
+            threeDSecureInstance: ThreeDSecureClient,
+            promiseInstance: Promise,
+    ) {
+      this.threeDSecureClientRefInstance = threeDSecureInstance
+      this.promiseRefInstance = promiseInstance
+    }
+
+    fun getPromiseRefInstance(): Promise {
+      return this.promiseRefInstance
+        ?: throw NullPointerException("INSTANCE NOT SET YET")
+    }
+
+    fun getThreeDSecureClientRefInstance(): ThreeDSecureClient {
+      return this.threeDSecureClientRefInstance
+              ?: throw NullPointerException("INSTANCE NOT SET YET")
+    }
+  }
+  // Static references and data that need to be done on onCreate in MainApplication/MainActivity
+
+
+  @ReactMethod
+  fun request3DSecurePaymentCheck(data: ReadableMap, localPromise: Promise) {
+    try {
+      promiseRef = localPromise
+      currentActivityRef = getCurrentActivity() as FragmentActivity
+      if (this::currentActivityRef.isInitialized) {
+        val threeDSecureClient =
+                ThreeDSecureClient(reactContextRef, data.getString("clientToken") ?: "")
+        setupThreeDSecureInstance(threeDSecureClient, localPromise)
+        val threeDSecureRequest: ThreeDSecureRequest =
+            CardDataConverter.create3DSecureRequest(data)
+        threeDSecureClient.createPaymentAuthRequest(reactContextRef, threeDSecureRequest) {
+                threeDSecureResponse ->
+          when (threeDSecureResponse) {
+            is ThreeDSecurePaymentAuthRequest.ReadyToLaunch -> {
+              threeDSecureLauncher.launch(threeDSecureResponse)
+            }
+            is ThreeDSecurePaymentAuthRequest.LaunchNotRequired -> {
+               moduleHandlers.onThreeDSecureSuccessHandler(threeDSecureResponse.nonce, localPromise)
+            }
+            is ThreeDSecurePaymentAuthRequest.Failure -> {
+              moduleHandlers.onThreeDSecureFailure(threeDSecureResponse.error,localPromise)
+            }
+          }
+        }
+      } else {
+        throw Exception()
+      }
+    } catch (ex: Exception) {
+      localPromise.reject(
+              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
+      )
     }
   }
 
@@ -100,7 +169,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
                         data.getString("clientToken") ?: "",
                         Uri.parse(data.getString("merchantAppLink") ?: "")
                 )
-        val vaultRequest: PayPalVaultRequest = PaypalDataConverter.createVaultRequest(data)
+        val vaultRequest: PayPalVaultRequest = PayPalDataConverter.createVaultRequest(data)
         payPalClientRef.createPaymentAuthRequest(reactContextRef, vaultRequest) { paymentAuthRequest
           ->
           when (paymentAuthRequest) {
@@ -179,7 +248,6 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
     try {
       promiseRef = localPromise
       currentActivityRef = getCurrentActivity() as FragmentActivity
-
       if (this::currentActivityRef.isInitialized) {
         payPalClientRef =
                 PayPalClient(
@@ -187,7 +255,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
                         data.getString("clientToken") ?: "",
                         Uri.parse(data.getString("merchantAppLink") ?: "")
                 )
-        val checkoutRequest: PayPalCheckoutRequest = PaypalDataConverter.createCheckoutRequest(data)
+        val checkoutRequest: PayPalCheckoutRequest = PayPalDataConverter.createCheckoutRequest(data)
         payPalClientRef.createPaymentAuthRequest(reactContextRef, checkoutRequest) {
                 paymentAuthRequest ->
           when (paymentAuthRequest) {
@@ -232,7 +300,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       val clientToken = data.getString("clientToken") ?: ""
       if (this::currentActivityRef.isInitialized && clientToken.isNotEmpty()) {
         val cardClient = CardClient(reactContextRef, data.getString("clientToken") ?: "")
-        val cardRequest: Card = PaypalDataConverter.createTokenizeCardRequest(data)
+        val cardRequest: Card = CardDataConverter.createTokenizeCardRequest(data)
         cardClient.tokenize(cardRequest) { cardResult ->
           when (cardResult) {
             is CardResult.Success -> {

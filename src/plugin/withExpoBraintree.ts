@@ -29,6 +29,14 @@ export type ExpoBraintreePluginProps = {
   pathPrefix?: string;
 
   /**
+   * Boolean that determines if PayPal is used/needed (Values "true" | "false")
+   */
+  initializePayPal?: string;
+  /**
+   * Boolean that determines if Venmo is used/needed (Values "true" | "false")
+   */
+  initializeVenmo?: string;
+  /**
    * Boolean that determines if 3D Secure is used/needed (Values "true" | "false")
    */
   initialize3DSecure?: string;
