@@ -33,7 +33,19 @@ class PaypalRebornModuleHandlers {
         ))
       return
     }
-    mPromise.reject(error.message)
+    error.message?.let {
+      mPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.value,
+        PaypalDataConverter.createError(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, error.message
+        ))
+    } ?: {
+      mPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.value,
+        PaypalDataConverter.createError(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, "PayPal Error"
+        ))
+    }
   }
 
   public fun onPayPalSuccessHandler(payPalAccountNonce: PayPalAccountNonce, mPromise: Promise) {
