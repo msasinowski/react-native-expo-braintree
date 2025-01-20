@@ -14,7 +14,7 @@ RCT_EXTERN_METHOD(tokenizeCardData:(NSDictionary*)options
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(getDeviceDataFromDataCollector:(NSString*)clientToken
+RCT_EXTERN_METHOD(getDeviceDataFromDataCollector:(NSDictionary*)options
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 
