@@ -17,6 +17,7 @@ https://developer.paypal.com/braintree/docs/start/overview
 |                2.3.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
 |                2.4.0                |        v4.41.x        |      v6.23.3      |         21          |      14.0       |
 |                3.0.1                |        v5.2.x         |      v6.23.3      |         23          |      14.0       |
+|                3.0.1                |        v5.9.x         |      v6.31.0      |         23          |      14.0       |
 
 | React Native Expo Braintree Version |    Expo SDK    |
 | :---------------------------------: | :------------: |
