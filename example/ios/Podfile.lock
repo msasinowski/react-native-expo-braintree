@@ -1,18 +1,18 @@
 PODS:
   - boost (1.83.0)
-  - Braintree (6.23.3):
-    - Braintree/Card (= 6.23.3)
-    - Braintree/Core (= 6.23.3)
-    - Braintree/PayPal (= 6.23.3)
-  - Braintree/Card (6.23.3):
+  - Braintree (6.31.0):
+    - Braintree/Card (= 6.31.0)
+    - Braintree/Core (= 6.31.0)
+    - Braintree/PayPal (= 6.31.0)
+  - Braintree/Card (6.31.0):
     - Braintree/Core
-  - Braintree/Core (6.23.3)
-  - Braintree/DataCollector (6.23.3):
+  - Braintree/Core (6.31.0)
+  - Braintree/DataCollector (6.31.0):
     - Braintree/Core
-  - Braintree/PayPal (6.23.3):
+  - Braintree/PayPal (6.31.0):
     - Braintree/Core
     - Braintree/DataCollector
-  - Braintree/Venmo (6.23.3):
+  - Braintree/Venmo (6.31.0):
     - Braintree/Core
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.74.0)
@@ -949,9 +949,9 @@ PODS:
   - React-Mapbuffer (0.74.0):
     - glog
     - React-debug
-  - react-native-expo-braintree (3.0.0):
-    - Braintree (= 6.23.3)
-    - Braintree/Venmo (= 6.23.3)
+  - react-native-expo-braintree (3.1.0):
+    - Braintree (= 6.31.0)
+    - Braintree/Venmo (= 6.31.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1382,7 +1382,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
-  Braintree: e2cc1a466be6aa14e1eacdbf7baacca75514b894
+  Braintree: bc1e9ddc1c1de52e8050975e13379a57107b8964
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   FBLazyVector: 026c8f4ae67b06e088ae01baa2271ef8a26c0e8c
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
@@ -1412,7 +1412,7 @@ SPEC CHECKSUMS:
   React-jsitracing: 36a2bbc272300313653d980de5ab700ec86c534a
   React-logger: 03f2f7b955cfe24593a2b8c9705c23e142d1ad24
   React-Mapbuffer: 5e05d78fe6505f4a054b86f415733d4ad02dd314
-  react-native-expo-braintree: ade1cf9a53d92f15bb24b6bc4d90fe465ea0ff32
+  react-native-expo-braintree: b498d3a5c577dca9ee90784f49b3076614415d5a
   React-nativeconfig: 951ec32f632e81cbd7d40aebb3211313251c092e
   React-NativeModulesApple: 0b3a42ca90069119ef79d8b2327d01441d71abd4
   React-perflogger: 271f1111779fef70f9502d1d38da5132e5585230

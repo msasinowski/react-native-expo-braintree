@@ -39,6 +39,9 @@ export default function App() {
             setResult(JSON.stringify(localResult));
             console.log(JSON.stringify(localResult));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
+            setResult(JSON.stringify(ex));
+
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -56,6 +59,7 @@ export default function App() {
             setResult(JSON.stringify(resultDeviceData));
             console.log(JSON.stringify(resultDeviceData));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -77,6 +81,7 @@ export default function App() {
             setResult(JSON.stringify(resultDeviceData));
             console.log(JSON.stringify(resultDeviceData));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -101,6 +106,7 @@ export default function App() {
             setResult(JSON.stringify(tokenizedCard));
             console.log(JSON.stringify(tokenizedCard));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -123,6 +129,7 @@ export default function App() {
             setResult(JSON.stringify(nonce));
             console.log(JSON.stringify(nonce));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(ex);
           } finally {
             setIsLoading(false);

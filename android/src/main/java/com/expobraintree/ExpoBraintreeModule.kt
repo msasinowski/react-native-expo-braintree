@@ -434,6 +434,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
       currentActivityRef.setIntent(intent)
       handleReturnToApp(intent)
+      currentActivityRef.intent = Intent()
     }
   }
 }
