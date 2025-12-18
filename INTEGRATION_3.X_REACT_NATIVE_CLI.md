@@ -1,4 +1,5 @@
 # React Native Bare Project (react-native-cli)
+
 ## Package Version 3.x.x
 
 Please follow and Finish [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md), before the next steps.
@@ -7,7 +8,6 @@ Please follow and Finish [Set Up App Links](https://github.com/braintree/braintr
 
 In Your `AndroidManifest.xml`, add this intent-filter to your main activity in `AndroidManifest.xml`
 `braintree-example-app.web.app` should be replaced with your own domain that you defined in [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md)
-
 
 ```xml
 <activity>
@@ -37,14 +37,17 @@ import com.expobraintree.ExpoBraintreeModule
 ```
 
 ### iOS Specific
+
 ```bash
 cd ios
 pod install
 ```
-#### Configure a new URL scheme
-Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like: 
 
-```xml 
+#### Configure a new URL scheme
+
+Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like:
+
+```xml
 <key>CFBundleURLTypes</key>
 <array>
     <dict>
@@ -59,60 +62,91 @@ Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode
     </dict>
 </array>
 ```
+
 #### Update your code
-From version 2.0.0 of the expo-braintree, for the IOS part of the setup there is need to make few more additional steps to integrate the library into your project. The reason is that Braintree SDk from version v6, reimplement all the IOS resources to use swift. Because of that we not longer can use Braintree Header files into AppDelegate.m file. And we need to create our own swift wrapper that can be accessible in AppDelegate.m file.
+
+Starting from version 3.2.0 of react-native-expo-braintree, additional setup steps are required for the iOS integration.
+
+This change is necessary because, beginning with Braintree SDK v6, all iOS resources have been reimplemented in Swift. As a result, a custom Swift wrapper must be created to expose the required functionality for use within the AppDelegate.swift file.
+
+It is assumed that after upgrading to React Native 0.79.x, the project no longer uses an AppDelegate.mm file and instead relies on a Swift-based AppDelegate. if you still use Rn below 0.77.x which is not really possible you can check 3.1.0 integration steps and applay them here.
 
 - Open your React Native ios Project in xCode
-- Create ExpoBraintreeConfig.swift in your project, while creating the .swift file xCode will ask if you want to automatically create your {AppName}-Bridging-Header.h - Allow that
+- Create ExpoBraintreeConfig.swift in your project
 - Put following content into ExpoBraintreeConfig.swift
 
 ```swift
 import Braintree
 import Foundation
 
-@objc public class ExpoBraintreeConfig: NSObject {
+public final class BraintreeConfig {
 
-  @objc(configure)
-  public static func configure() {
-    BTAppContextSwitcher.sharedInstance.returnURLScheme = self.getPaymentUrlScheme()
-  }
+    private init() {}
 
-  @objc(getPaymentUrlScheme)
-  public static func getPaymentUrlScheme() -> String {
-    let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-    return bundleIdentifier + ".braintree"
-  }
-
-  @objc(handleUrl:)
-  public static func handleUrl(url: URL) -> Bool {
-    return BTAppContextSwitcher.sharedInstance.handleOpen(url)
-  }
-}
-```
-- Update Content of you AppDelegate.m
-
-
-```objective-c
-#import "{AppName}}-Swift.h"
-#import <React/RCTLinkingManager.h>
-
-...
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    ...
-    [ExpoBraintreeConfig configure];
-}
-
-- (BOOL)application:(UIApplication *)application
-            openURL:(NSURL *)url
-            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-
-    if ([url.scheme localizedCaseInsensitiveCompare:[ExpoBraintreeConfig getPaymentUrlScheme]] == NSOrderedSame) {
-        return [ExpoBraintreeConfig handleUrl:url];
+    public static func configure() {
+      BTAppContextSwitcher.sharedInstance.returnURLScheme = self.paymentURLScheme
     }
-    
-    return [RCTLinkingManager application:application openURL:url options:options];
+
+    public static var paymentURLScheme: String {
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+        return bundleIdentifier + ".braintree"
+    }
+
+    public static func handleUrl(url: URL) -> Bool {
+        return BTAppContextSwitcher.sharedInstance.handleOpen(url)
+    }
 }
+```
+
+- Update Content of you AppDelegate.swift
+
+```swift
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    //  ADD THIS ONE TO INTEGRATE
+    BraintreeConfig.configure()
+    //  ADD THIS ONE TO INTEGRATE
+    let delegate = ReactNativeDelegate()
+    let factory = RCTReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+
+    reactNativeDelegate = delegate
+    reactNativeFactory = factory
+
+    window = UIWindow(frame: UIScreen.main.bounds)
+
+    factory.startReactNative(
+      withModuleName: "ExpoBraintreeExample",
+      in: window,
+      launchOptions: launchOptions
+    )
+
+    return true
+  }
+
+    //  ADD THIS ONE TO INTEGRATE
+  func application(
+    _ application: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey : Any] = [:]
+  ) -> Bool {
+
+    if url.scheme?.localizedCaseInsensitiveCompare(
+      BraintreeConfig.paymentURLScheme
+    ) == .orderedSame {
+      return BraintreeConfig.handleUrl(url: url)
+    }
+
+    return RCTLinkingManager.application(
+      application,
+      open: url,
+      options: options
+    )
+  }
+  //  ADD THIS ONE TO INTEGRATE
 
 ```
+
 The same steps are already implemented into example app, if you have any issues please check it.

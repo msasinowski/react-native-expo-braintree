@@ -10,16 +10,21 @@
     "build:ios": "cd ios && xcodebuild -workspace ExpoBraintreeExample.xcworkspace -scheme ExpoBraintreeExample -configuration Debug -sdk iphonesimulator CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO"
   },
   "dependencies": {
-    "react": "18.2.0",
-    "react-native": "0.74.0"
+    "react": "19.0.0",
+    "react-native": "^0.79.7"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@babel/preset-env": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
-    "@react-native/babel-preset": "0.74.83",
-    "@react-native/metro-config": "0.74.83",
-    "@react-native/typescript-config": "0.74.83",
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "18.0.0",
+    "@react-native-community/cli-platform-android": "18.0.0",
+    "@react-native-community/cli-platform-ios": "18.0.0",
+    "@react-native/babel-preset": "0.79.7",
+    "@react-native/eslint-config": "0.79.7",
+    "@react-native/metro-config": "0.79.7",
+    "@react-native/typescript-config": "0.79.7",
+    "@types/react": "^19.0.0",
     "babel-plugin-module-resolver": "^5.0.0"
   },
   "engines": {

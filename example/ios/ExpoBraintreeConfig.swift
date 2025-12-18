@@ -1,28 +1,24 @@
 //
-//  ExpoBraintreeConfig.swift
-//  ExpoBraintreeExample
-//
-//  Created by Maciej Sasinowski on 08/05/2024.
+//  BraintreeConfig.swift
 //
 
 import Braintree
 import Foundation
 
-@objc public class BraintreeExpoConfig: NSObject {
+public final class BraintreeConfig {
 
-  @objc(configure)
-  public static func configure() {
-    BTAppContextSwitcher.sharedInstance.returnURLScheme = self.getPaymentUrlScheme()
-  }
+    private init() {}
 
-  @objc(getPaymentUrlScheme)
-  public static func getPaymentUrlScheme() -> String {
-    let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-    return bundleIdentifier + ".braintree"
-  }
+    public static func configure() {
+      BTAppContextSwitcher.sharedInstance.returnURLScheme = self.paymentURLScheme
+    }
 
-  @objc(handleUrl:)
-  public static func handleUrl(url: URL) -> Bool {
-    return BTAppContextSwitcher.sharedInstance.handleOpen(url)
-  }
+    public static var paymentURLScheme: String {
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+        return bundleIdentifier + ".braintree"
+    }
+
+    public static func handleUrl(url: URL) -> Bool {
+        return BTAppContextSwitcher.sharedInstance.handleOpen(url)
+    }
 }

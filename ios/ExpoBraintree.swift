@@ -169,7 +169,7 @@ class ExpoBraintree: NSObject {
       if let corelationId = corelationId {
         // Step 4: Return corelation id
         return resolve(corelationId)
-      } else if let dataCollectorError = dataCollectorError {
+      } else if dataCollectorError != nil {
         // Step 4: Handle Error: DataCollector error
         return reject(
           EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
@@ -205,7 +205,7 @@ class ExpoBraintree: NSObject {
       if let cardNonce = cardNonce {
         // Step 4: Return corelation id
         return resolve(prepareBTCardNonceResult(cardNonce: cardNonce))
-      } else if let error = error {
+      } else if error != nil {
         // Step 4: Handle Error: DataCollector error
         return reject(
           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue,
