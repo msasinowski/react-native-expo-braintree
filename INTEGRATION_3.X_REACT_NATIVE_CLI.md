@@ -97,29 +97,7 @@ public final class ExpoBraintreeConfig {
 - Update Content of you AppDelegate.swift
 
 ```swift
-  func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-  ) -> Bool {
-    let delegate = ReactNativeDelegate()
-    let factory = RCTReactNativeFactory(delegate: delegate)
-    delegate.dependencyProvider = RCTAppDependencyProvider()
-
-    reactNativeDelegate = delegate
-    reactNativeFactory = factory
-
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    factory.startReactNative(
-      withModuleName: "ExpoBraintreeExample",
-      in: window,
-      launchOptions: launchOptions
-    )
-
-    return true
-  }
-
-    //  ADD THIS ONE TO INTEGRATE
+    //  Add this method or update existing one
   func application(
     _ application: UIApplication,
     open url: URL,
@@ -138,7 +116,7 @@ public final class ExpoBraintreeConfig {
       options: options
     )
   }
-  //  ADD THIS ONE TO INTEGRATE
+  //  Add this method or update existing one
 
 ```
 
