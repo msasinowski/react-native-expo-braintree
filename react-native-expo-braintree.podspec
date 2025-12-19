@@ -11,12 +11,12 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => 14 }
+  s.platforms    = { :ios => 15.1 }
   s.source       = { :git => "https://github.com/msasinowski/react-native-expo-braintree.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  s.dependency "Braintree", "6.31.0"
-  s.dependency "Braintree/Venmo", "6.31.0"
+  s.dependency "Braintree", "6.41.0"
+  s.dependency "Braintree/Venmo", "6.41.0"
 
   # Use install_modules_dependencies helper to install the dependencies if React Native version >=0.71.0.
   # See https://github.com/facebook/react-native/blob/febf6b7f33fdb4904669f99d795eba4c0f95d7bf/scripts/cocoapods/new_architecture.rb#L79.
