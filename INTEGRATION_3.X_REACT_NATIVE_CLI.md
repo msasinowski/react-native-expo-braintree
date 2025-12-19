@@ -65,7 +65,7 @@ Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode
 
 #### Update your code
 
-Starting from version 3.2.0 of react-native-expo-braintree, additional setup steps are required for the iOS integration.
+Starting from version 3.x.x of react-native-expo-braintree, additional setup steps are required for the iOS integration.
 
 This change is necessary because, beginning with Braintree SDK v6, all iOS resources have been reimplemented in Swift. As a result, a custom Swift wrapper must be created to expose the required functionality for use within the AppDelegate.swift file.
 
