@@ -185,7 +185,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
                   }
 
                   is PayPalPendingRequest.Failure -> { /* handle error */
-                    localPromise.reject("PayPalPendingRequest.Failure")
+                    moduleHandlers.onFailure(pendingRequest.error, promiseRef)
                   }
                 }
               }
@@ -253,7 +253,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         venmoClientRef = VenmoClient(
           currentActivityRef,
           data.getString("clientToken") ?: "",
-          data.getString("returnUrlSchema")
+          Uri.parse(data.getString("merchantAppLink") ?: "")
         )
         val request: VenmoRequest = VenmoDataConverter.createRequest(data)
         venmoClientRef.createPaymentAuthRequest(

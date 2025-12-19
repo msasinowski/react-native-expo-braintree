@@ -79,13 +79,9 @@ It is assumed that after upgrading to React Native 0.79.x, the project no longer
 import Braintree
 import Foundation
 
-public final class BraintreeConfig {
+public final class ExpoBraintreeConfig {
 
     private init() {}
-
-    public static func configure() {
-      BTAppContextSwitcher.sharedInstance.returnURLScheme = self.paymentURLScheme
-    }
 
     public static var paymentURLScheme: String {
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
@@ -105,9 +101,6 @@ public final class BraintreeConfig {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    //  ADD THIS ONE TO INTEGRATE
-    BraintreeConfig.configure()
-    //  ADD THIS ONE TO INTEGRATE
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -134,9 +127,9 @@ public final class BraintreeConfig {
   ) -> Bool {
 
     if url.scheme?.localizedCaseInsensitiveCompare(
-      BraintreeConfig.paymentURLScheme
+      ExpoBraintreeConfig.paymentURLScheme
     ) == .orderedSame {
-      return BraintreeConfig.handleUrl(url: url)
+      return ExpoBraintreeConfig.handleUrl(url: url)
     }
 
     return RCTLinkingManager.application(

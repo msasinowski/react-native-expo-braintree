@@ -14,9 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    //  ADD THIS ONE TO INTEGRATE
-    BraintreeConfig.configure()
-    //  ADD THIS ONE TO INTEGRATE
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -43,9 +40,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   ) -> Bool {
 
     if url.scheme?.localizedCaseInsensitiveCompare(
-      BraintreeConfig.paymentURLScheme
+      ExpoBraintreeConfig.paymentURLScheme
     ) == .orderedSame {
-      return BraintreeConfig.handleUrl(url: url)
+      return ExpoBraintreeConfig.handleUrl(url: url)
     }
 
     return RCTLinkingManager.application(

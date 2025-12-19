@@ -1,17 +1,13 @@
 //
-//  BraintreeConfig.swift
+//  ExpoBraintreeConfig.swift
 //
 
 import Braintree
 import Foundation
 
-public final class BraintreeConfig {
+public final class ExpoBraintreeConfig {
 
     private init() {}
-
-    public static func configure() {
-      BTAppContextSwitcher.sharedInstance.returnURLScheme = self.paymentURLScheme
-    }
 
     public static var paymentURLScheme: String {
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
