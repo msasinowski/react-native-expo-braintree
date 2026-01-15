@@ -19,6 +19,7 @@ import {
 
 export const clientToken = 'sandbox_x62mvdjj_p8ngm2sczm8248vg';
 export const merchantAppLink = 'https://braintree-example-app.web.app';
+const applicationId = 'com.expobraintreeexample';
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
@@ -76,6 +77,29 @@ export default function App() {
               clientToken,
               amount: '5',
               merchantAppLink,
+            });
+            setIsLoading(false);
+            setResult(JSON.stringify(resultDeviceData));
+            console.log(JSON.stringify(resultDeviceData));
+          } catch (ex) {
+            setResult(JSON.stringify(ex));
+            console.log(JSON.stringify(ex));
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+      />
+
+      <Button
+        title="Click Me To request One time Payment (fallback url scheme)"
+        onPress={async () => {
+          try {
+            setIsLoading(true);
+            const resultDeviceData = await requestOneTimePayment({
+              clientToken,
+              amount: '5',
+              merchantAppLink: '',
+              fallbackUrlScheme: `${applicationId}.braintree`,
             });
             setIsLoading(false);
             setResult(JSON.stringify(resultDeviceData));
