@@ -128,6 +128,7 @@ export type RequestVenmoNonceOptions = {
   shippingAmount?: string;
   totalAmount?: string;
   fallbackToWeb?: BoolValue;
+  fallbackUrlScheme?: string;
 };
 
 export type BTVenmoNonceResult = {
