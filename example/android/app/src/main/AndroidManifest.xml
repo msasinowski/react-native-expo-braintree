@@ -26,6 +26,12 @@
         <data android:scheme="https" />
         <data android:host="braintree-example-app.web.app" />
       </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="${applicationId}.braintree" />
+      </intent-filter>
     </activity>
   </application>
 </manifest>

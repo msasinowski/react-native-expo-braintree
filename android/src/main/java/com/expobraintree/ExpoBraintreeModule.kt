@@ -75,7 +75,8 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         payPalClientRef = PayPalClient(
           currentActivityRef,
           data.getString("clientToken") ?: "",
-          Uri.parse(data.getString("merchantAppLink") ?: "")
+          Uri.parse(data.getString("merchantAppLink") ?: ""),
+          data.getString("fallbackUrlScheme") ?: null
         )
         val vaultRequest: PayPalVaultRequest = PaypalDataConverter.createVaultRequest(data)
         payPalClientRef.createPaymentAuthRequest(
@@ -165,7 +166,8 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
           payPalClientRef = PayPalClient(
             currentActivityRef,
             data.getString("clientToken") ?: "",
-            Uri.parse(data.getString("merchantAppLink") ?: "")
+            Uri.parse(data.getString("merchantAppLink") ?: ""),
+            data.getString("fallbackUrlScheme") ?: null
           )
           val checkoutRequest: PayPalCheckoutRequest =
             PaypalDataConverter.createCheckoutRequest(data)
@@ -253,7 +255,8 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         venmoClientRef = VenmoClient(
           currentActivityRef,
           data.getString("clientToken") ?: "",
-          Uri.parse(data.getString("merchantAppLink") ?: "")
+          Uri.parse(data.getString("merchantAppLink") ?: ""),
+          data.getString("fallbackUrlScheme") ?: null
         )
         val request: VenmoRequest = VenmoDataConverter.createRequest(data)
         venmoClientRef.createPaymentAuthRequest(
