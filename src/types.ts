@@ -66,6 +66,7 @@ export type RequestBillingAgreementOptions = {
   isAccessibilityElement?: BoolValue;
   hasUserLocationConsent?: BoolValue;
   merchantAppLink: string;
+  fallbackUrlScheme?: string;
 };
 export type RequestOneTimePaymentOptions = {
   amount: string;
@@ -77,6 +78,7 @@ export type RequestOneTimePaymentOptions = {
   hasUserLocationConsent?: BoolValue;
   clientToken: string;
   merchantAppLink: string;
+  fallbackUrlScheme?: string;
 };
 
 export type TokenizeCardOptions = {
@@ -132,6 +134,7 @@ export type RequestVenmoNonceOptions = {
   shippingAmount?: string;
   totalAmount?: string;
   fallbackToWeb?: BoolValue;
+  fallbackUrlScheme?: string;
 };
 
 export type BTVenmoNonceResult = {

@@ -22,6 +22,7 @@ export const clientToken = 'sandbox_x62mvdjj_p8ngm2sczm8248vg';
 // export const clientToken = '';
 
 export const merchantAppLink = 'https://braintree-example-app.web.app';
+const applicationId = 'com.expobraintreeexample';
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
@@ -42,6 +43,9 @@ export default function App() {
             setResult(JSON.stringify(localResult));
             console.log(JSON.stringify(localResult));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
+            setResult(JSON.stringify(ex));
+
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -59,6 +63,7 @@ export default function App() {
             setResult(JSON.stringify(resultDeviceData));
             console.log(JSON.stringify(resultDeviceData));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -80,6 +85,30 @@ export default function App() {
             setResult(JSON.stringify(resultDeviceData));
             console.log(JSON.stringify(resultDeviceData));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
+            console.log(JSON.stringify(ex));
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+      />
+
+      <Button
+        title="Click Me To request One time Payment (fallback url scheme)"
+        onPress={async () => {
+          try {
+            setIsLoading(true);
+            const resultDeviceData = await requestOneTimePayment({
+              clientToken,
+              amount: '5',
+              merchantAppLink: '',
+              fallbackUrlScheme: `${applicationId}.braintree`,
+            });
+            setIsLoading(false);
+            setResult(JSON.stringify(resultDeviceData));
+            console.log(JSON.stringify(resultDeviceData));
+          } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -104,6 +133,7 @@ export default function App() {
             setResult(JSON.stringify(tokenizedCard));
             console.log(JSON.stringify(tokenizedCard));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(JSON.stringify(ex));
           } finally {
             setIsLoading(false);
@@ -126,6 +156,7 @@ export default function App() {
             setResult(JSON.stringify(nonce));
             console.log(JSON.stringify(nonce));
           } catch (ex) {
+            setResult(JSON.stringify(ex));
             console.log(ex);
           } finally {
             setIsLoading(false);

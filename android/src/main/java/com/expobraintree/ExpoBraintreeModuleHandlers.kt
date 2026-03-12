@@ -35,7 +35,21 @@ class ExpoBraintreeModuleHandlers {
         ))
       return
     }
-    mPromise.reject(error.message)
+    
+    error.message?.let {
+      mPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+        ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.value,
+        SharedDataConverter.createError(
+          EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, error.message
+        ))
+      return
+    }
+
+    mPromise.reject(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+      ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.value,
+      SharedDataConverter.createError(
+        EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, "PayPal Error"
+      ))
   }
 
   fun onCancel(error: Exception, mPromise: Promise) {

@@ -4,6 +4,7 @@ import {
   withAndroidManifest,
   withMainActivity,
   withProjectBuildGradle,
+  WarningAggregator,
 } from '@expo/config-plugins';
 import type {
   ManifestIntentFilter,
@@ -17,25 +18,30 @@ import {
   removeGeneratedContents,
 } from '@expo/config-plugins/build/utils/generateCode';
 
-interface IntentFilterProps {
+interface WithExpoBraintreeAndroidProps {
   host: string;
   pathPrefix?: string;
-  initializePayPal?: string;
-  initializeVenmo?: string;
   initialize3DSecure?: string;
+  fallbackUrlScheme?: string;
 }
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
-export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
+export const withExpoBraintreeAndroid: ConfigPlugin<
+  WithExpoBraintreeAndroidProps
+> = (
   expoConfig,
-  { host, pathPrefix, initialize3DSecure, initializePayPal, initializeVenmo }
+  { host, pathPrefix, fallbackUrlScheme, initialize3DSecure }
 ) => {
   let newConfig = withAndroidManifest(expoConfig, (config) => {
-    config.modResults = addPaypalAppLinks(config.modResults, host, pathPrefix);
+    config.modResults = addBraintreeLinks(
+      config.modResults,
+      host,
+      pathPrefix,
+      fallbackUrlScheme
+    );
     return config;
   });
-
   newConfig = withMainActivity(expoConfig, (config) => {
     const { modResults } = config;
     const { language } = modResults;
@@ -46,16 +52,6 @@ export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
       language === 'java'
     );
     let newSrc = [];
-    if (initializePayPal === 'true') {
-      newSrc.push(
-        `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`
-      );
-    }
-    if (initializeVenmo === 'true') {
-      newSrc.push(
-        `   ExpoBraintreeModule.initVenmo()${language === 'java' ? ';' : ''}`
-      );
-    }
     if (initialize3DSecure === 'true') {
       newSrc.push(
         `   ExpoBraintreeModule.initThreeDSecure(this)${language === 'java' ? ';' : ''}`
@@ -89,31 +85,54 @@ export const withExpoBraintreeAndroid: ConfigPlugin<IntentFilterProps> = (
 //     <action android:name="android.intent.action.VIEW" />
 //     <category android:name="android.intent.category.DEFAULT" />
 //     <category android:name="android.intent.category.BROWSABLE" />
-//        <data android:scheme="http" />
-//        <data android:scheme="https" />
-//        <data android:host="myownpersonaldomain.com" />
-//        <data android:pathPrefix="/braintree-payments"/>
+//     <data android:scheme="http" />
+//     <data android:scheme="https" />
+//     <data android:host="myownpersonaldomain.com" />
+//     <data android:pathPrefix="/braintree-payments"/>
 //   </intent-filter>
 // </activity>;
 
-export const addPaypalAppLinks = (
+// If you provide a fallbackUrlScheme it will also add a new intent filter for that
+// <activity>
+//   ...
+//   <intent-filter>
+//     <action android:name="android.intent.action.VIEW" />
+//     <category android:name="android.intent.category.DEFAULT" />
+//     <category android:name="android.intent.category.BROWSABLE" />
+//        <data android:scheme="{fallbackUrlScheme}" />
+//   </intent-filter>
+// </activity>;
+
+export const addBraintreeLinks = (
   modResults: AndroidConfig.Manifest.AndroidManifest,
   host: string,
-  pathPrefix?: string
+  pathPrefix?: string,
+  fallbackUrlScheme?: string
 ): AndroidConfig.Manifest.AndroidManifest => {
   const mainActivity = getMainActivityOrThrow(modResults);
   const intentFilters = mainActivity['intent-filter'];
 
+  // Host is required props for a plugin
   if (!host) {
-    throw Error(
-      'No Host provided for withExpoBraintree.android addPaypalAppLinks'
+    WarningAggregator.addWarningAndroid(
+      'withExpoBraintree addBraintreeLinks',
+      `No Host provided for withExpoBraintree.android addBraintreeLinks`
+    );
+  }
+
+  // If there was a fallbackUrlScheme but it is not including .braintree at the end we thrown an error
+  if (!!fallbackUrlScheme && !fallbackUrlScheme?.endsWith('.braintree')) {
+    WarningAggregator.addWarningAndroid(
+      'withExpoBraintree addBraintreeLinks',
+      `{fallbackUrlScheme} provided but fallback url does not end with .braintree which is required`
     );
   }
 
   // Check if the intent filter already exists
   if (hasIntentFilter(intentFilters, host, pathPrefix)) {
-    console.warn(
-      'withExpoBraintreeAndroid: AndroidManifest not require any changes'
+    WarningAggregator.addWarningAndroid(
+      'withExpoBraintree addBraintreeLinks',
+      `withExpoBraintreeAndroid: AndroidManifest not require any changes`
     );
     return modResults;
   }
@@ -168,11 +187,49 @@ export const addPaypalAppLinks = (
     });
   }
 
+  const newFallbackUrlSchemeIntentFilter: ManifestIntentFilter = {
+    action: [
+      {
+        $: {
+          'android:name': 'android.intent.action.VIEW',
+        },
+      },
+    ],
+    category: [
+      {
+        $: {
+          'android:name': 'android.intent.category.DEFAULT',
+        },
+      },
+      {
+        $: {
+          'android:name': 'android.intent.category.BROWSABLE',
+        },
+      },
+    ],
+    data: [
+      {
+        $: {
+          'android:scheme': fallbackUrlScheme,
+        },
+      },
+    ],
+  };
+
   // Add the intent-filter to the main activity
   mainActivity['intent-filter'] = [
     ...(mainActivity['intent-filter'] || []),
     newIntentFilter,
   ];
+
+  // If there is fallbackUrlScheme then we add that
+  if (fallbackUrlScheme) {
+    // Add the intent-filter to the main activity
+    mainActivity['intent-filter'] = [
+      ...(mainActivity['intent-filter'] || []),
+      newFallbackUrlSchemeIntentFilter,
+    ];
+  }
   return modResults;
 };
 

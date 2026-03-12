@@ -163,15 +163,17 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
 
       if (this::currentActivityRef.isInitialized) {
-        payPalClientRef =
-                PayPalClient(
-                        currentActivityRef,
-                        data.getString("clientToken") ?: "",
-                        Uri.parse(data.getString("merchantAppLink") ?: "")
-                )
-        val vaultRequest: PayPalVaultRequest = PayPalDataConverter.createVaultRequest(data)
-        payPalClientRef.createPaymentAuthRequest(reactContextRef, vaultRequest) { paymentAuthRequest
-          ->
+        payPalClientRef = PayPalClient(
+          currentActivityRef,
+          data.getString("clientToken") ?: "",
+          Uri.parse(data.getString("merchantAppLink") ?: ""),
+          data.getString("fallbackUrlScheme") ?: null
+        )
+        val vaultRequest: PayPalVaultRequest = PaypalDataConverter.createVaultRequest(data)
+        payPalClientRef.createPaymentAuthRequest(
+          reactContextRef,
+          vaultRequest
+        ) { paymentAuthRequest ->
           when (paymentAuthRequest) {
             is PayPalPaymentAuthRequest.ReadyToLaunch -> {
               val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
@@ -249,27 +251,32 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       promiseRef = localPromise
       currentActivityRef = getCurrentActivity() as FragmentActivity
       if (this::currentActivityRef.isInitialized) {
-        payPalClientRef =
-                PayPalClient(
-                        currentActivityRef,
-                        data.getString("clientToken") ?: "",
-                        Uri.parse(data.getString("merchantAppLink") ?: "")
-                )
-        val checkoutRequest: PayPalCheckoutRequest = PayPalDataConverter.createCheckoutRequest(data)
-        payPalClientRef.createPaymentAuthRequest(reactContextRef, checkoutRequest) {
-                paymentAuthRequest ->
-          when (paymentAuthRequest) {
-            is PayPalPaymentAuthRequest.ReadyToLaunch -> {
-              val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
-              when (pendingRequest) {
-                is PayPalPendingRequest.Started -> {
-                  /* store pending request */
-                  PendingRequestStore.getInstance()
-                          .putPayPalPendingRequest(reactContextRef, pendingRequest)
-                }
-                is PayPalPendingRequest.Failure -> {
-                  /* handle error */
-                  localPromise.reject("PayPalPendingRequest.Failure")
+          payPalClientRef = PayPalClient(
+            currentActivityRef,
+            data.getString("clientToken") ?: "",
+            Uri.parse(data.getString("merchantAppLink") ?: ""),
+            data.getString("fallbackUrlScheme") ?: null
+          )
+          val checkoutRequest: PayPalCheckoutRequest =
+            PaypalDataConverter.createCheckoutRequest(data)
+          payPalClientRef.createPaymentAuthRequest(
+            reactContextRef,
+            checkoutRequest
+          ) { paymentAuthRequest ->
+            when (paymentAuthRequest) {
+              is PayPalPaymentAuthRequest.ReadyToLaunch -> {
+                val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
+                when (pendingRequest) {
+                  is PayPalPendingRequest.Started -> { /* store pending request */
+                    PendingRequestStore.getInstance().putPayPalPendingRequest(
+                      reactContextRef,
+                      pendingRequest
+                    )
+                  }
+
+                  is PayPalPendingRequest.Failure -> { /* handle error */
+                    moduleHandlers.onFailure(pendingRequest.error, promiseRef)
+                  }
                 }
               }
             }
@@ -330,12 +337,12 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
 
       if (this::currentActivityRef.isInitialized) {
-        venmoClientRef =
-                VenmoClient(
-                        currentActivityRef,
-                        data.getString("clientToken") ?: "",
-                        data.getString("returnUrlSchema")
-                )
+        venmoClientRef = VenmoClient(
+          currentActivityRef,
+          data.getString("clientToken") ?: "",
+          Uri.parse(data.getString("merchantAppLink") ?: ""),
+          data.getString("fallbackUrlScheme") ?: null
+        )
         val request: VenmoRequest = VenmoDataConverter.createRequest(data)
         venmoClientRef.createPaymentAuthRequest(reactContextRef, request) { paymentAuthRequest ->
           when (paymentAuthRequest) {
@@ -506,6 +513,7 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
       currentActivityRef = getCurrentActivity() as FragmentActivity
       currentActivityRef.setIntent(intent)
       handleReturnToApp(intent)
+      currentActivityRef.intent = Intent()
     }
   }
 }
