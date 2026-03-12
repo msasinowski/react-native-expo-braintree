@@ -31,6 +31,11 @@ export type ExpoBraintreePluginProps = {
    * Android AppLink pathPrefix
    */
   pathPrefix?: string;
+
+  /**
+   * Android Fallback url scheme to use (Add the fallbackUrlScheme into intent-filters)
+   */
+  fallbackUrlScheme?: string;
 };
 
 export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
