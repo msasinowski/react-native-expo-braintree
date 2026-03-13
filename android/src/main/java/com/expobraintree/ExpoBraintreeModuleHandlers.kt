@@ -87,51 +87,58 @@ class ExpoBraintreeModuleHandlers {
     mPromise.resolve(result)
   }
 
-   fun onThreeDSecureFailure(error: Exception, mPromise: Promise) {
-    mPromise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
-      ERROR_TYPES.CARD_TOKENIZATION_ERROR.value,
-      SharedDataConverter.createError(
-        EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, error.localizedMessage
-      ))
-  }
+  fun onThreeDSecureFailure(error: Exception, mPromise: Promise) {
+      // Get the most descriptive message possible
+      val errorMessage = error.message ?: error.localizedMessage ?: "Unknown 3D Secure error"
 
-   fun onThreeDSecureSuccessHandler(threeDSecureNonce: ThreeDSecureNonce, mPromise: Promise) {
-     if (threeDSecureNonce.threeDSecureInfo.liabilityShiftPossible && threeDSecureNonce.threeDSecureInfo.wasVerified
-     ) {
-       mPromise.reject(
-         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
-         THREE_D_SECURE_ERROR_TYPES.D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY.value,
-         SharedDataConverter.createError(
-           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value
-         )
-       )
-       return
-     }
-     if (threeDSecureNonce.threeDSecureInfo.liabilityShifted && threeDSecureNonce.threeDSecureInfo.wasVerified
-     ) {
+      // We use the actual error message as the second argument (message) 
+      // so it's visible in the 'details' field in JS.
+      mPromise.reject(
+        EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+        errorMessage, // This replaces the generic CARD_TOKENIZATION_ERROR
+        SharedDataConverter.createError(
+          EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
+          errorMessage
+        )
+      )
+    }
+    
+  fun onThreeDSecureSuccessHandler(threeDSecureNonce: ThreeDSecureNonce, mPromise: Promise) {
+     val info = threeDSecureNonce.threeDSecureInfo
+
+     // Validation: Reject only if verification was attempted but failed
+     // Note: we removed 'is' prefix to fix the 'Unresolved reference' error
+     if (info.wasVerified && !info.liabilityShifted) {
        mPromise.reject(
          EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
          THREE_D_SECURE_ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.value,
          SharedDataConverter.createError(
-           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
+           "Liability shift failed"
          )
        )
        return
      }
 
+     // Basic check for empty nonce
      if (threeDSecureNonce.string.isEmpty()){
        mPromise.reject(
          EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
-         THREE_D_SECURE_ERROR_TYPES.D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY.value,
+         "Empty nonce received",
          SharedDataConverter.createError(
-           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
+           "Empty nonce"
          )
        )
        return
      }
 
-     val result: WritableMap = CardDataConverter.createThreeDSecureDataNonce(threeDSecureNonce)
-     mPromise.resolve(result)
-     return
+     // If everything is fine, resolve with full data
+     try {
+       val result: WritableMap = CardDataConverter.createThreeDSecureDataNonce(threeDSecureNonce)
+       mPromise.resolve(result)
+     } catch (e: Exception) {
+       mPromise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, e.message, e)
+     }
    }
 }

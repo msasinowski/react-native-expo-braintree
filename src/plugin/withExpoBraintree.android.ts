@@ -21,8 +21,8 @@ import {
 interface WithExpoBraintreeAndroidProps {
   host: string;
   pathPrefix?: string;
-  initialize3DSecure?: string;
-  fallbackUrlScheme?: string;
+  initialize3DSecure?: 'true' | 'false';
+  addFallbackUrlScheme?: 'true' | 'false';
 }
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
@@ -31,14 +31,15 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
   WithExpoBraintreeAndroidProps
 > = (
   expoConfig,
-  { host, pathPrefix, fallbackUrlScheme, initialize3DSecure }
+  { host, pathPrefix, addFallbackUrlScheme, initialize3DSecure }
 ) => {
   let newConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBraintreeLinks(
       config.modResults,
       host,
       pathPrefix,
-      fallbackUrlScheme
+      addFallbackUrlScheme,
+      initialize3DSecure
     );
     return config;
   });
@@ -51,7 +52,10 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
       ['com.expobraintree.ExpoBraintreeModule'],
       language === 'java'
     );
-    let newSrc = [];
+    const newSrc = [
+      `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`,
+    ];
+
     if (initialize3DSecure === 'true') {
       newSrc.push(
         `   ExpoBraintreeModule.initThreeDSecure(this)${language === 'java' ? ';' : ''}`
@@ -99,7 +103,7 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
 //     <action android:name="android.intent.action.VIEW" />
 //     <category android:name="android.intent.category.DEFAULT" />
 //     <category android:name="android.intent.category.BROWSABLE" />
-//        <data android:scheme="{fallbackUrlScheme}" />
+//       <data android:scheme="${applicationId}.braintree" />
 //   </intent-filter>
 // </activity>;
 
@@ -107,7 +111,8 @@ export const addBraintreeLinks = (
   modResults: AndroidConfig.Manifest.AndroidManifest,
   host: string,
   pathPrefix?: string,
-  fallbackUrlScheme?: string
+  addFallbackUrlScheme?: 'true' | 'false',
+  initialize3DSecure?: 'true' | 'false'
 ): AndroidConfig.Manifest.AndroidManifest => {
   const mainActivity = getMainActivityOrThrow(modResults);
   const intentFilters = mainActivity['intent-filter'];
@@ -117,14 +122,6 @@ export const addBraintreeLinks = (
     WarningAggregator.addWarningAndroid(
       'withExpoBraintree addBraintreeLinks',
       `No Host provided for withExpoBraintree.android addBraintreeLinks`
-    );
-  }
-
-  // If there was a fallbackUrlScheme but it is not including .braintree at the end we thrown an error
-  if (!!fallbackUrlScheme && !fallbackUrlScheme?.endsWith('.braintree')) {
-    WarningAggregator.addWarningAndroid(
-      'withExpoBraintree addBraintreeLinks',
-      `{fallbackUrlScheme} provided but fallback url does not end with .braintree which is required`
     );
   }
 
@@ -210,7 +207,7 @@ export const addBraintreeLinks = (
     data: [
       {
         $: {
-          'android:scheme': fallbackUrlScheme,
+          'android:scheme': '${applicationId}.braintree',
         },
       },
     ],
@@ -223,7 +220,7 @@ export const addBraintreeLinks = (
   ];
 
   // If there is fallbackUrlScheme then we add that
-  if (fallbackUrlScheme) {
+  if (initialize3DSecure === 'true' || addFallbackUrlScheme === 'true') {
     // Add the intent-filter to the main activity
     mainActivity['intent-filter'] = [
       ...(mainActivity['intent-filter'] || []),

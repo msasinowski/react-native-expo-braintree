@@ -1,6 +1,6 @@
 require('dotenv').config();
-
 const braintree = require('braintree');
+const clipboardy = require('clipboardy'); // Import added
 
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
@@ -13,10 +13,27 @@ const getClientToken = () => {
   gateway.clientToken
     .generate()
     .then((response) => {
-      console.log('Client Token ' + response?.clientToken);
+      const token = response?.clientToken;
+
+      if (token) {
+        // Copying to clipboard
+        clipboardy.writeSync(token);
+
+        console.log('✅ Client Token generated and copied to clipboard!');
+        console.log('Token: ' + token);
+      }
     })
     .catch((err) => {
-      console.log('Error ' + JSON.stringify(err));
+      // Braintree errors often contain a 'message' or nested 'errors'
+      console.error('❌ Error Details:', err.message || err);
+
+      // If it's a validation error from Braintree:
+      if (err.errors) {
+        console.error(
+          'Validation Errors:',
+          JSON.stringify(err.errors.deepErrors(), null, 2)
+        );
+      }
     });
 };
 

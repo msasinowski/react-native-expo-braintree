@@ -21,81 +21,79 @@ class PayPalDataConverter {
       result.putString("firstName", payPalAccountNonce.firstName)
       result.putString("lastName", payPalAccountNonce.lastName)
       result.putString("phone", payPalAccountNonce.phone)
+
+      payPalAccountNonce.shippingAddress?.let { addr ->
+        val shipMap = Arguments.createMap()
+        shipMap.putString("recipientName", addr.recipientName)
+        shipMap.putString("streetAddress", addr.streetAddress)
+        shipMap.putString("extendedAddress", addr.extendedAddress)
+        shipMap.putString("locality", addr.locality) // City
+        shipMap.putString("region", addr.region)     // State/Province
+        shipMap.putString("postalCode", addr.postalCode)
+        shipMap.putString("countryCodeAlpha2", addr.countryCodeAlpha2)
+        result.putMap("shippingAddress", shipMap)
+      }
+
+      payPalAccountNonce.billingAddress?.let { addr ->
+        val billMap = Arguments.createMap()
+        billMap.putString("recipientName", addr.recipientName)
+        billMap.putString("streetAddress", addr.streetAddress)
+        billMap.putString("extendedAddress", addr.extendedAddress)
+        billMap.putString("locality", addr.locality)
+        billMap.putString("region", addr.region)
+        billMap.putString("postalCode", addr.postalCode)
+        billMap.putString("countryCodeAlpha2", addr.countryCodeAlpha2)
+        result.putMap("billingAddress", billMap)
+      }
+
       return result
     }
 
+    // Helper to safely get Boolean even if it's passed as a String from JS
+    private fun getSafeBoolean(options: ReadableMap, key: String): Boolean {
+        if (!options.hasKey(key)) return false
+        return try {
+            options.getBoolean(key)
+        } catch (e: Exception) {
+            options.getString(key)?.lowercase() == "true"
+        }
+    }
+
     fun createVaultRequest(options: ReadableMap): PayPalVaultRequest {
-      val hasUserLocationConsent: String = options.getString("hasUserLocationConsent") ?: "false"
-      val request = when (hasUserLocationConsent) {
-        "false" -> PayPalVaultRequest(false)
-        "true" -> PayPalVaultRequest(true)
-        else -> throw IllegalArgumentException("Invalid hasUserLocationConsent parameter")
-      }
+      val userConsent = getSafeBoolean(options, "hasUserLocationConsent")
+      val request = PayPalVaultRequest(userConsent)
 
       if (options.hasKey("billingAgreementDescription")) {
         request.billingAgreementDescription = options.getString("billingAgreementDescription")
       }
-      if (options.hasKey("localeCode")) {
-        request.localeCode = options.getString("localeCode")
-      }
-      if (options.hasKey("displayName")) {
-        request.displayName = options.getString("displayName")
-      }
-      if (options.hasKey("offerCredit")) {
-        val offerCredit: String = options.getString("offerCredit") ?: ""
-        when (offerCredit) {
-          "true" -> request.shouldOfferCredit = true
-        }
-      }
-      if (options.hasKey("isShippingAddressRequired")) {
-        val isShippingAddressRequired: String = options.getString("isShippingAddressRequired") ?: ""
-        when (isShippingAddressRequired) {
-          "true" -> request.isShippingAddressRequired = true
-        }
-      }
-      if (options.hasKey("isShippingAddressEditable")) {
-        val isShippingAddressEditable: String = options.getString("isShippingAddressEditable") ?: ""
-        when (isShippingAddressEditable) {
-          "true" -> request.isShippingAddressEditable = true
-        }
-      }
+      
+      // Standardize Boolean handling for Shipping
+      request.isShippingAddressRequired = getSafeBoolean(options, "isShippingAddressRequired")
+      request.isShippingAddressEditable = getSafeBoolean(options, "isShippingAddressEditable")
+      
+      if (options.hasKey("localeCode")) request.localeCode = options.getString("localeCode")
+      if (options.hasKey("displayName")) request.displayName = options.getString("displayName")
+      
       return request
     }
 
     fun createCheckoutRequest(options: ReadableMap): PayPalCheckoutRequest {
-      val hasUserLocationConsent: String = options.getString("hasUserLocationConsent") ?: "false"
-      val request = when (hasUserLocationConsent) {
-        "false" -> PayPalCheckoutRequest(options.getString("amount") ?: "", false)
-        "true" -> PayPalCheckoutRequest(options.getString("amount") ?: "", true)
-        else -> throw IllegalArgumentException("Invalid hasUserLocationConsent parameter")
-      }
-      if (options.hasKey("billingAgreementDescription")) request.billingAgreementDescription =
-        options.getString("billingAgreementDescription")
-      if (options.hasKey("localeCode")) request.localeCode = options.getString("localeCode")
-        ?: "en-US"
-      if (options.hasKey("displayName")) request.displayName = options.getString("displayName")
-      if (options.hasKey("userAction")) {
-        val userAction: String = options.getString("userAction") ?: ""
-        when (userAction) {
-          "payNow" -> request.userAction = PayPalPaymentUserAction.USER_ACTION_COMMIT
-        }
-      }
-      if (options.hasKey("isShippingAddressRequired")) {
-        val isShippingAddressRequired: String = options.getString("isShippingAddressRequired") ?: ""
-        when (isShippingAddressRequired) {
-          "false" -> request.isShippingAddressRequired = false
-          "true" -> request.isShippingAddressRequired = true
-        }
-      }
+      val userConsent = getSafeBoolean(options, "hasUserLocationConsent")
+      val amount = options.getString("amount") ?: ""
+      val request = PayPalCheckoutRequest(amount, userConsent)
+      
+      // Fixed Boolean checks
+      request.isShippingAddressRequired = getSafeBoolean(options, "isShippingAddressRequired")
+      request.isShippingAddressEditable = getSafeBoolean(options, "isShippingAddressEditable")
+
       if (options.hasKey("intent")) {
-        val intent: String = options.getString("intent") ?: ""
-        when (intent) {
+        when (options.getString("intent")) {
           "sale" -> request.intent = PayPalPaymentIntent.SALE
           "order" -> request.intent = PayPalPaymentIntent.ORDER
+          else -> request.intent = PayPalPaymentIntent.AUTHORIZE
         }
-      } else {
-        request.intent = PayPalPaymentIntent.AUTHORIZE
       }
+      
       return request
     }
   }
