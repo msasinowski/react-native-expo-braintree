@@ -75,7 +75,7 @@ export type RequestOneTimePaymentOptions = {
   offerPayLater?: BoolValue;
   currencyCode?: string;
   requestBillingAgreement?: BoolValue;
-  hasUserLocationConsent?: BoolValue;
+  hasUserLocationConsent?: boolean;
   clientToken: string;
   merchantAppLink: string;
   fallbackUrlScheme?: string;
@@ -169,6 +169,17 @@ export type BTThreeDError = {
   domain?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES;
 };
 
+export type ThreeDSecureInfo = {
+  /** True if the bank accepts responsibility for the fraud risk */
+  liabilityShifted: boolean;
+  /** True if the card is eligible for 3D Secure */
+  liabilityShiftPossible: boolean;
+  /** The status of the 3D Secure verification (e.g., 'authenticated', 'lookup_error') */
+  status: string;
+  /** Indicates if the verification process was actually performed */
+  wasVerified: boolean;
+};
+
 export type BTCardTokenization3DSNonceResult = {
   nonce: string;
   cardNetwork?: string;
@@ -176,11 +187,19 @@ export type BTCardTokenization3DSNonceResult = {
   lastFour?: string;
   expirationMonth?: string;
   expirationYear?: string;
+  /** Detailed 3D Secure verification results from the bank */
+  threeDSecureInfo?: ThreeDSecureInfo;
 };
+
+type D = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 
 export type ThreeDSecureCheckOptions = {
   clientToken: string;
-  amount: string;
+  /**
+   * Transaction amount in "X.YY" format.
+   * @example "10.00"
+   */
+  amount: `${number}.${D}${D}`;
   nonce: string;
   email?: string;
   givenName?: string;
