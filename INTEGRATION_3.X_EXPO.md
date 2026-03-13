@@ -2,9 +2,7 @@
 
 ## Package Version 3.x.x
 
-### Expo Based Project (EXPO SDK 50 and EXPO SDK 51)
-
-From version 2.1.1 of the package, react-native-expo-braintree added a possibility to use the package into expo based project, without need to eject from the expo. Special expo plugin was added into the source of the package which can be used. in any expo project.
+### Expo Based Project (EXPO SDK 53+)
 
 Expo based project needs minimum integration from the app perspective.
 In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-braintree plugin into plugins section.
@@ -20,7 +18,7 @@ In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-
         pathPrefix: "/braintree-payments" // Optional,
         // Depending on which payment do you really need in the project initialize only required one
         initialize3DSecure: "true",
-        // Depending on which payment do you really need in the project initialize only required one
+        addFallbackUrlScheme: "true",
         appDelegateLanguage?: "swift"; // Optional if you are still using AppDelegate.mm / AppDelegate.m
       },
     ],
@@ -32,10 +30,8 @@ In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-
 `host` - Domain that provide a .well-known/applinks.json, it need to be the same as it is defined in [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md)
 
 `pathPrefix` - Path prefix, in case of you want to separate path only to handle the context switch (Optional)
-`initializePayPal` - Boolean that determines if PayPal is used/needed (Values "true" | "false")
-`initializeVenmo` - Boolean that determines if Venmo is used/needed (Values "true" | "false")
 `initialize3DSecure` - Boolean that determines if 3D Secure is used/needed (Values "true" | "false")
-
+`addFallbackUrlScheme` - Boolean that determines if we should add a scheme for a fallback url used in venmo
 `appDelegateLanguage` - Indicator that tell's the plugin logic if you are still using Objective C file for AppDelegate (Optional)
 
 #### Android Specific

@@ -57,7 +57,7 @@ To ensure PayPal and browser-based flows work, you must transition to App Links.
 
 **The Cause:** Even with App Links, the SDK requires a Fallback URL Scheme for specific browser-switch flows.
 
-**The Fix (Expo):** Pass the `fallbackUrlScheme` property into your Expo config plugin
+**The Fix (Expo):** Pass the `addFallbackUrlScheme` property into your Expo config plugin
 
 **Important:** The fallbackUrlScheme must match the one used in your runtime calls and must end with .braintree (e.g., com.your.app.braintree). This suffix is a requirement of the Braintree Android SDK to correctly identify the return intent.
 
@@ -66,12 +66,10 @@ To ensure PayPal and browser-based flows work, you must transition to App Links.
   ["react-native-expo-braintree", {
     "host": "your-domain.com",
     "pathPrefix": "/payments",
-    "fallbackUrlScheme": "com.your.app.braintree"
+    "addFallbackUrlScheme": "true"
   }]
 ]
 ```
-
-**IMPORTANT:** The string passed to `fallbackUrlScheme` must match the one used in your runtime calls (e.g., inside `requestBillingAgreement`).
 
 #### B. Verification via ADB
 
@@ -90,6 +88,22 @@ Your web domain must host a valid association file at:
 
 - **Fingerprints:** Ensure the `sha256_cert_fingerprints` matches your app's signing certificate.
 - **Reference:** [Braintree Example assetlinks.json](https://braintree-example-app.web.app/.well-known/assetlinks.json)
+
+#### D. 3DSecure Window Layout Issues (EdgeToEdge Fix) (Android)
+
+**Symptom:** You receive a a crash during initializing 3DSecure or some layout issues
+
+**The Cause:** If you are using Android 14 (API 34) or higher, you might encounter layout issues where the 3DSecure verification screen (Cardinal SDK) is rendered behind system bars or has unclickable buttons. This is caused by the new "Edge-to-Edge" enforcement in newer Android versions. Or you got just a crash when you start a 3DSecure window.
+
+**The Fix (rn-cli-bare):** You must ensure your project uses at least version 1.8.0 of the androidx.activity library to properly handle window insets for 3DSecure activities. Add the following to your android/app/build.gradle (in the dependencies block):
+
+```gradle
+dependencies {
+    // ... other dependencies
+    // 3DSecure EdgeToEdge Fix
+    api "androidx.activity:activity:1.8.0"
+}
+```
 
 ---
 
@@ -124,6 +138,6 @@ You can find implementation details in the [Example App](example/src/App.tsx) or
 ## Roadmap
 
 - [x] Venmo Integration
-- [ ] 3D-Secure (In Progress)
+- [x] 3D-Secure (Alpha)
 - [ ] Apple Pay
 - [ ] Google Pay
