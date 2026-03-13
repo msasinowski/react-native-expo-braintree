@@ -10,510 +10,359 @@ import com.braintreepayments.api.card.CardClient
 import com.braintreepayments.api.card.CardResult
 import com.braintreepayments.api.datacollector.DataCollector
 import com.braintreepayments.api.datacollector.DataCollectorResult
-import com.braintreepayments.api.paypal.PayPalAccountNonce
-import com.braintreepayments.api.paypal.PayPalCheckoutRequest
-import com.braintreepayments.api.paypal.PayPalClient
-import com.braintreepayments.api.paypal.PayPalLauncher
-import com.braintreepayments.api.paypal.PayPalPaymentAuthRequest
-import com.braintreepayments.api.paypal.PayPalPaymentAuthResult
-import com.braintreepayments.api.paypal.PayPalPendingRequest
-import com.braintreepayments.api.paypal.PayPalResult
-import com.braintreepayments.api.paypal.PayPalVaultRequest
-import com.braintreepayments.api.threedsecure.ThreeDSecureClient
-import com.braintreepayments.api.threedsecure.ThreeDSecureLauncher
-import com.braintreepayments.api.threedsecure.ThreeDSecurePaymentAuthRequest
-import com.braintreepayments.api.threedsecure.ThreeDSecureRequest
-import com.braintreepayments.api.threedsecure.ThreeDSecureResult
-import com.braintreepayments.api.venmo.VenmoAccountNonce
-import com.braintreepayments.api.venmo.VenmoClient
-import com.braintreepayments.api.venmo.VenmoLauncher
-import com.braintreepayments.api.venmo.VenmoPaymentAuthRequest
-import com.braintreepayments.api.venmo.VenmoPaymentAuthResult
-import com.braintreepayments.api.venmo.VenmoPendingRequest
-import com.braintreepayments.api.venmo.VenmoRequest
-import com.braintreepayments.api.venmo.VenmoResult
+import com.braintreepayments.api.paypal.*
+import com.braintreepayments.api.threedsecure.*
+import com.braintreepayments.api.venmo.*
 import com.expobraintree.SharedDataConverter.Companion.createDataCollectorRequest
-import com.facebook.react.bridge.ActivityEventListener
-import com.facebook.react.bridge.LifecycleEventListener
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.*
 
 class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
-        ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
-  val NAME = "ExpoBraintree"
-  private lateinit var promiseRef: Promise
-  private lateinit var currentActivityRef: FragmentActivity
-  private var reactContextRef: Context
-  private lateinit var payPalClientRef: PayPalClient
-  private lateinit var venmoClientRef: VenmoClient
+    ReactContextBaseJavaModule(reactContext), ActivityEventListener, LifecycleEventListener {
 
-  init {
-    this.reactContextRef = reactContext
-    reactContext.addLifecycleEventListener(this)
-    reactContext.addActivityEventListener(this)
-  }
-  // Static references and data that need to be done on onCreate in MainApplication/MainActivity
-  companion object {
-    lateinit var payPalLauncher: PayPalLauncher
-    lateinit var venmoLauncher: VenmoLauncher
-    lateinit var threeDSecureLauncher: ThreeDSecureLauncher
-    private val moduleHandlers: ExpoBraintreeModuleHandlers = ExpoBraintreeModuleHandlers()
+    private val NAME = "ExpoBraintree"
+    private var reactContextRef: Context = reactContext
 
-    private var threeDSecureClientRefInstance: ThreeDSecureClient? = null
-    private var promiseRefInstance: Promise? = null
+    private val fragmentActivity: FragmentActivity?
+        get() = currentActivity as? FragmentActivity
 
-    // Init methods is called only if we want ot have that integration,
-    // each of the method have separated static initializer
-    fun initPayPal() {
-      payPalLauncher = PayPalLauncher()
+    init {
+        reactContext.addLifecycleEventListener(this)
+        reactContext.addActivityEventListener(this)
     }
 
-    fun initVenmo() {
-      venmoLauncher = VenmoLauncher()
-    }
+    companion object {
+        lateinit var payPalLauncher: PayPalLauncher
+        lateinit var venmoLauncher: VenmoLauncher
+        lateinit var threeDSecureLauncher: ThreeDSecureLauncher
+        private val moduleHandlers: ExpoBraintreeModuleHandlers = ExpoBraintreeModuleHandlers()
 
-    fun initThreeDSecure(activity: FragmentActivity) {
-      threeDSecureLauncher =
-              ThreeDSecureLauncher(
-                      activity,
-                      { paymentAuthResult ->
-                        this.getThreeDSecureClientRefInstance().tokenize(paymentAuthResult) { threeDSecureResponse
-                          ->
-                          when (threeDSecureResponse) {
-                            is ThreeDSecureResult.Success -> {
-                              moduleHandlers.onThreeDSecureSuccessHandler(threeDSecureResponse.nonce, this.getPromiseRefInstance())
-                            }
-                            is ThreeDSecureResult.Failure -> {
-                              moduleHandlers.onThreeDSecureFailure(threeDSecureResponse.error,this.getPromiseRefInstance())
-                            }
-                            is ThreeDSecureResult.Cancel -> {
-                              moduleHandlers.onCancel(Exception("Flow Cancelled"), this.getPromiseRefInstance())
-                            }
-                          }
+        private var threeDSecureClientRefInstance: ThreeDSecureClient? = null
+        private var promiseRefInstance: Promise? = null
+        private var payPalClientRefInstance: PayPalClient? = null
+        private var venmoClientRefInstance: VenmoClient? = null
+
+        fun initPayPal() { payPalLauncher = PayPalLauncher() }
+        fun initVenmo() { venmoLauncher = VenmoLauncher() }
+
+        fun initThreeDSecure(activity: FragmentActivity) {
+            threeDSecureLauncher = ThreeDSecureLauncher(activity) { paymentAuthResult ->
+                val client = threeDSecureClientRefInstance
+                val promise = promiseRefInstance
+
+                if (client != null && promise != null) {
+                    client.tokenize(paymentAuthResult) { result ->
+                        when (result) {
+                            is ThreeDSecureResult.Success -> moduleHandlers.onThreeDSecureSuccessHandler(result.nonce, promise)
+                            is ThreeDSecureResult.Failure -> moduleHandlers.onThreeDSecureFailure(result.error, promise)
+                            is ThreeDSecureResult.Cancel -> moduleHandlers.onCancel(Exception("Flow Cancelled"), promise)
                         }
-                      }
-              )
-    }
-
-    fun setupThreeDSecureInstance(
-            threeDSecureInstance: ThreeDSecureClient,
-            promiseInstance: Promise,
-    ) {
-      this.threeDSecureClientRefInstance = threeDSecureInstance
-      this.promiseRefInstance = promiseInstance
-    }
-
-    fun getPromiseRefInstance(): Promise {
-      return this.promiseRefInstance
-        ?: throw NullPointerException("INSTANCE NOT SET YET")
-    }
-
-    fun getThreeDSecureClientRefInstance(): ThreeDSecureClient {
-      return this.threeDSecureClientRefInstance
-              ?: throw NullPointerException("INSTANCE NOT SET YET")
-    }
-  }
-  // Static references and data that need to be done on onCreate in MainApplication/MainActivity
-
-
-  @ReactMethod
-  fun request3DSecurePaymentCheck(data: ReadableMap, localPromise: Promise) {
-    try {
-      promiseRef = localPromise
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-      if (this::currentActivityRef.isInitialized) {
-        val threeDSecureClient =
-                ThreeDSecureClient(reactContextRef, data.getString("clientToken") ?: "")
-        setupThreeDSecureInstance(threeDSecureClient, localPromise)
-        val threeDSecureRequest: ThreeDSecureRequest =
-            CardDataConverter.create3DSecureRequest(data)
-        threeDSecureClient.createPaymentAuthRequest(reactContextRef, threeDSecureRequest) {
-                threeDSecureResponse ->
-          when (threeDSecureResponse) {
-            is ThreeDSecurePaymentAuthRequest.ReadyToLaunch -> {
-              threeDSecureLauncher.launch(threeDSecureResponse)
+                        clearStaticReferences()
+                    }
+                }
             }
-            is ThreeDSecurePaymentAuthRequest.LaunchNotRequired -> {
-               moduleHandlers.onThreeDSecureSuccessHandler(threeDSecureResponse.nonce, localPromise)
-            }
-            is ThreeDSecurePaymentAuthRequest.Failure -> {
-              moduleHandlers.onThreeDSecureFailure(threeDSecureResponse.error,localPromise)
-            }
-          }
         }
-      } else {
-        throw Exception()
-      }
-    } catch (ex: Exception) {
-      localPromise.reject(
-              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
-      )
+
+        // Init method is still in place but it is by default only initialize Paypal and venmo
+        fun init() {
+            initPayPal()
+            initVenmo()
+        }
+
+        fun setupThreeDSecureInstance(client: ThreeDSecureClient, promise: Promise) {
+            this.threeDSecureClientRefInstance = client
+            this.promiseRefInstance = promise
+        }
+
+        fun clearStaticReferences() {
+            threeDSecureClientRefInstance = null
+            promiseRefInstance = null
+            payPalClientRefInstance = null
+            venmoClientRefInstance = null
+        }
     }
-  }
 
-  @ReactMethod
-  fun requestBillingAgreement(data: ReadableMap, localPromise: Promise) {
-    try {
-      promiseRef = localPromise
-      currentActivityRef = getCurrentActivity() as FragmentActivity
+    private fun isBusy(promise: Promise): Boolean {
+        if (promiseRefInstance != null) {
+            promise.reject(
+                EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+                ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+                SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, "Another payment flow is in progress")
+            )
+            return true
+        }
+        promiseRefInstance = promise
+        return false
+    }
 
-      if (this::currentActivityRef.isInitialized) {
-        payPalClientRef = PayPalClient(
-          currentActivityRef,
-          data.getString("clientToken") ?: "",
-          Uri.parse(data.getString("merchantAppLink") ?: ""),
-          data.getString("fallbackUrlScheme") ?: null
+    @ReactMethod
+    fun request3DSecurePaymentCheck(data: ReadableMap, localPromise: Promise) {
+        val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
+        if (isBusy(localPromise)) return
+
+        try {
+            val clientToken = data.getString("clientToken") ?: ""
+            val client = ThreeDSecureClient(reactContextRef, clientToken)
+            setupThreeDSecureInstance(client, localPromise)
+
+            val request = CardDataConverter.create3DSecureRequest(data)
+            client.createPaymentAuthRequest(reactContextRef, request) { response ->
+                when (response) {
+                    is ThreeDSecurePaymentAuthRequest.ReadyToLaunch -> threeDSecureLauncher.launch(response)
+                    is ThreeDSecurePaymentAuthRequest.LaunchNotRequired -> {
+                        moduleHandlers.onThreeDSecureSuccessHandler(response.nonce, localPromise)
+                        clearStaticReferences()
+                    }
+                    is ThreeDSecurePaymentAuthRequest.Failure -> {
+                        moduleHandlers.onThreeDSecureFailure(response.error, localPromise)
+                        clearStaticReferences()
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            handleKotlinException(localPromise, ex)
+        }
+    }
+
+    @ReactMethod
+    fun requestBillingAgreement(data: ReadableMap, localPromise: Promise) {
+        val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
+        if (isBusy(localPromise)) return
+
+        try {
+            val client = PayPalClient(
+                activity,
+                data.getString("clientToken") ?: "",
+                Uri.parse(data.getString("merchantAppLink") ?: ""),
+                data.getString("fallbackUrlScheme")
+            )
+            payPalClientRefInstance = client
+            val vaultRequest = PayPalDataConverter.createVaultRequest(data)
+            
+            client.createPaymentAuthRequest(reactContextRef, vaultRequest) { authRequest ->
+                when (authRequest) {
+                    is PayPalPaymentAuthRequest.ReadyToLaunch -> {
+                        val pending = payPalLauncher.launch(activity, authRequest)
+                        if (pending is PayPalPendingRequest.Started) {
+                            PendingRequestStore.instance.putPayPalPendingRequest(reactContextRef, pending)
+                        } else if (pending is PayPalPendingRequest.Failure) {
+                            moduleHandlers.onFailure(pending.error, localPromise)
+                            clearStaticReferences()
+                        }
+                    }
+                    is PayPalPaymentAuthRequest.Failure -> {
+                        moduleHandlers.onFailure(authRequest.error, localPromise)
+                        clearStaticReferences()
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            handleKotlinException(localPromise, ex)
+        }
+    }
+
+    @ReactMethod
+    fun requestOneTimePayment(data: ReadableMap, localPromise: Promise) {
+        val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
+        if (isBusy(localPromise)) return
+
+        try {
+            val client = PayPalClient(
+                activity,
+                data.getString("clientToken") ?: "",
+                Uri.parse(data.getString("merchantAppLink") ?: ""),
+                data.getString("fallbackUrlScheme")
+            )
+            payPalClientRefInstance = client
+            val checkoutRequest = PayPalDataConverter.createCheckoutRequest(data)
+
+            client.createPaymentAuthRequest(reactContextRef, checkoutRequest) { authRequest ->
+                when (authRequest) {
+                    is PayPalPaymentAuthRequest.ReadyToLaunch -> {
+                        val pending = payPalLauncher.launch(activity, authRequest)
+                        if (pending is PayPalPendingRequest.Started) {
+                            PendingRequestStore.instance.putPayPalPendingRequest(reactContextRef, pending)
+                        } else if (pending is PayPalPendingRequest.Failure) {
+                            moduleHandlers.onFailure(pending.error, localPromise)
+                            clearStaticReferences()
+                        }
+                    }
+                    is PayPalPaymentAuthRequest.Failure -> {
+                        moduleHandlers.onFailure(authRequest.error, localPromise)
+                        clearStaticReferences()
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            handleKotlinException(localPromise, ex)
+        }
+    }
+
+    @ReactMethod
+    fun tokenizeCardData(data: ReadableMap, localPromise: Promise) {
+        if (isBusy(localPromise)) return
+        try {
+            val clientToken = data.getString("clientToken") ?: ""
+            if (fragmentActivity != null && clientToken.isNotEmpty()) {
+                val cardClient = CardClient(reactContextRef, clientToken)
+                val cardRequest = CardDataConverter.createTokenizeCardRequest(data)
+                cardClient.tokenize(cardRequest) { cardResult ->
+                    when (cardResult) {
+                        is CardResult.Success -> moduleHandlers.onCardTokenizeSuccessHandler(cardResult.nonce, localPromise)
+                        is CardResult.Failure -> moduleHandlers.onCardTokenizeFailure(cardResult.error, localPromise)
+                    }
+                    clearStaticReferences()
+                }
+            } else {
+                throw Exception("Invalid activity or client token")
+            }
+        } catch (ex: Exception) {
+            handleKotlinException(localPromise, ex)
+        }
+    }
+
+    @ReactMethod
+    fun requestVenmoNonce(data: ReadableMap, localPromise: Promise) {
+        val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
+        if (isBusy(localPromise)) return
+
+        try {
+            val client = VenmoClient(
+                activity,
+                data.getString("clientToken") ?: "",
+                Uri.parse(data.getString("merchantAppLink") ?: ""),
+                data.getString("fallbackUrlScheme")
+            )
+            venmoClientRefInstance = client
+            val request = VenmoDataConverter.createRequest(data)
+
+            client.createPaymentAuthRequest(reactContextRef, request) { authRequest ->
+                when (authRequest) {
+                    is VenmoPaymentAuthRequest.ReadyToLaunch -> {
+                        val pending = venmoLauncher.launch(activity, authRequest)
+                        if (pending is VenmoPendingRequest.Started) {
+                            PendingRequestStore.instance.putVenmoPendingRequest(reactContextRef, pending)
+                        } else if (pending is VenmoPendingRequest.Failure) {
+                            moduleHandlers.onFailure(pending.error, localPromise)
+                            clearStaticReferences()
+                        }
+                    }
+                    is VenmoPaymentAuthRequest.Failure -> {
+                        moduleHandlers.onFailure(authRequest.error, localPromise)
+                        clearStaticReferences()
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            handleKotlinException(localPromise, ex)
+        }
+    }
+
+    @ReactMethod
+    fun getDeviceDataFromDataCollector(data: ReadableMap, localPromise: Promise) {
+        val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
+        try {
+            val dataCollector = DataCollector(activity, data.getString("clientToken") ?: "")
+            val request = createDataCollectorRequest(data)
+            dataCollector.collectDeviceData(reactContextRef, request) { result ->
+                when (result) {
+                    is DataCollectorResult.Success -> moduleHandlers.handleGetDeviceDataFromDataCollectorResult(result.deviceData, null, localPromise)
+                    is DataCollectorResult.Failure -> moduleHandlers.handleGetDeviceDataFromDataCollectorResult(null, result.error, localPromise)
+                }
+            }
+        } catch (ex: Exception) {
+            handleKotlinException(localPromise, ex)
+        }
+    }
+
+
+    private fun handleReturnToApp(intent: Intent) {
+        val activity = fragmentActivity ?: return
+        val promise = promiseRefInstance ?: return
+
+        // PayPal handling
+        PendingRequestStore.instance.getPayPalPendingRequest(activity)?.let { pending ->
+            val result = payPalLauncher.handleReturnToApp(pending, intent)
+            when (result) {
+                is PayPalPaymentAuthResult.Success -> {
+                    payPalClientRefInstance?.tokenize(result) { tokenResult ->
+                        when (tokenResult) {
+                            is PayPalResult.Success -> moduleHandlers.onPayPalSuccessHandler(tokenResult.nonce, promise)
+                            is PayPalResult.Failure -> moduleHandlers.onFailure(tokenResult.error, promise)
+                            is PayPalResult.Cancel -> moduleHandlers.onCancel(Exception("Cancel"), promise)
+                        }
+                        clearStaticReferences()
+                    }
+                }
+                is PayPalPaymentAuthResult.Failure -> {
+                    moduleHandlers.onFailure(result.error, promise)
+                    clearStaticReferences()
+                }
+                PayPalPaymentAuthResult.NoResult -> {
+                    moduleHandlers.onCancel(Exception("No result"), promise)
+                    clearStaticReferences()
+                }
+            }
+            PendingRequestStore.instance.clearPayPalPendingRequest(activity)
+        }
+
+        // Venmo handling
+        PendingRequestStore.instance.getVenmoPendingRequest(activity)?.let { pending ->
+            val result = venmoLauncher.handleReturnToApp(pending, intent)
+            when (result) {
+                is VenmoPaymentAuthResult.Success -> {
+                    venmoClientRefInstance?.tokenize(result) { tokenResult ->
+                        when (tokenResult) {
+                            is VenmoResult.Success -> moduleHandlers.onVenmoSuccessHandler(tokenResult.nonce, promise)
+                            is VenmoResult.Failure -> moduleHandlers.onFailure(tokenResult.error, promise)
+                            is VenmoResult.Cancel -> moduleHandlers.onCancel(Exception("Cancel"), promise)
+                        }
+                        clearStaticReferences()
+                    }
+                }
+                is VenmoPaymentAuthResult.Failure -> {
+                    moduleHandlers.onFailure(result.error, promise)
+                    clearStaticReferences()
+                }
+                VenmoPaymentAuthResult.NoResult -> {
+                    moduleHandlers.onCancel(Exception("No result"), promise)
+                    clearStaticReferences()
+                }
+            }
+            PendingRequestStore.instance.clearVenmoPendingRequest(activity)
+        }
+    }
+
+    private fun rejectNoActivity(promise: Promise) {
+        promise.reject(
+            EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+            ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+            SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, "Activity not initialized")
         )
-        val vaultRequest: PayPalVaultRequest = PaypalDataConverter.createVaultRequest(data)
-        payPalClientRef.createPaymentAuthRequest(
-          reactContextRef,
-          vaultRequest
-        ) { paymentAuthRequest ->
-          when (paymentAuthRequest) {
-            is PayPalPaymentAuthRequest.ReadyToLaunch -> {
-              val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
-              when (pendingRequest) {
-                is PayPalPendingRequest.Started -> {
-                  /* store pending request */
-                  PendingRequestStore.getInstance()
-                          .putPayPalPendingRequest(reactContextRef, pendingRequest)
-                }
-                is PayPalPendingRequest.Failure -> {
-                  /* handle error */
-                  moduleHandlers.onFailure(pendingRequest.error, promiseRef)
-                }
-              }
-            }
-            is PayPalPaymentAuthRequest.Failure -> {
-              /* handle paymentAuthRequest.error */
-              moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
-            }
-          }
-        }
-      } else {
-        throw Exception()
-      }
-    } catch (ex: Exception) {
-      localPromise.reject(
-              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
-      )
     }
-  }
 
-  @ReactMethod
-  fun getDeviceDataFromDataCollector(data: ReadableMap, localPromise: Promise) {
-    try {
-      promiseRef = localPromise
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-
-      if (this::currentActivityRef.isInitialized) {
-        val dataCollectorClient =
-                DataCollector(currentActivityRef, data.getString("clientToken") ?: "")
-        val dataCollectorRequest = createDataCollectorRequest(data)
-        dataCollectorClient.collectDeviceData(reactContextRef, dataCollectorRequest) { result ->
-          when (result) {
-            is DataCollectorResult.Failure ->
-                    moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
-                            null,
-                            result.error,
-                            promiseRef
-                    )
-            is DataCollectorResult.Success ->
-                    moduleHandlers.handleGetDeviceDataFromDataCollectorResult(
-                            result.deviceData,
-                            null,
-                            promiseRef
-                    )
-          }
-        }
-      } else {
-        throw Exception("Not Initialized")
-      }
-    } catch (ex: Exception) {
-      promiseRef.reject(
-              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
-      )
-    }
-  }
-
-  @ReactMethod
-  fun requestOneTimePayment(data: ReadableMap, localPromise: Promise) {
-    try {
-      promiseRef = localPromise
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-      if (this::currentActivityRef.isInitialized) {
-          payPalClientRef = PayPalClient(
-            currentActivityRef,
-            data.getString("clientToken") ?: "",
-            Uri.parse(data.getString("merchantAppLink") ?: ""),
-            data.getString("fallbackUrlScheme") ?: null
-          )
-          val checkoutRequest: PayPalCheckoutRequest =
-            PaypalDataConverter.createCheckoutRequest(data)
-          payPalClientRef.createPaymentAuthRequest(
-            reactContextRef,
-            checkoutRequest
-          ) { paymentAuthRequest ->
-            when (paymentAuthRequest) {
-              is PayPalPaymentAuthRequest.ReadyToLaunch -> {
-                val pendingRequest = payPalLauncher.launch(currentActivityRef, paymentAuthRequest)
-                when (pendingRequest) {
-                  is PayPalPendingRequest.Started -> { /* store pending request */
-                    PendingRequestStore.getInstance().putPayPalPendingRequest(
-                      reactContextRef,
-                      pendingRequest
-                    )
-                  }
-
-                  is PayPalPendingRequest.Failure -> { /* handle error */
-                    moduleHandlers.onFailure(pendingRequest.error, promiseRef)
-                  }
-                }
-              }
-            }
-            is PayPalPaymentAuthRequest.Failure -> {
-              /* handle paymentAuthRequest.error */
-              moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
-            }
-          }
-        }
-      } else {
-        throw Exception()
-      }
-    } catch (ex: Exception) {
-      localPromise.reject(
-              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
-      )
-    }
-  }
-
-  @ReactMethod
-  fun tokenizeCardData(data: ReadableMap, localPromise: Promise) {
-    try {
-      promiseRef = localPromise
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-
-      val clientToken = data.getString("clientToken") ?: ""
-      if (this::currentActivityRef.isInitialized && clientToken.isNotEmpty()) {
-        val cardClient = CardClient(reactContextRef, data.getString("clientToken") ?: "")
-        val cardRequest: Card = CardDataConverter.createTokenizeCardRequest(data)
-        cardClient.tokenize(cardRequest) { cardResult ->
-          when (cardResult) {
-            is CardResult.Success -> {
-              moduleHandlers.onCardTokenizeSuccessHandler(cardResult.nonce, promiseRef)
-            }
-            is CardResult.Failure -> {
-              moduleHandlers.onCardTokenizeFailure(cardResult.error, promiseRef)
-            }
-          }
-        }
-      } else {
-        throw Exception()
-      }
-    } catch (ex: Exception) {
-      localPromise.reject(
-              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
-      )
-    }
-  }
-
-  @ReactMethod
-  fun requestVenmoNonce(data: ReadableMap, localPromise: Promise) {
-    try {
-      promiseRef = localPromise
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-
-      if (this::currentActivityRef.isInitialized) {
-        venmoClientRef = VenmoClient(
-          currentActivityRef,
-          data.getString("clientToken") ?: "",
-          Uri.parse(data.getString("merchantAppLink") ?: ""),
-          data.getString("fallbackUrlScheme") ?: null
+    private fun handleKotlinException(promise: Promise, ex: Exception) {
+        promise.reject(
+            EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
+            ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
+            SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
         )
-        val request: VenmoRequest = VenmoDataConverter.createRequest(data)
-        venmoClientRef.createPaymentAuthRequest(reactContextRef, request) { paymentAuthRequest ->
-          when (paymentAuthRequest) {
-            is VenmoPaymentAuthRequest.ReadyToLaunch -> {
-              val pendingRequest = venmoLauncher.launch(currentActivityRef, paymentAuthRequest)
-              when (pendingRequest) {
-                is VenmoPendingRequest.Started -> {
-                  /* store pending request */
-                  PendingRequestStore.getInstance()
-                          .putVenmoPendingRequest(reactContextRef, pendingRequest)
-                }
-                is VenmoPendingRequest.Failure -> {
-                  /* handle error */
-                  moduleHandlers.onFailure(pendingRequest.error, promiseRef)
-                }
-              }
-            }
-            is VenmoPaymentAuthRequest.Failure ->
-                    moduleHandlers.onFailure(paymentAuthRequest.error, promiseRef)
-          }
+        clearStaticReferences()
+    }
+
+    override fun onHostResume() {
+        fragmentActivity?.intent?.let { if (it.data != null) handleReturnToApp(it) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        fragmentActivity?.let {
+            it.intent = intent
+            handleReturnToApp(intent)
+            it.intent = Intent() 
         }
-      } else {
-        throw Exception()
-      }
-    } catch (ex: Exception) {
-      localPromise.reject(
-              EXCEPTION_TYPES.KOTLIN_EXCEPTION.value,
-              ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.value,
-              SharedDataConverter.createError(EXCEPTION_TYPES.KOTLIN_EXCEPTION.value, ex.message)
-      )
-    }
-  }
-
-  private fun handlePayPalAccountNonceResult(
-          payPalAccountNonce: PayPalAccountNonce?,
-          error: Exception?,
-  ) {
-    if (error != null) {
-      moduleHandlers.onFailure(error, promiseRef)
-      return
-    }
-    if (payPalAccountNonce != null) {
-      moduleHandlers.onPayPalSuccessHandler(payPalAccountNonce, promiseRef)
-    }
-  }
-
-  private fun handleVenmoAccountNonceResult(
-          nonce: VenmoAccountNonce?,
-          error: Exception?,
-  ) {
-    if (error != null) {
-      moduleHandlers.onFailure(error, promiseRef)
-      return
-    }
-    if (nonce != null) {
-      moduleHandlers.onVenmoSuccessHandler(nonce, promiseRef)
-    }
-  }
-
-  private fun getPayPalPendingRequest(): PayPalPendingRequest.Started? {
-    currentActivityRef = getCurrentActivity() as FragmentActivity
-    return PendingRequestStore.getInstance().getPayPalPendingRequest(currentActivityRef)
-  }
-
-  private fun clearPayPalPendingRequest() {
-    currentActivityRef = getCurrentActivity() as FragmentActivity
-    PendingRequestStore.getInstance().clearPayPalPendingRequest(currentActivityRef)
-  }
-
-  private fun getVenmoPendingRequest(): VenmoPendingRequest.Started? {
-    currentActivityRef = getCurrentActivity() as FragmentActivity
-    return PendingRequestStore.getInstance().getVenmoPendingRequest(currentActivityRef)
-  }
-
-  private fun clearVenmoPendingRequest() {
-    currentActivityRef = getCurrentActivity() as FragmentActivity
-    PendingRequestStore.getInstance().clearVenmoPendingRequest(currentActivityRef)
-  }
-
-  private fun handleReturnToApp(intent: Intent) {
-    // fetch stored pending requests
-    val payPalPendingRequest: PayPalPendingRequest.Started? = getPayPalPendingRequest()
-    val venmoPendingRequest: VenmoPendingRequest.Started? = getVenmoPendingRequest()
-
-    // PayPal
-    if (payPalPendingRequest != null) {
-      val paymentAuthResult = payPalLauncher.handleReturnToApp(payPalPendingRequest, intent)
-
-      when (paymentAuthResult) {
-        is PayPalPaymentAuthResult.Failure ->
-                handlePayPalAccountNonceResult(null, paymentAuthResult.error)
-        PayPalPaymentAuthResult.NoResult ->
-                moduleHandlers.onCancel(Exception("No result"), promiseRef)
-        is PayPalPaymentAuthResult.Success -> completePayPalFlow(paymentAuthResult)
-      }
-      clearPayPalPendingRequest()
     }
 
-    // Venmo
-    if (venmoPendingRequest != null) {
-      when (val paymentAuthResult = venmoLauncher.handleReturnToApp(venmoPendingRequest, intent)) {
-        is VenmoPaymentAuthResult.Failure ->
-                handleVenmoAccountNonceResult(null, paymentAuthResult.error)
-        VenmoPaymentAuthResult.NoResult ->
-                moduleHandlers.onCancel(Exception("No result"), promiseRef)
-        is VenmoPaymentAuthResult.Success -> completeVenmoFlow(paymentAuthResult)
-      }
-      clearVenmoPendingRequest()
-    }
-  }
-
-  private fun completePayPalFlow(paymentAuthResult: PayPalPaymentAuthResult.Success) {
-    payPalClientRef.tokenize(paymentAuthResult) { result ->
-      when (result) {
-        is PayPalResult.Success -> {
-          /* handle result.nonce */
-          handlePayPalAccountNonceResult(result.nonce, null)
-        }
-        is PayPalResult.Failure -> {
-          /* handle result.error */
-          handlePayPalAccountNonceResult(null, result.error)
-        }
-        is PayPalResult.Cancel -> {
-          /* handle user canceled */
-          moduleHandlers.onCancel(Exception("Cancel"), promiseRef)
-        }
-      }
-    }
-  }
-
-  private fun completeVenmoFlow(paymentAuthResult: VenmoPaymentAuthResult.Success) {
-    venmoClientRef.tokenize(paymentAuthResult) { result ->
-      when (result) {
-        is VenmoResult.Success -> {
-          /* handle result.nonce */
-          handleVenmoAccountNonceResult(result.nonce, null)
-        }
-        is VenmoResult.Failure -> {
-          /* handle result.error */
-          handleVenmoAccountNonceResult(null, result.error)
-        }
-        is VenmoResult.Cancel -> {
-          /* handle user canceled */
-          moduleHandlers.onCancel(Exception("Cancel"), promiseRef)
-        }
-      }
-    }
-  }
-
-  override fun getName(): String {
-    return NAME
-  }
-
-  // empty required Implementations from interfaces
-  override fun onHostPause() {}
-  override fun onHostDestroy() {}
-  override fun onActivityResult(p0: Activity, p1: Int, p2: Int, p3: Intent?) {}
-
-  override fun onHostResume() {
-    if (this::currentActivityRef.isInitialized) {
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-      handleReturnToApp(currentActivityRef.getIntent())
-    }
-  }
-
-  override fun onNewIntent(intent: Intent) {
-    if (this::currentActivityRef.isInitialized) {
-      currentActivityRef = getCurrentActivity() as FragmentActivity
-      currentActivityRef.setIntent(intent)
-      handleReturnToApp(intent)
-      currentActivityRef.intent = Intent()
-    }
-  }
+    override fun getName() = NAME
+    override fun onHostPause() {}
+    override fun onHostDestroy() { clearStaticReferences() }
+    override fun onActivityResult(p0: Activity, p1: Int, p2: Int, p3: Intent?) {}
 }
