@@ -8,13 +8,14 @@
 import Foundation
 
 enum EXCEPTION_TYPES: String {
-  case SWIFT_EXCEPTION = "ReactNativeExpoBraintree:`SwiftException"
-  case USER_CANCEL_EXCEPTION = "ReactNativeExpoBraintree:`UserCancelException"
-  case TOKENIZE_EXCEPTION = "ReactNativeExpoBraintree:`TokenizeException"
-  case PAYPAL_DISABLED_IN_CONFIGURATION =
-        "ReactNativeExpoBraintree:`Paypal disabled in configuration"
-  case VENMO_DISABLED_IN_CONFIGURATION =
-        "ReactNativeExpoBraintree:`Venmo disabled in configuration"
+  // Fixed prefix to match common Expo module patterns
+  case SWIFT_EXCEPTION = "ExpoBraintree:`SwiftException"
+  case USER_CANCEL_EXCEPTION = "ExpoBraintree:`UserCancelException"
+  case TOKENIZE_EXCEPTION = "ExpoBraintree:`TokenizeException"
+  
+  // Consistency check: Ensure these strings match Kotlin constants 1:1
+  case PAYPAL_DISABLED_IN_CONFIGURATION = "ExpoBraintree:`PAYPAL_DISABLED_IN_CONFIGURATION"
+  case VENMO_DISABLED_IN_CONFIGURATION = "ExpoBraintree:`VENMO_DISABLED_IN_CONFIGURATION"
 }
 
 enum ERROR_TYPES: String {

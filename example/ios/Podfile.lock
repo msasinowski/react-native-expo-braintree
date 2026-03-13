@@ -1,18 +1,20 @@
 PODS:
   - boost (1.84.0)
-  - Braintree (6.31.0):
-    - Braintree/Card (= 6.31.0)
-    - Braintree/Core (= 6.31.0)
-    - Braintree/PayPal (= 6.31.0)
-  - Braintree/Card (6.31.0):
+  - Braintree (6.41.0):
+    - Braintree/Card (= 6.41.0)
+    - Braintree/Core (= 6.41.0)
+    - Braintree/PayPal (= 6.41.0)
+  - Braintree/Card (6.41.0):
     - Braintree/Core
-  - Braintree/Core (6.31.0)
-  - Braintree/DataCollector (6.31.0):
+  - Braintree/Core (6.41.0)
+  - Braintree/DataCollector (6.41.0):
     - Braintree/Core
-  - Braintree/PayPal (6.31.0):
+  - Braintree/PayPal (6.41.0):
     - Braintree/Core
     - Braintree/DataCollector
-  - Braintree/Venmo (6.31.0):
+  - Braintree/ThreeDSecure (6.41.0):
+    - Braintree/Card
+  - Braintree/Venmo (6.41.0):
     - Braintree/Core
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
@@ -1346,9 +1348,10 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-expo-braintree (3.1.0):
-    - Braintree (= 6.31.0)
-    - Braintree/Venmo (= 6.31.0)
+  - react-native-expo-braintree (3.2.2):
+    - Braintree (= 6.41.0)
+    - Braintree/ThreeDSecure (= 6.41.0)
+    - Braintree/Venmo (= 6.41.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1924,7 +1927,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  Braintree: bc1e9ddc1c1de52e8050975e13379a57107b8964
+  Braintree: 1d485e502b06313316f5fae2cee196396935d057
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: b60fe06f0f15b7d7408f169442176e69e8eeacde
@@ -1962,7 +1965,7 @@ SPEC CHECKSUMS:
   React-logger: 6d6f432994f3d58b769945551af2bd4fb21ad866
   React-Mapbuffer: b47a3289a3fe38e665347e48579f67a37be42bb3
   React-microtasksnativemodule: c1a3d5195c3985a2246f130ad3f3cad587b79b03
-  react-native-expo-braintree: ede3224c27e11360ea6e1613832b8e348040b711
+  react-native-expo-braintree: eea4dbfde06e19d8c5ac41c90f5587a2019842c2
   React-NativeModulesApple: 1ed1401e841d89df68c9a429c785d51272fc21a5
   React-oscompat: 0047f0ce53a328ce225777a6c617970556602c7c
   React-perflogger: 1c412889c280d87f3e3a21d9c848ff0dca2500a7
@@ -1995,7 +1998,7 @@ SPEC CHECKSUMS:
   ReactCodegen: e61df93a81081dc282796fa3c62b89725f4a009a
   ReactCommon: 6297fb8da56a0e1b493f8793563fde011b87591d
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  Yoga: 7ec3c34208133557b95850966446f48c6b3fa468
+  Yoga: 9663a18d096f7f7e17a535cf00849db756709955
 
 PODFILE CHECKSUM: e45bf57b68ef3e1e1765785ef88c76f5a940a89d
 
