@@ -12,8 +12,7 @@ class MainActivity : ReactActivity() {
   // @generated end [Streem:Android] mod-main-activity-add-content
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(null)
-    ExpoBraintreeModule.initPayPal()
-    ExpoBraintreeModule.initVenmo()
+    ExpoBraintreeModule.init()
     ExpoBraintreeModule.initThreeDSecure(this)
   }
 
