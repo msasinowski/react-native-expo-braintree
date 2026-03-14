@@ -118,6 +118,7 @@
     "preset": "react-native",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
+      "<rootDir>/example-expo-53/node_modules",
       "<rootDir>/lib/"
     ]
   },

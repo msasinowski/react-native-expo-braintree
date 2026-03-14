@@ -1,13 +1,34 @@
 # React Native Bare Project (react-native-cli)
 
-## Package Version 3.x.x
+## Integration Guide -- `react-native-expo-braintree` (v3.x.x)
 
-Please follow and Finish [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md), before the next steps.
+This guide explains how to configure **Braintree** in a **React Native
+Bare (react-native-cli) project** using **react-native-expo-braintree
+v3.x.x**.
 
-### Android Specific
+> **Important:** Before starting the steps below, you must complete the
+> **App Links configuration** described here:\
+> https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md
 
-In Your `AndroidManifest.xml`, add this intent-filter to your main activity in `AndroidManifest.xml`
-`braintree-example-app.web.app` should be replaced with your own domain that you defined in [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md)
+---
+
+# Android Configuration
+
+## 1. Update `AndroidManifest.xml`
+
+Depending on the Braintree methods you use, you must add the appropriate
+**intent filters** to your **MainActivity**.
+
+### A. If you use:
+
+- `requestBillingAgreement`
+- `requestOneTimePayment`
+- `tokenizeCardData`
+
+Add the following intent filter inside your `MainActivity`.
+
+Replace `braintree-example-app.web.app` with the domain configured
+during **App Links setup**.
 
 ```xml
 <activity>
@@ -20,32 +41,137 @@ In Your `AndroidManifest.xml`, add this intent-filter to your main activity in `
         <data android:host="braintree-example-app.web.app" />
     </intent-filter>
 </activity>
-
 ```
 
-Initialize, the Braintree, module. in your android/app/src/main/java/com/{app_name}/MainApplication.kt
+---
 
+### B. If you use:
+
+- `requestVenmoNonce`
+- `request3DSecurePaymentCheck`
+
+Add the following intent filter:
+
+```xml
+<activity>
+    ...
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="${applicationId}.braintree" />
+    </intent-filter>
+</activity>
 ```
+
+---
+
+### C. If you use **all methods**
+
+You must add **both intent filters**.
+
+---
+
+# 2. Update `MainActivity.kt`
+
+File location:
+
+    android/app/src/main/java/com/{app_name}/MainActivity.kt
+
+---
+
+### A. For:
+
+- `requestBillingAgreement`
+- `requestOneTimePayment`
+- `tokenizeCardData`
+
+Add the following inside the `onCreate` method:
+
+```kotlin
 import com.expobraintree.ExpoBraintreeModule
 
-  override fun onCreate() {
+override fun onCreate() {
     ...
     ExpoBraintreeModule.init()
     ...
-  }
-
+}
 ```
 
-### iOS Specific
+---
+
+### B. For:
+
+- `request3DSecurePaymentCheck`
+
+Add the following instead:
+
+```kotlin
+import com.expobraintree.ExpoBraintreeModule
+
+override fun onCreate() {
+    ...
+    ExpoBraintreeModule.initThreeDSecure(this)
+    ...
+}
+```
+
+---
+
+# 3. Update `build.gradle`
+
+If you use **3D Secure**, add the following repository to:
+
+    android/build.gradle
+
+Add it **at the end of the file**.
+
+```gradle
+allprojects {
+    repositories {
+        maven {
+            url "https://cardinalcommerceprod.jfrog.io/artifactory/android"
+            credentials {
+                username 'braintree_team_sdk'
+                password 'AKCp8jQcoDy2hxSWhDAUQKXLDPDx6NYRkqrgFLRc3qDrayg6rrCbJpsKKyMwaykVL8FWusJpp'
+            }
+        }
+    }
+}
+```
+
+---
+
+# iOS Configuration
+
+## 1. Install CocoaPods
+
+Run the following command:
 
 ```bash
 cd ios
 pod install
 ```
 
-#### Configure a new URL scheme
+---
 
-Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode or manually in the Info.plist. In your Info.plist, you should have something like:
+# 2. Configure URL Scheme
+
+Add a **Bundle URL Scheme** to your app.
+
+### Using Xcode
+
+1.  Open your project in **Xcode**
+2.  Go to **Info**
+3.  Add a **URL Type**
+
+### Required URL Scheme
+
+    {BUNDLE_IDENTIFIER}.braintree
+
+---
+
+### Example `Info.plist` Configuration
 
 ```xml
 <key>CFBundleURLTypes</key>
@@ -63,17 +189,37 @@ Add a bundle url scheme {BUNDLE_IDENTIFIER}.braintree in your app Info via XCode
 </array>
 ```
 
-#### Update your code
+---
 
-Starting from version 3.x.x of react-native-expo-braintree, additional setup steps are required for the iOS integration.
+# 3. iOS Swift Configuration (Required for v3.x.x)
 
-This change is necessary because, beginning with Braintree SDK v6, all iOS resources have been reimplemented in Swift. As a result, a custom Swift wrapper must be created to expose the required functionality for use within the AppDelegate.swift file.
+Starting with **Braintree SDK v6**, the iOS SDK was rewritten in
+**Swift**.\
+Because of this, a small Swift wrapper is required to expose the
+functionality needed by `AppDelegate.swift`.
 
-It is assumed that after upgrading to React Native 0.79.x, the project no longer uses an AppDelegate.mm file and instead relies on a Swift-based AppDelegate. if you still use Rn below 0.77.x which is not really possible you can check 3.1.0 integration steps and applay them here.
+This guide assumes:
 
-- Open your React Native ios Project in xCode
-- Create ExpoBraintreeConfig.swift in your project
-- Put following content into ExpoBraintreeConfig.swift
+- You are using **React Native 0.79+**
+- Your project uses **AppDelegate.swift** instead of `AppDelegate.mm`
+
+If you are using **older React Native (\<0.77)**, refer to the **3.1.0
+integration guide**.
+
+---
+
+# 4. Create `ExpoBraintreeConfig.swift`
+
+1.  Open your **iOS project in Xcode**
+2.  Create a new file:
+
+```{=html}
+<!-- -->
+```
+
+    ExpoBraintreeConfig.swift
+
+Add the following code:
 
 ```swift
 import Braintree
@@ -94,30 +240,54 @@ public final class ExpoBraintreeConfig {
 }
 ```
 
-- Update Content of you AppDelegate.swift
+---
+
+# 5. Update `AppDelegate.swift`
+
+Add or update the following method:
 
 ```swift
-    //  Add this method or update existing one
-  func application(
-    _ application: UIApplication,
-    open url: URL,
-    options: [UIApplication.OpenURLOptionsKey : Any] = [:]
-  ) -> Bool {
+func application(
+  _ application: UIApplication,
+  open url: URL,
+  options: [UIApplication.OpenURLOptionsKey : Any] = [:]
+) -> Bool {
 
-    if url.scheme?.localizedCaseInsensitiveCompare(
-      ExpoBraintreeConfig.paymentURLScheme
-    ) == .orderedSame {
-      return ExpoBraintreeConfig.handleUrl(url: url)
-    }
-
-    return RCTLinkingManager.application(
-      application,
-      open: url,
-      options: options
-    )
+  if url.scheme?.localizedCaseInsensitiveCompare(
+    ExpoBraintreeConfig.paymentURLScheme
+  ) == .orderedSame {
+    return ExpoBraintreeConfig.handleUrl(url: url)
   }
-  //  Add this method or update existing one
 
+  return RCTLinkingManager.application(
+    application,
+    open: url,
+    options: options
+  )
+}
 ```
 
-The same steps are already implemented into example app, if you have any issues please check it.
+---
+
+# Example Projects
+
+All required Android and iOS configuration examples can be found in the
+example project directories:
+
+    example/android
+    example/ios
+
+---
+
+# Summary
+
+To integrate **react-native-expo-braintree v3.x.x** in a React Native
+Bare project:
+
+1.  Configure **Braintree App Links**
+2.  Add required **Android intent filters**
+3.  Initialize the module in **MainActivity**
+4.  Add **3DSecure repository** if required
+5.  Configure **iOS URL Scheme**
+6.  Create **ExpoBraintreeConfig.swift**
+7.  Update **AppDelegate.swift**

@@ -3,6 +3,7 @@ import {
   type ConfigPlugin,
   withAndroidManifest,
   withMainActivity,
+  withProjectBuildGradle,
   WarningAggregator,
 } from '@expo/config-plugins';
 import type {
@@ -10,25 +11,35 @@ import type {
   StringBoolean,
 } from '@expo/config-plugins/build/android/Manifest';
 import { addImports } from '@expo/config-plugins/build/android/codeMod';
-import { mergeContents } from '@expo/config-plugins/build/utils/generateCode';
+import {
+  mergeContents,
+  createGeneratedHeaderComment,
+  type MergeResults,
+  removeGeneratedContents,
+} from '@expo/config-plugins/build/utils/generateCode';
 
 interface WithExpoBraintreeAndroidProps {
   host: string;
   pathPrefix?: string;
-  fallbackUrlScheme?: string;
+  initialize3DSecure?: 'true' | 'false';
+  addFallbackUrlScheme?: 'true' | 'false';
 }
 
 const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
 export const withExpoBraintreeAndroid: ConfigPlugin<
   WithExpoBraintreeAndroidProps
-> = (expoConfig, { host, pathPrefix, fallbackUrlScheme }) => {
+> = (
+  expoConfig,
+  { host, pathPrefix, addFallbackUrlScheme, initialize3DSecure }
+) => {
   let newConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBraintreeLinks(
       config.modResults,
       host,
       pathPrefix,
-      fallbackUrlScheme
+      addFallbackUrlScheme,
+      initialize3DSecure
     );
     return config;
   });
@@ -41,14 +52,22 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
       ['com.expobraintree.ExpoBraintreeModule'],
       language === 'java'
     );
+    const newSrc = [
+      `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`,
+    ];
 
+    if (initialize3DSecure === 'true') {
+      newSrc.push(
+        `   ExpoBraintreeModule.initThreeDSecure(this)${language === 'java' ? ';' : ''}`
+      );
+    }
     const withInit = mergeContents({
       src: withImports,
       comment: '    // add BraintreeModule import',
       tag: 'braintree-module-init',
       offset: 1,
       anchor: /(?<=^.*super\.onCreate.*$)/m,
-      newSrc: `     ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`,
+      newSrc: newSrc.join('\n'),
     });
 
     return {
@@ -84,7 +103,7 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
 //     <action android:name="android.intent.action.VIEW" />
 //     <category android:name="android.intent.category.DEFAULT" />
 //     <category android:name="android.intent.category.BROWSABLE" />
-//        <data android:scheme="{fallbackUrlScheme}" />
+//       <data android:scheme="${applicationId}.braintree" />
 //   </intent-filter>
 // </activity>;
 
@@ -92,7 +111,8 @@ export const addBraintreeLinks = (
   modResults: AndroidConfig.Manifest.AndroidManifest,
   host: string,
   pathPrefix?: string,
-  fallbackUrlScheme?: string
+  addFallbackUrlScheme?: 'true' | 'false',
+  initialize3DSecure?: 'true' | 'false'
 ): AndroidConfig.Manifest.AndroidManifest => {
   const mainActivity = getMainActivityOrThrow(modResults);
   const intentFilters = mainActivity['intent-filter'];
@@ -102,14 +122,6 @@ export const addBraintreeLinks = (
     WarningAggregator.addWarningAndroid(
       'withExpoBraintree addBraintreeLinks',
       `No Host provided for withExpoBraintree.android addBraintreeLinks`
-    );
-  }
-
-  // If there was a fallbackUrlScheme but it is not including .braintree at the end we thrown an error
-  if (!!fallbackUrlScheme && !fallbackUrlScheme?.endsWith('.braintree')) {
-    WarningAggregator.addWarningAndroid(
-      'withExpoBraintree addBraintreeLinks',
-      `{fallbackUrlScheme} provided but fallback url does not end with .braintree which is required`
     );
   }
 
@@ -195,7 +207,7 @@ export const addBraintreeLinks = (
     data: [
       {
         $: {
-          'android:scheme': fallbackUrlScheme,
+          'android:scheme': '${applicationId}.braintree',
         },
       },
     ],
@@ -208,7 +220,7 @@ export const addBraintreeLinks = (
   ];
 
   // If there is fallbackUrlScheme then we add that
-  if (fallbackUrlScheme) {
+  if (initialize3DSecure === 'true' || addFallbackUrlScheme === 'true') {
     // Add the intent-filter to the main activity
     mainActivity['intent-filter'] = [
       ...(mainActivity['intent-filter'] || []),
@@ -270,3 +282,70 @@ function hasIntentFilter(
     );
   });
 }
+// Because we need the package to be added AFTER the React and Google maven packages, we create a new all projects.
+// It's ok to have multiple all projects.repositories, so we create a new one since it's cheaper than tokenizing
+// the existing block to find the correct place to insert our content.
+const gradle3DSecureBraintreeRepo = [
+  `allprojects {`,
+  ` repositories {`,
+  `   maven {`,
+  `     url "https://cardinalcommerceprod.jfrog.io/artifactory/android"`,
+  `     credentials {`,
+  `       username 'braintree_team_sdk'`,
+  `       password 'AKCp8jQcoDy2hxSWhDAUQKXLDPDx6NYRkqrgFLRc3qDrayg6rrCbJpsKKyMwaykVL8FWusJpp'`,
+  `     }`,
+  `   }`,
+  `  }`,
+  `}`,
+].join('\n');
+
+export const withExpoBraintreeAndroidGradle: ConfigPlugin = (expoConfig) => {
+  return withProjectBuildGradle(expoConfig, (config) => {
+    if (config.modResults.language === 'groovy') {
+      config.modResults.contents = appendContents({
+        tag: 'expo-braintree-import',
+        src: config.modResults.contents,
+        newSrc: gradle3DSecureBraintreeRepo,
+        comment: '//',
+      }).contents;
+    } else {
+      throw new Error(
+        'Cannot add expo-braintree-import maven gradle because the build.gradle is not groovy'
+      );
+    }
+    return config;
+  });
+};
+
+export const appendContents = ({
+  src,
+  newSrc,
+  tag,
+  comment,
+}: {
+  src: string;
+  newSrc: string;
+  tag: string;
+  comment: string;
+}): MergeResults => {
+  const header = createGeneratedHeaderComment(newSrc, tag, comment);
+  if (!src.includes(header)) {
+    // Ensure the old generated contents are removed.
+    const sanitizedTarget = removeGeneratedContents(src, tag);
+    const contentsToAdd = [
+      // @something
+      header,
+      // contents
+      newSrc,
+      // @end
+      `${comment} @generated end ${tag}`,
+    ].join('\n');
+
+    return {
+      contents: sanitizedTarget ?? src + contentsToAdd,
+      didMerge: true,
+      didClear: !!sanitizedTarget,
+    };
+  }
+  return { contents: src, didClear: false, didMerge: false };
+};

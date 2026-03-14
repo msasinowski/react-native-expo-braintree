@@ -3,6 +3,7 @@ package com.expobraintree
 import com.braintreepayments.api.card.CardNonce
 import com.braintreepayments.api.core.UserCanceledException
 import com.braintreepayments.api.paypal.PayPalAccountNonce
+import com.braintreepayments.api.threedsecure.ThreeDSecureNonce
 import com.braintreepayments.api.venmo.VenmoAccountNonce
 
 import com.facebook.react.bridge.WritableMap
@@ -60,7 +61,7 @@ class ExpoBraintreeModuleHandlers {
   }
 
   fun onPayPalSuccessHandler(payPalAccountNonce: PayPalAccountNonce, mPromise: Promise) {
-    val result: WritableMap = PaypalDataConverter.convertPaypalDataAccountNonce(payPalAccountNonce)
+    val result: WritableMap = PayPalDataConverter.convertPaypalDataAccountNonce(payPalAccountNonce)
     result.putMap("billingAddress", SharedDataConverter.convertAddressData(payPalAccountNonce.billingAddress))
     result.putMap("shippingAddress", SharedDataConverter.convertAddressData(payPalAccountNonce.shippingAddress))
     mPromise.resolve(result)
@@ -82,7 +83,62 @@ class ExpoBraintreeModuleHandlers {
   }
 
   fun onCardTokenizeSuccessHandler(cardNonce: CardNonce, mPromise: Promise) {
-    val result: WritableMap = PaypalDataConverter.createTokenizeCardDataNonce(cardNonce)
+    val result: WritableMap = CardDataConverter.createTokenizeCardDataNonce(cardNonce)
     mPromise.resolve(result)
   }
+
+  fun onThreeDSecureFailure(error: Exception, mPromise: Promise) {
+      // Get the most descriptive message possible
+      val errorMessage = error.message ?: error.localizedMessage ?: "Unknown 3D Secure error"
+
+      // We use the actual error message as the second argument (message) 
+      // so it's visible in the 'details' field in JS.
+      mPromise.reject(
+        EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+        errorMessage, // This replaces the generic CARD_TOKENIZATION_ERROR
+        SharedDataConverter.createError(
+          EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
+          errorMessage
+        )
+      )
+    }
+    
+  fun onThreeDSecureSuccessHandler(threeDSecureNonce: ThreeDSecureNonce, mPromise: Promise) {
+     val info = threeDSecureNonce.threeDSecureInfo
+
+     // Validation: Reject only if verification was attempted but failed
+     // Note: we removed 'is' prefix to fix the 'Unresolved reference' error
+     if (info.wasVerified && !info.liabilityShifted) {
+       mPromise.reject(
+         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+         THREE_D_SECURE_ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.value,
+         SharedDataConverter.createError(
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
+           "Liability shift failed"
+         )
+       )
+       return
+     }
+
+     // Basic check for empty nonce
+     if (threeDSecureNonce.string.isEmpty()){
+       mPromise.reject(
+         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
+         "Empty nonce received",
+         SharedDataConverter.createError(
+           EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
+           "Empty nonce"
+         )
+       )
+       return
+     }
+
+     // If everything is fine, resolve with full data
+     try {
+       val result: WritableMap = CardDataConverter.createThreeDSecureDataNonce(threeDSecureNonce)
+       mPromise.resolve(result)
+     } catch (e: Exception) {
+       mPromise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, e.message, e)
+     }
+   }
 }

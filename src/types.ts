@@ -28,6 +28,12 @@ export enum VENMO_ERROR_TYPES {
   VENMO_DISABLED_IN_CONFIGURATION = 'VENMO_DISABLED_IN_CONFIGURATION_ERROR',
 }
 
+export enum THREE_D_SECURE_ERROR_TYPES {
+  D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY = 'D_SECURE_NOT_ABLE_TO_SHIFT_LIABILITY',
+  D_SECURE_LIABILITY_NOT_SHIFTED = 'D_SECURE_LIABILITY_NOT_SHIFTED',
+  PAYMENT_3D_SECURE_FAILED = 'PAYMENT_3D_SECURE_FAILED',
+}
+
 export enum BTPayPalCheckoutIntent {
   authorize = 'authorize',
   order = 'order',
@@ -69,7 +75,7 @@ export type RequestOneTimePaymentOptions = {
   offerPayLater?: BoolValue;
   currencyCode?: string;
   requestBillingAgreement?: BoolValue;
-  hasUserLocationConsent?: BoolValue;
+  hasUserLocationConsent?: boolean;
   clientToken: string;
   merchantAppLink: string;
   fallbackUrlScheme?: string;
@@ -155,4 +161,54 @@ export type BTVenmoError = {
   code?: EXCEPTION_TYPES | VENMO_EXCEPTION_TYPES;
   message?: ERROR_TYPES | VENMO_ERROR_TYPES | string;
   domain?: ERROR_TYPES | VENMO_ERROR_TYPES;
+};
+
+export type BTThreeDError = {
+  code?: EXCEPTION_TYPES | VENMO_EXCEPTION_TYPES;
+  message?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES | string;
+  domain?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES;
+};
+
+export type ThreeDSecureInfo = {
+  /** True if the bank accepts responsibility for the fraud risk */
+  liabilityShifted: boolean;
+  /** True if the card is eligible for 3D Secure */
+  liabilityShiftPossible: boolean;
+  /** The status of the 3D Secure verification (e.g., 'authenticated', 'lookup_error') */
+  status: string;
+  /** Indicates if the verification process was actually performed */
+  wasVerified: boolean;
+};
+
+export type BTCardTokenization3DSNonceResult = {
+  nonce: string;
+  cardNetwork?: string;
+  lastTwo?: string;
+  lastFour?: string;
+  expirationMonth?: string;
+  expirationYear?: string;
+  /** Detailed 3D Secure verification results from the bank */
+  threeDSecureInfo?: ThreeDSecureInfo;
+};
+
+type D = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+
+export type ThreeDSecureCheckOptions = {
+  clientToken: string;
+  /**
+   * Transaction amount in "X.YY" format.
+   * @example "10.00"
+   */
+  amount: `${number}.${D}${D}`;
+  nonce: string;
+  email?: string;
+  givenName?: string;
+  surName?: string;
+  phoneNumber?: string;
+  streetAddress?: string;
+  extendedAddress?: string;
+  city?: string;
+  postalCode?: string;
+  region?: string;
+  countryCodeAlpha2?: string;
 };
