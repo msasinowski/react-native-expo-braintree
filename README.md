@@ -20,8 +20,8 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 | Package Version   | Braintree Android | Braintree iOS | Min Android SDK | Min iOS |
 | :---------------- | :---------------: | :-----------: | :-------------: | :-----: |
-| **3.2.1**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
-| **3.2.0**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
+| **3.3.0**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
+| **3.2.0 - 3.2.2** |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
 | **3.1.0**         |      v5.9.x       |    v6.31.0    |       23        |  14.0   |
 | **3.0.1 - 3.0.5** |      v5.2.x       |    v6.23.3    |       23        |  14.0   |
 | **2.2.0 - 2.4.0** |      v4.41.x      |    v6.17.0    |       21        |  14.0   |
@@ -30,7 +30,7 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 | Package Version   | Supported Expo SDK |
 | :---------------- | :----------------- |
-| **3.2.1**         | 53                 |
+| **3.2.1+**        | 53                 |
 | **3.0.3 - 3.1.0** | 50, 51, 52         |
 | **3.0.1 - 3.0.2** | 50, 51             |
 | **2.5.0**         | 50, 51, 52         |
