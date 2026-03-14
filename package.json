@@ -1,6 +1,6 @@
 {
   "name": "react-native-expo-braintree",
-  "version": "3.2.2",
+  "version": "3.3.0-alpha.3",
   "description": "React native and expo wrapper around braintree sdk fro android and ios",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -118,6 +118,7 @@
     "preset": "react-native",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
+      "<rootDir>/example-expo-53/node_modules",
       "<rootDir>/lib/"
     ]
   },

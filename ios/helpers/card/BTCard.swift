@@ -55,16 +55,29 @@ func prepareBTCardNonceResult(cardNonce: BTCardNonce) -> NSDictionary {
  */
 private func transformCardNetworkToString(_ network: BTCardNetwork) -> String {
     switch network {
-    case .visa: return "Visa"
-    case .masterCard: return "MasterCard"
-    case .amex: return "Amex"
-    case .dinersClub: return "DinersClub"
-    case .jcb: return "JCB"
-    case .maestro: return "Maestro"
-    case .discover: return "Discover"
-    case .unionPay: return "UnionPay"
-    case .hiper: return "Hiper"
-    case .hipercard: return "Hipercard"
-    default: return "Unknown"
+    case .visa: 
+        return "Visa"
+    case .masterCard: 
+        return "MasterCard"
+    case .AMEX:
+        return "Amex"
+    case .dinersClub: 
+        return "DinersClub"
+    case .JCB:
+        return "JCB"
+    case .maestro: 
+        return "Maestro"
+    case .discover: 
+        return "Discover"
+    case .unionPay: 
+        return "UnionPay"
+    case .hiper: 
+        return "Hiper"
+    case .hipercard: 
+        return "Hipercard"
+    case .unknown: 
+        return "Unknown"
+    @unknown default:
+        return "Unknown"
     }
 }

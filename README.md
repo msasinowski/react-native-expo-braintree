@@ -38,6 +38,11 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 ---
 
+## 🛠️ Demos
+
+![iOS](assets/ios_demo_with_3d_secure.gif)
+![Android](assets/android_demo_with_3ds_secure.gif)
+
 ## 🛠️ Troubleshooting Guide (v3.x.x+)
 
 **Important:** Version 3.x.x uses **Braintree Android SDK v5**, which introduces a breaking change: shifting from **Custom Scheme Deep Links** to **Android App Links (HTTPS)**.
