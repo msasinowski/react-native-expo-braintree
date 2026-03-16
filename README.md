@@ -153,6 +153,6 @@ You can find implementation details in the [Example App](example/src/App.tsx) or
 ## Roadmap
 
 - [x] Venmo Integration
-- [x] 3D-Secure (Alpha)
-- [ ] Apple Pay
-- [ ] Google Pay
+- [x] 3D-Secure (Implemented in 3.3.0)
+- [x] Google Pay (Implemented in 3.4.0)
+- [ ] Apple Pay (TBD)
