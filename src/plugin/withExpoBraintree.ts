@@ -55,6 +55,10 @@ export type ExpoBraintreePluginProps = {
    *  </intent-filter>
    */
   initialize3DSecure?: 'true' | 'false';
+  /**
+   * Flag that determines if we should initialize Google Pay
+   */
+  initializeGooglePay?: 'true' | 'false';
 };
 
 export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (

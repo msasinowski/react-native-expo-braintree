@@ -14,6 +14,7 @@ class MainActivity : ReactActivity() {
     super.onCreate(null)
     ExpoBraintreeModule.init()
     ExpoBraintreeModule.initThreeDSecure(this)
+    ExpoBraintreeModule.initGooglePay(this)
   }
 
   /**

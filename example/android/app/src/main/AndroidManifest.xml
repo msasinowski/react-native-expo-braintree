@@ -33,6 +33,5 @@
         <data android:scheme="${applicationId}.braintree" />
       </intent-filter>
     </activity>
-
   </application>
 </manifest>

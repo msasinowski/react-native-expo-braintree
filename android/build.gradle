@@ -104,4 +104,5 @@ dependencies {
   implementation 'com.braintreepayments.api:card:5.19.0'
   implementation 'com.braintreepayments.api:venmo:5.19.0'
   implementation 'com.braintreepayments.api:three-d-secure:5.19.0'
+  implementation "com.braintreepayments.api:google-pay:5.19.0"
 }

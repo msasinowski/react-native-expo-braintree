@@ -9,6 +9,7 @@ import com.braintreepayments.api.card.CardClient
 import com.braintreepayments.api.card.CardResult
 import com.braintreepayments.api.datacollector.DataCollector
 import com.braintreepayments.api.datacollector.DataCollectorResult
+import com.braintreepayments.api.googlepay.*
 import com.braintreepayments.api.paypal.*
 import com.braintreepayments.api.threedsecure.*
 import com.braintreepayments.api.venmo.*
@@ -33,12 +34,15 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         lateinit var payPalLauncher: PayPalLauncher
         lateinit var venmoLauncher: VenmoLauncher
         lateinit var threeDSecureLauncher: ThreeDSecureLauncher
+        lateinit var googlePayLauncher: GooglePayLauncher
+        
         private val moduleHandlers: ExpoBraintreeModuleHandlers = ExpoBraintreeModuleHandlers()
 
         private var threeDSecureClientRefInstance: ThreeDSecureClient? = null
         private var promiseRefInstance: Promise? = null
         private var payPalClientRefInstance: PayPalClient? = null
         private var venmoClientRefInstance: VenmoClient? = null
+        private var googlePayClientRefInstance: GooglePayClient? = null
 
         fun init() {
             initPayPal()
@@ -48,9 +52,6 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         fun initPayPal() { payPalLauncher = PayPalLauncher() }
         fun initVenmo() { venmoLauncher = VenmoLauncher() }
 
-        /**
-         * Initializes the 3D Secure Launcher and registers the callback for verification results.
-         */
         fun initThreeDSecure(activity: FragmentActivity) {
             threeDSecureLauncher = ThreeDSecureLauncher(activity) { paymentAuthResult ->
                 val client = threeDSecureClientRefInstance
@@ -60,13 +61,9 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
                     client.tokenize(paymentAuthResult) { result ->
                         when (result) {
                             is ThreeDSecureResult.Success -> {
-                                val info = result.nonce.threeDSecureInfo
-                                
-                                // Strict Security: Check if liability shift occurred
-                                if (info.liabilityShifted) {
+                                if (result.nonce.threeDSecureInfo.liabilityShifted) {
                                     moduleHandlers.onThreeDSecureSuccessHandler(result.nonce, promise)
                                 } else {
-                                    // Reject if bank did not take responsibility
                                     promise.reject(
                                         EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
                                         THREE_D_SECURE_ERROR_TYPES.D_SECURE_LIABILITY_NOT_SHIFTED.value
@@ -74,18 +71,10 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
                                 }
                             }
                             is ThreeDSecureResult.Failure -> {
-                                val msg = result.error.message ?: "Unknown error"
-                                promise.reject(
-                                    EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, 
-                                    msg, 
-                                    result.error
-                                )
+                                promise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, result.error.message ?: "Unknown error")
                             }
                             is ThreeDSecureResult.Cancel -> {
-                                promise.reject(
-                                    EXCEPTION_TYPES.USER_CANCEL_EXCEPTION.value,
-                                    ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.value
-                                )
+                                promise.reject(EXCEPTION_TYPES.USER_CANCEL_EXCEPTION.value, ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.value)
                             }
                         }
                         clearStaticReferences()
@@ -94,14 +83,47 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        /**
-         * Clears all temporary references to prevent memory leaks and session conflicts.
-         */
+        fun initGooglePay(activity: FragmentActivity) {
+            googlePayLauncher = GooglePayLauncher(activity) { paymentAuthResult ->
+                val promise = promiseRefInstance ?: return@GooglePayLauncher
+                val client = googlePayClientRefInstance ?: return@GooglePayLauncher
+
+                client.tokenize(paymentAuthResult) { result ->
+                    when (result) {
+                        is GooglePayResult.Success -> {
+                            // Rzutowanie na GooglePayCardNonce, aby pasowało do handlera
+                            val cardNonce = result.nonce as? GooglePayCardNonce
+                            if (cardNonce != null) {
+                                moduleHandlers.onGooglePaySuccessHandler(cardNonce, promise)
+                            } else {
+                                // Jeśli to inny typ nonca (np. PayPal), wysyłamy ogólnie
+                                promise.resolve(result.nonce.string)
+                            }
+                        }
+                        is GooglePayResult.Failure -> {
+                            promise.reject(
+                                GOOGLE_PAY_ERROR_TYPES.GOOGLE_PAY_FAILED.value,
+                                result.error.message ?: "Google Pay Failed"
+                            )
+                        }
+                        is GooglePayResult.Cancel -> {
+                            promise.reject(
+                                EXCEPTION_TYPES.USER_CANCEL_EXCEPTION.value,
+                                "User cancelled Google Pay"
+                            )
+                        }
+                    }
+                    clearStaticReferences()
+                }
+            }
+        }
+
         fun clearStaticReferences() {
             threeDSecureClientRefInstance = null
             promiseRefInstance = null
             payPalClientRefInstance = null
             venmoClientRefInstance = null
+            googlePayClientRefInstance = null
         }
     }
 
@@ -115,30 +137,57 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         return hasPayPal || hasVenmo
     }
 
+    // --- Google Pay Implementation ---
     @ReactMethod
-    fun request3DSecurePaymentCheck(data: ReadableMap, localPromise: Promise) {
+    fun requestGooglePayPayment(data: ReadableMap, localPromise: Promise) {
         val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
-        
         clearStaticReferences()
         promiseRefInstance = localPromise
 
         try {
-            val clientToken = data.getString("clientToken") ?: ""
-            val client = ThreeDSecureClient(activity, clientToken)
-            threeDSecureClientRefInstance = client
+            val googlePayClient = GooglePayClient(activity, data.getString("clientToken") ?: "")
+            googlePayClientRefInstance = googlePayClient
 
+            googlePayClient.isReadyToPay(activity) { readinessResult ->
+                if (readinessResult is GooglePayReadinessResult.ReadyToPay) {
+                    val request = GooglePayDataConverter.createPaymentRequest(data)
+                    googlePayClient.createPaymentAuthRequest(request) { authRequest ->
+                        when (authRequest) {
+                            is GooglePayPaymentAuthRequest.ReadyToLaunch -> googlePayLauncher.launch(authRequest)
+                            is GooglePayPaymentAuthRequest.Failure -> {
+                                localPromise.reject(
+                                    GOOGLE_PAY_ERROR_TYPES.GOOGLE_PAY_FAILED.value,
+                                    authRequest.error.message
+                                )
+                                clearStaticReferences()
+                            }
+                        }
+                    }
+                } else {
+                    localPromise.reject(
+                        GOOGLE_PAY_ERROR_TYPES.GOOGLE_PAY_NOT_AVAILABLE.value,
+                        "Google Pay not available"
+                    )
+                    clearStaticReferences()
+                }
+            }
+        } catch (ex: Exception) { handleKotlinException(localPromise, ex) }
+    }
+
+    @ReactMethod
+    fun request3DSecurePaymentCheck(data: ReadableMap, localPromise: Promise) {
+        val activity = fragmentActivity ?: return rejectNoActivity(localPromise)
+        clearStaticReferences()
+        promiseRefInstance = localPromise
+        try {
+            val client = ThreeDSecureClient(activity, data.getString("clientToken") ?: "")
+            threeDSecureClientRefInstance = client
             val request = CardDataConverter.create3DSecureRequest(data)
-            
             client.createPaymentAuthRequest(activity, request) { response ->
                 when (response) {
-                    is ThreeDSecurePaymentAuthRequest.ReadyToLaunch -> {
-                        threeDSecureLauncher.launch(response)
-                    }
+                    is ThreeDSecurePaymentAuthRequest.ReadyToLaunch -> threeDSecureLauncher.launch(response)
                     is ThreeDSecurePaymentAuthRequest.LaunchNotRequired -> {
-                        // Even in frictionless flow, we must verify liability shift
-                        val info = response.nonce.threeDSecureInfo
-                        
-                        if (info.liabilityShifted) {
+                        if (response.nonce.threeDSecureInfo.liabilityShifted) {
                             moduleHandlers.onThreeDSecureSuccessHandler(response.nonce, localPromise)
                         } else {
                             localPromise.reject(
@@ -149,17 +198,12 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
                         clearStaticReferences()
                     }
                     is ThreeDSecurePaymentAuthRequest.Failure -> {
-                        localPromise.reject(
-                            EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value,
-                            response.error.message ?: THREE_D_SECURE_ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.value
-                        )
+                        localPromise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, response.error.message ?: "3DS Failed")
                         clearStaticReferences()
                     }
                 }
             }
-        } catch (ex: Exception) {
-            handleKotlinException(localPromise, ex)
-        }
+        } catch (ex: Exception) { handleKotlinException(localPromise, ex) }
     }
 
     @ReactMethod
@@ -225,13 +269,12 @@ class ExpoBraintreeModule(reactContext: ReactApplicationContext) :
         clearStaticReferences()
         promiseRefInstance = localPromise
         try {
-            val clientToken = data.getString("clientToken") ?: ""
-            val cardClient = CardClient(reactContextRef, clientToken)
+            val cardClient = CardClient(reactContextRef, data.getString("clientToken") ?: "")
             val cardRequest = CardDataConverter.createTokenizeCardRequest(data)
-            cardClient.tokenize(cardRequest) { cardResult ->
-                when (cardResult) {
-                    is CardResult.Success -> moduleHandlers.onCardTokenizeSuccessHandler(cardResult.nonce, localPromise)
-                    is CardResult.Failure -> moduleHandlers.onCardTokenizeFailure(cardResult.error, localPromise)
+            cardClient.tokenize(cardRequest) { result ->
+                when (result) {
+                    is CardResult.Success -> moduleHandlers.onCardTokenizeSuccessHandler(result.nonce, localPromise)
+                    is CardResult.Failure -> moduleHandlers.onCardTokenizeFailure(result.error, localPromise)
                 }
                 clearStaticReferences()
             }

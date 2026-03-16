@@ -13,6 +13,9 @@ import type {
   BTCardTokenization3DSNonceResult,
   ThreeDSecureCheckOptions,
   BTThreeDError,
+  RequestGooglePayOptions,
+  BTGooglePayNonceResult,
+  BTGooglePayError,
 } from './types';
 
 const LINKING_ERROR =
@@ -107,6 +110,20 @@ export async function request3DSecurePaymentCheck(
     return result;
   } catch (ex: unknown) {
     return ex as BTThreeDError;
+  }
+}
+export async function requestGooglePayPayment(
+  options: RequestGooglePayOptions
+): Promise<BTGooglePayNonceResult | BTGooglePayError> {
+  try {
+    if (Platform.OS !== 'android') {
+      throw new Error('Google Pay is only supported on Android.');
+    }
+    const result: BTGooglePayNonceResult =
+      await ExpoBraintree.requestGooglePayPayment(options);
+    return result;
+  } catch (ex: unknown) {
+    return ex as BTGooglePayError;
   }
 }
 
