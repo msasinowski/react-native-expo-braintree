@@ -20,6 +20,7 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 | Package Version   | Braintree Android | Braintree iOS | Min Android SDK | Min iOS |
 | :---------------- | :---------------: | :-----------: | :-------------: | :-----: |
+| **3.4.0**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
 | **3.3.0**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
 | **3.2.0 - 3.2.2** |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
 | **3.1.0**         |      v5.9.x       |    v6.31.0    |       23        |  14.0   |
@@ -35,6 +36,15 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 | **3.0.1 - 3.0.2** | 50, 51             |
 | **2.5.0**         | 50, 51, 52         |
 | **2.2.0 - 2.4.0** | 50, 51             |
+
+---
+
+### Feature List
+
+| Package Version | Supported Expo SDK       |
+| :-------------- | :----------------------- |
+| **3.4.0**       | Google Pay Feature Added |
+| **3.3.0**       | 3D Secure Feature Added  |
 
 ---
 
