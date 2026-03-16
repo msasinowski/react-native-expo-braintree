@@ -15,14 +15,20 @@ class CardDataConverter {
 
   companion object {
 
+    /**
+     * Converts a basic CardNonce into a WritableMap for React Native.
+     */
     fun createTokenizeCardDataNonce(cardNonce: CardNonce): WritableMap {
       val result: WritableMap = Arguments.createMap()
       result.putString("nonce", cardNonce.string)
+      
+      // Handling unknown card types for consistent JS reporting
       if (cardNonce.cardType == "Unknown") {
         result.putString("cardNetwork", "")
       } else {
         result.putString("cardNetwork", cardNonce.cardType)
       }
+      
       result.putString("lastFour", cardNonce.lastFour)
       result.putString("lastTwo", cardNonce.lastTwo)
       result.putString("expirationMonth", cardNonce.expirationMonth)
@@ -32,7 +38,7 @@ class CardDataConverter {
 
     /**
      * Converts the 3D Secure result nonce into a WritableMap to be sent back to JavaScript.
-     * This includes card details and the critical threeDSecureInfo object.
+     * Includes liability shift details required for security checks.
      */
     fun createThreeDSecureDataNonce(cardNonce: ThreeDSecureNonce): WritableMap {
       val result: WritableMap = Arguments.createMap()
@@ -53,18 +59,20 @@ class CardDataConverter {
       val infoMap: WritableMap = Arguments.createMap()
       val info = cardNonce.threeDSecureInfo
       
-      if (info != null) {
-          infoMap.putBoolean("liabilityShifted", info.liabilityShifted)
-          infoMap.putBoolean("liabilityShiftPossible", info.liabilityShiftPossible)
-          infoMap.putString("status", info.status)
-          infoMap.putBoolean("wasVerified", info.wasVerified)
-      }
+      // REMOVED: if (info != null) check because threeDSecureInfo is NonNull in SDK v5+
+      infoMap.putBoolean("liabilityShifted", info.liabilityShifted)
+      infoMap.putBoolean("liabilityShiftPossible", info.liabilityShiftPossible)
+      infoMap.putString("status", info.status)
+      infoMap.putBoolean("wasVerified", info.wasVerified)
 
       result.putMap("threeDSecureInfo", infoMap)
       
       return result
     }
 
+    /**
+     * Creates a Card object from JS options for basic tokenization.
+     */
     fun createTokenizeCardRequest(options: ReadableMap): Card {
       val card: Card = Card()
       if (options.hasKey("number")) {
@@ -85,10 +93,14 @@ class CardDataConverter {
       return card
     }
 
+    /**
+     * Maps JS options to a ThreeDSecureRequest. 
+     * Includes address mapping to satisfy 3DS 2.0 risk assessment requirements.
+     */
     fun create3DSecureRequest(options: ReadableMap): ThreeDSecureRequest {
       val address = ThreeDSecurePostalAddress()
       
-      // Map personal names - Note: Braintree v6 uses givenName and surname
+      // Personal details mapping
       if (options.hasKey("givenName")) {
         address.givenName = options.getString("givenName")
       }
@@ -96,18 +108,15 @@ class CardDataConverter {
         address.surname = options.getString("surName")
       }
       
-      // Map contact details
       if (options.hasKey("phoneNumber")) {
         address.phoneNumber = options.getString("phoneNumber")
       }
       
-      // CRITICAL: countryCodeAlpha2 MUST be provided if 'region' is present.
-      // This prevents the "The region cannot be provided without a corresponding country code" (422) error.
+      // Required by Braintree to avoid 422 errors if region is provided
       if (options.hasKey("countryCodeAlpha2")) {
         address.countryCodeAlpha2 = options.getString("countryCodeAlpha2")
       }
       
-      // Map geographic location details
       if (options.hasKey("city")) {
         address.locality = options.getString("city")
       }
@@ -124,17 +133,14 @@ class CardDataConverter {
         address.extendedAddress = options.getString("streetAddress2")
       }
 
-      // 3D Secure 2.0 requires additional info for better risk assessment
       val additionalInformation = ThreeDSecureAdditionalInformation()
       additionalInformation.shippingAddress = address
       
       val threeDSecureRequest = ThreeDSecureRequest()
-      // Use elvis operator to ensure non-null values for the SDK
       threeDSecureRequest.nonce = options.getString("nonce") ?: ""
       threeDSecureRequest.email = options.getString("email") ?: ""
       threeDSecureRequest.amount = options.getString("amount") ?: "0.00"
       
-      // Attach the objects to the main request
       threeDSecureRequest.billingAddress = address
       threeDSecureRequest.additionalInformation = additionalInformation
       

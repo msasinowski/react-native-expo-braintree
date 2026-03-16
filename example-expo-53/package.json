@@ -13,7 +13,7 @@
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.6",
-    "react-native-expo-braintree": "3.3.0-alpha.3"
+    "react-native-expo-braintree": "3.4.0-alpha.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

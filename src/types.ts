@@ -1,5 +1,5 @@
 export enum EXCEPTION_TYPES {
-  SWIFT_EXCEPTION = 'ExpoBraintree:`SwiftException',
+  KOTLIN_EXCEPTION = 'ExpoBraintree:`KotlinException',
   USER_CANCEL_EXCEPTION = 'ExpoBraintree:`UserCancelException',
   TOKENIZE_EXCEPTION = 'ExpoBraintree:`TokenizeException',
 }
@@ -10,6 +10,11 @@ export enum PAYPAL_EXCEPTION_TYPES {
 
 export enum VENMO_EXCEPTION_TYPES {
   VENMO_DISABLED_IN_CONFIGURATION = 'ExpoBraintree:`VENMO disabled in configuration',
+}
+
+export enum GOOGLE_PAY_ERROR_TYPES {
+  GOOGLE_PAY_NOT_AVAILABLE = 'GOOGLE_PAY_NOT_AVAILABLE',
+  GOOGLE_PAY_FAILED = 'GOOGLE_PAY_FAILED',
 }
 
 export enum ERROR_TYPES {
@@ -211,4 +216,46 @@ export type ThreeDSecureCheckOptions = {
   postalCode?: string;
   region?: string;
   countryCodeAlpha2?: string;
+};
+
+export enum GOOGLE_PAY_TOTAL_PRICE_STATUS {
+  /** The total price is an estimated price and might still change (maps to 1 in Kotlin) */
+  ESTIMATED = 1,
+  /** The total price is the final price and will not change (maps to 3/else in Kotlin) */
+  FINAL = 3,
+}
+
+export type RequestGooglePayOptions = {
+  clientToken: string;
+  totalPrice: string;
+  currencyCode: string;
+  totalPriceStatus?: GOOGLE_PAY_TOTAL_PRICE_STATUS;
+  googleMerchantName?: string;
+  billingAddressRequired?: boolean;
+  emailRequired?: boolean;
+  phoneNumberRequired?: boolean;
+  shippingAddressRequired?: boolean;
+  allowPrepaidCards?: boolean;
+};
+
+export type BTGooglePayNonceResult = {
+  nonce: string;
+  type: 'GooglePayCard';
+  description: string;
+  details: {
+    cardType: string;
+    lastFour: string;
+    lastTwo: string;
+  };
+  billingAddress?: {
+    recipientName?: string;
+    streetAddress?: string;
+    locality?: string;
+    countryCodeAlpha2?: string;
+  };
+};
+
+export type BTGooglePayError = {
+  code?: EXCEPTION_TYPES | GOOGLE_PAY_ERROR_TYPES;
+  message?: string;
 };

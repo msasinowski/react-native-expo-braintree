@@ -18,6 +18,7 @@ In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-
         pathPrefix: "/braintree-payments" // Optional,
         // Depending on which payment do you really need in the project initialize only required one
         initialize3DSecure: "true",
+        initializeGooglePay: "true",
         addFallbackUrlScheme: "true",
         appDelegateLanguage?: "swift"; // Optional if you are still using AppDelegate.mm / AppDelegate.m
       },
@@ -31,6 +32,7 @@ In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-
 
 `pathPrefix` - Path prefix, in case of you want to separate path only to handle the context switch (Optional)
 `initialize3DSecure` - Boolean that determines if 3D Secure is used/needed (Values "true" | "false")
+`initializeGooglePay` - Boolean that determines if Google Pay is used/needed (Values "true" | "false")
 `addFallbackUrlScheme` - Boolean that determines if we should add a scheme for a fallback url used in venmo
 `appDelegateLanguage` - Indicator that tell's the plugin logic if you are still using Objective C file for AppDelegate (Optional)
 

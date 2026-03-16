@@ -5,9 +5,11 @@ import com.braintreepayments.api.core.UserCanceledException
 import com.braintreepayments.api.paypal.PayPalAccountNonce
 import com.braintreepayments.api.threedsecure.ThreeDSecureNonce
 import com.braintreepayments.api.venmo.VenmoAccountNonce
+import com.braintreepayments.api.googlepay.GooglePayCardNonce
 
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.Arguments
 
 
 class ExpoBraintreeModuleHandlers {
@@ -141,4 +143,32 @@ class ExpoBraintreeModuleHandlers {
        mPromise.reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.value, e.message, e)
      }
    }
+
+  fun onGooglePaySuccessHandler(nonce: GooglePayCardNonce, promise: Promise) {
+      val result: WritableMap = Arguments.createMap()
+      
+      // Base nonce information
+      result.putString("nonce", nonce.string)
+      result.putString("type", "GooglePayCard")
+      
+      // Card details mapping
+      val details: WritableMap = Arguments.createMap()
+      details.putString("cardType", nonce.cardType)
+      details.putString("lastFour", nonce.lastFour)
+      details.putString("lastTwo", nonce.lastTwo)
+      result.putMap("details", details)
+      
+      // Billing Address mapping (optional)
+      // Only populates if billingAddressRequired was true and user provided it
+      nonce.billingAddress?.let { address ->
+          val billingMap: WritableMap = Arguments.createMap()
+          billingMap.putString("recipientName", address.recipientName)
+          billingMap.putString("streetAddress", address.streetAddress)
+          billingMap.putString("locality", address.locality) // City
+          billingMap.putString("countryCodeAlpha2", address.countryCodeAlpha2)
+          result.putMap("billingAddress", billingMap)
+      }
+      
+      promise.resolve(result)
+  }
 }

@@ -118,6 +118,30 @@ override fun onCreate() {
 
 ---
 
+### C. For:
+
+- `requestGooglePayPayment`
+
+Add the following instead:
+
+```kotlin
+import com.expobraintree.ExpoBraintreeModule
+
+override fun onCreate() {
+    ...
+    ExpoBraintreeModule.initGooglePay(this)
+    ...
+}
+```
+
+---
+
+### D. If you use **all methods**
+
+You must add **all initialization methods**.
+
+---
+
 # 3. Update `build.gradle`
 
 If you use **3D Secure**, add the following repository to:

@@ -22,6 +22,7 @@ interface WithExpoBraintreeAndroidProps {
   host: string;
   pathPrefix?: string;
   initialize3DSecure?: 'true' | 'false';
+  initializeGooglePay?: 'true' | 'false';
   addFallbackUrlScheme?: 'true' | 'false';
 }
 
@@ -31,7 +32,13 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
   WithExpoBraintreeAndroidProps
 > = (
   expoConfig,
-  { host, pathPrefix, addFallbackUrlScheme, initialize3DSecure }
+  {
+    host,
+    pathPrefix,
+    addFallbackUrlScheme,
+    initialize3DSecure,
+    initializeGooglePay,
+  }
 ) => {
   let newConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBraintreeLinks(
@@ -59,6 +66,12 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
     if (initialize3DSecure === 'true') {
       newSrc.push(
         `   ExpoBraintreeModule.initThreeDSecure(this)${language === 'java' ? ';' : ''}`
+      );
+    }
+
+    if (initializeGooglePay === 'true') {
+      newSrc.push(
+        `   ExpoBraintreeModule.initGooglePay(this)${language === 'java' ? ';' : ''}`
       );
     }
     const withInit = mergeContents({

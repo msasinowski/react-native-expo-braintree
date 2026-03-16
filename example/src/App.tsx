@@ -7,6 +7,7 @@ import {
   View,
   SafeAreaView,
   TextInput,
+  Platform,
 } from 'react-native';
 import {
   getDeviceDataFromDataCollector,
@@ -14,6 +15,8 @@ import {
   requestOneTimePayment,
   tokenizeCardData,
   request3DSecurePaymentCheck,
+  requestGooglePayPayment,
+  GOOGLE_PAY_TOTAL_PRICE_STATUS,
   type ThreeDSecureCheckOptions,
 } from 'react-native-expo-braintree';
 import { LogView, type LogState } from './LogView';
@@ -27,9 +30,7 @@ const T3DS_SCENARIOS = [
   { label: '❌ 3DS Failed (Frictionless)', number: '4000000000002925' },
 ];
 
-// --- MAIN APP ---
 export default function App() {
-  // Separate states for each section's logs
   const [log1, setLog1] = React.useState<LogState>({
     loading: false,
     result: null,
@@ -41,6 +42,11 @@ export default function App() {
     error: null,
   });
   const [log3, setLog3] = React.useState<LogState>({
+    loading: false,
+    result: null,
+    error: null,
+  });
+  const [logGP, setLogGP] = React.useState<LogState>({
     loading: false,
     result: null,
     error: null,
@@ -81,7 +87,6 @@ export default function App() {
       return;
     }
     await exec(setLog3, `3DS-${cardNumber.slice(-4)}`, async () => {
-      // KROK 1: Tokenizacja
       const tokenized = await tokenizeCardData({
         clientToken: dynamic3DSToken.trim(),
         number: cardNumber,
@@ -95,7 +100,6 @@ export default function App() {
           clientToken: dynamic3DSToken.trim(),
           amount: '10.00',
           nonce: tokenized.nonce,
-          // Dane wymagane do poprawnej walidacji 3DS 2.0
           email: 'jill.doe@example.com',
           givenName: 'Jill',
           surName: 'Doe',
@@ -159,7 +163,7 @@ export default function App() {
                 requestBillingAgreement({
                   clientToken,
                   merchantAppLink,
-                  billingAgreementDescription: 'Test',
+                  billingAgreementDescription: 'Test Recurring Payment',
                 })
               )
             }
@@ -231,6 +235,39 @@ export default function App() {
             }
           />
         </View>
+
+        {/* SECTION 4: GOOGLE PAY */}
+        {Platform.OS === 'android' && (
+          <View style={[styles.section]}>
+            <Text style={styles.sectionTitle}>4. Google Pay</Text>
+            <TouchableOpacity
+              style={styles.buttonGooglePay}
+              onPress={() =>
+                exec(setLogGP, 'GooglePay', () =>
+                  requestGooglePayPayment({
+                    clientToken,
+                    totalPrice: '199.00',
+                    currencyCode: 'USD',
+                    totalPriceStatus: GOOGLE_PAY_TOTAL_PRICE_STATUS.FINAL,
+                    billingAddressRequired: true,
+                    shippingAddressRequired: true,
+                    emailRequired: true,
+                    allowPrepaidCards: false,
+                    allowCreditCards: true,
+                  })
+                )
+              }
+            >
+              <Text style={styles.buttonText}>Launch Google Pay</Text>
+            </TouchableOpacity>
+            <LogView
+              state={logGP}
+              onClear={() =>
+                setLogGP({ loading: false, result: null, error: null })
+              }
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -286,4 +323,13 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: '#ccc' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 13 },
+  buttonGooglePay: {
+    padding: 12,
+    backgroundColor: '#000',
+    borderRadius: 6,
+    marginBottom: 6,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#555',
+  },
 });
