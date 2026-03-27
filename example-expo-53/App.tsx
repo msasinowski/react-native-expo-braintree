@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import {
   ScrollView,
@@ -17,6 +16,7 @@ import {
   tokenizeCardData,
   request3DSecurePaymentCheck,
   requestGooglePayPayment,
+  requestApplePayPayment,
   GOOGLE_PAY_TOTAL_PRICE_STATUS,
   type ThreeDSecureCheckOptions,
 } from 'react-native-expo-braintree';
@@ -52,6 +52,11 @@ export default function App() {
     result: null,
     error: null,
   });
+  const [logAP, setLogAP] = React.useState<LogState>({
+    loading: false,
+    result: null,
+    error: null,
+  });
 
   const [dynamic3DSToken, setDynamic3DSToken] = React.useState('');
 
@@ -63,11 +68,13 @@ export default function App() {
     setLog({ loading: true, result: `Running ${name}...`, error: null });
     try {
       const result = await action();
+
       setLog({
         loading: false,
         result: JSON.stringify(result, null, 2),
         error: null,
       });
+      console.log(JSON.stringify(result, null, 2));
     } catch (ex: any) {
       const fullError = JSON.stringify(ex);
       setLog({
@@ -125,7 +132,6 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar />
       <View style={styles.header}>
         <Text style={styles.headerText}>Braintree Test Suite</Text>
       </View>
@@ -270,6 +276,35 @@ export default function App() {
             />
           </View>
         )}
+        {/* SECTION 5: APPLE PAY (iOS Only) */}
+        {Platform.OS === 'ios' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>5. Apple Pay (iOS Only)</Text>
+            <TouchableOpacity
+              style={styles.buttonApplePay}
+              onPress={() =>
+                exec(setLogAP, 'ApplePay', () =>
+                  requestApplePayPayment({
+                    clientToken,
+                    merchantId: 'merchant.com.expobraintreeexample',
+                    amount: '49.99',
+                    companyName: 'My Awesome Store',
+                    countryCode: 'US',
+                    currencyCode: 'USD',
+                  })
+                )
+              }
+            >
+              <Text style={styles.buttonTextApple}> Pay</Text>
+            </TouchableOpacity>
+            <LogView
+              state={logAP}
+              onClear={() =>
+                setLogAP({ loading: false, result: null, error: null })
+              }
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -333,5 +368,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#555',
+  },
+  buttonApplePay: {
+    padding: 12,
+    backgroundColor: '#000',
+    borderRadius: 8,
+    marginBottom: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+  },
+  buttonTextApple: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '600',
   },
 });
