@@ -40,7 +40,7 @@ export enum THREE_D_SECURE_ERROR_TYPES {
 }
 
 export enum BTPayPalCheckoutIntent {
-  authorize = 'authorize',
+  authorize = 'authorize', // Default
   order = 'order',
   sale = 'sale',
 }
@@ -68,7 +68,6 @@ export type RequestBillingAgreementOptions = {
   offerCredit?: BoolValue;
   isShippingAddressRequired?: BoolValue;
   isShippingAddressEditable?: BoolValue;
-  isAccessibilityElement?: BoolValue;
   hasUserLocationConsent?: BoolValue;
   merchantAppLink: string;
   fallbackUrlScheme?: string;

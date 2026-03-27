@@ -23,7 +23,10 @@ import {
 import { LogView, type LogState } from './LogView';
 
 const merchantAppLink = 'https://braintree-example-app.web.app';
-const clientToken = 'sandbox_x62mvdjj_p8ngm2sczm8248vg';
+const clientToken = 'sandbox_79gqdkgb_b3fgzq5txkj3j5s6';
+
+// Available PayPal intents
+type PayPalIntent = 'sale' | 'authorize' | 'order';
 
 const T3DS_SCENARIOS = [
   { label: '✅ 3DS Success (No Challenge)', number: '4000000000002701' },
@@ -32,6 +35,8 @@ const T3DS_SCENARIOS = [
 ];
 
 export default function App() {
+  const [intent, setIntent] = React.useState<PayPalIntent>('sale');
+
   const [log1, setLog1] = React.useState<LogState>({
     loading: false,
     result: null,
@@ -117,7 +122,7 @@ export default function App() {
 
       throw new Error(
         tokenized && 'message' in tokenized
-          ? tokenized.message
+          ? (tokenized as any).message
           : 'Tokenization failed - check logs'
       );
     });
@@ -134,6 +139,30 @@ export default function App() {
         {/* SECTION 1: CORE & PAYPAL */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Core & PayPal (Static)</Text>
+
+          <Text style={styles.label}>Select PayPal Intent:</Text>
+          <View style={styles.intentContainer}>
+            {(['sale', 'authorize', 'order'] as PayPalIntent[]).map((i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.intentButton,
+                  intent === i && styles.intentButtonActive,
+                ]}
+                onPress={() => setIntent(i)}
+              >
+                <Text
+                  style={[
+                    styles.intentButtonText,
+                    intent === i && styles.intentButtonTextActive,
+                  ]}
+                >
+                  {i.toUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
@@ -147,16 +176,17 @@ export default function App() {
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
-              exec(setLog1, 'PayPalOneTime', () =>
+              exec(setLog1, `PayPalOneTime (${intent})`, () =>
                 requestOneTimePayment({
                   clientToken,
-                  amount: '5.00',
+                  amount: '50.00',
                   merchantAppLink,
+                  intent: intent,
                 })
               )
             }
           >
-            <Text style={styles.buttonText}>PayPal One Time</Text>
+            <Text style={styles.buttonText}>PayPal One Time ({intent})</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.button}
@@ -291,6 +321,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
     color: '#333',
+  },
+  label: { fontSize: 12, color: '#666', marginBottom: 8 },
+  intentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  intentButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#0070ba',
+    borderRadius: 4,
+    marginHorizontal: 2,
+    alignItems: 'center',
+  },
+  intentButtonActive: {
+    backgroundColor: '#0070ba',
+  },
+  intentButtonText: {
+    fontSize: 10,
+    color: '#0070ba',
+    fontWeight: 'bold',
+  },
+  intentButtonTextActive: {
+    color: '#fff',
   },
   input: {
     borderWidth: 1,

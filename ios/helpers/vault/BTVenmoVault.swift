@@ -1,49 +1,25 @@
-
 import Braintree
 import Foundation
 
-let keyPathForVenmoRequest: [String: WritableKeyPath<BTVenmoRequest, String?>] = [
-    "profileID": \.profileID,
-    "displayName": \.displayName,
-    "subTotalAmount": \.subTotalAmount,
-    "discountAmount": \.discountAmount,
-    "taxAmount": \.taxAmount,
-    "shippingAmount": \.shippingAmount,
-    "totalAmount": \.totalAmount,
-]
-
-
-func setStringOptionIfNotEmpty(vaultRequest: inout BTVenmoRequest, options: [String: String], optionsName: String) {
-  let optionValue = options[optionsName]
-  if !(optionValue ?? "").isEmpty {
-    if let keyPath = keyPathForVenmoRequest[optionsName] {
-        vaultRequest[keyPath: keyPath] = optionValue
-    }
-  }
-}
-
 func prepareBTVenmoRequest(options: [String: String]) -> BTVenmoRequest {
-  let paymentMethodUsage = options["paymentMethodUsage"]
-  var vaultRequest = BTVenmoRequest(paymentMethodUsage: getPaymentMethodUsageByString(paymentMethodUsage: paymentMethodUsage))
+    let usageStr = options["paymentMethodUsage"]
+    let usage: BTVenmoPaymentMethodUsage = (usageStr == "singleUse") ? .singleUse : .multiUse
+    
+    // All options from JS passed directly into the v7 initializer
+    let venmoRequest = BTVenmoRequest(
+        paymentMethodUsage: usage,
+        profileID: options["profileID"],
+        vault: getBoolValueByString(value: options["vault"], defaultValue: false),
+        displayName: options["displayName"],
+        collectCustomerBillingAddress: getBoolValueByString(value: options["collectCustomerBillingAddress"], defaultValue: false),
+        collectCustomerShippingAddress: getBoolValueByString(value: options["collectCustomerShippingAddress"], defaultValue: false),
+        isFinalAmount: getBoolValueByString(value: options["isFinalAmount"], defaultValue: false),
+        subTotalAmount: options["subTotalAmount"],
+        discountAmount: options["discountAmount"],
+        taxAmount: options["taxAmount"],
+        shippingAmount: options["shippingAmount"],
+        totalAmount: options["totalAmount"]
+    )
 
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "profileID")
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "displayName")
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "subTotalAmount")
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "discountAmount")
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "taxAmount")
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "shippingAmount")
-  setStringOptionIfNotEmpty(vaultRequest: &vaultRequest, options: options, optionsName: "totalAmount")
-
-  vaultRequest.vault = getBoolValueByString(
-    value: options["vault"], defaultValue: false)
-  vaultRequest.collectCustomerBillingAddress = getBoolValueByString(
-    value: options["collectCustomerBillingAddress"], defaultValue: false)
-  vaultRequest.collectCustomerShippingAddress = getBoolValueByString(
-    value: options["collectCustomerShippingAddress"], defaultValue: false)
-  vaultRequest.isFinalAmount = getBoolValueByString(
-    value: options["isFinalAmount"], defaultValue: false)
-  vaultRequest.fallbackToWeb = getBoolValueByString(
-    value: options["fallbackToWeb"], defaultValue: false)
-
-  return vaultRequest
+    return venmoRequest
 }

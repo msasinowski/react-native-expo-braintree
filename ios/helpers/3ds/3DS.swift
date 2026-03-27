@@ -1,71 +1,99 @@
-//  3DS.swift
-//  expo-braintree
-//
-//  Created by Maciej Sasinowski on 28/04/2024.
-//
 import Braintree
 import Foundation
 
+/**
+ * Prepares a BTThreeDSecureRequest object from the options dictionary.
+ * Compliant with Braintree iOS v7: No dot syntax, strict initializer order.
+ */
 func prepare3DSecureData(options: [String: String]) -> BTThreeDSecureRequest {
-    let threeDSecureRequest = BTThreeDSecureRequest()
+    // 1. Initialize the Postal Address using the public init
+    // Note: Use 'surname' instead of 'lastName' to match your class definition
+    let postalAddress = BTThreeDSecurePostalAddress(
+        givenName: options["givenName"],
+        surname: options["surName"],
+        streetAddress: options["streetAddress"],
+        extendedAddress: options["extendedAddress"],
+        line3: nil,
+        locality: options["city"],
+        region: options["region"],
+        postalCode: options["postalCode"],
+        countryCodeAlpha2: options["countryCodeAlpha2"],
+        phoneNumber: options["phoneNumber"]
+    )
     
-    // Używamy specyficznego Locale, aby kropka zawsze działała jako separator
-    let formatter = NumberFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX") 
-    formatter.numberStyle = .decimal
-    formatter.generatesDecimalNumbers = true
+    // 2. Initialize Additional Information using the exhaustive v7 initializer
+    let additionalInfo = BTThreeDSecureAdditionalInformation(
+        accountAgeIndicator: nil,
+        accountChangeDate: nil,
+        accountChangeIndicator: nil,
+        accountCreateDate: nil,
+        accountID: nil,
+        accountPurchases: nil,
+        accountPwdChangeDate: nil,
+        accountPwdChangeIndicator: nil,
+        addCardAttempts: nil,
+        addressMatch: nil,
+        authenticationIndicator: nil,
+        deliveryEmail: nil,
+        deliveryTimeframe: nil,
+        fraudActivity: nil,
+        giftCardAmount: nil,
+        giftCardCount: nil,
+        giftCardCurrencyCode: nil,
+        installment: nil,
+        ipAddress: nil,
+        orderDescription: nil,
+        paymentAccountAge: nil,
+        paymentAccountIndicator: nil,
+        preorderDate: nil,
+        preorderIndicator: nil,
+        productCode: nil,
+        purchaseDate: nil,
+        recurringEnd: nil,
+        recurringFrequency: nil,
+        reorderIndicator: nil,
+        sdkMaxTimeout: nil,
+        shippingAddress: postalAddress,
+        shippingAddressUsageDate: nil,
+        shippingAddressUsageIndicator: nil,
+        shippingMethodIndicator: nil,
+        shippingNameIndicator: nil,
+        taxAmount: nil,
+        transactionCountDay: nil,
+        transactionCountYear: nil,
+        userAgent: nil,
+        workPhoneNumber: nil
+    )
     
-    let amountString = options["amount"] ?? "0"
-    
-    // Bezpieczne parsowanie kwoty
-    if let amountNumber = formatter.number(from: amountString) as? NSDecimalNumber {
-        threeDSecureRequest.amount = amountNumber
-    } else {
-        // Fallback: jeśli formatter zawiedzie, próbujemy bezpośredniej inicjalizacji
-        threeDSecureRequest.amount = NSDecimalNumber(string: amountString, locale: Locale(identifier: "en_US_POSIX"))
-    }
-    
-    threeDSecureRequest.nonce = options["nonce"]
-    threeDSecureRequest.email = options["email"]
-    
-    let postalAddress = BTThreeDSecurePostalAddress()
-    postalAddress.givenName = options["givenName"]
-    postalAddress.surname = options["surName"]
-    postalAddress.phoneNumber = options["phoneNumber"]
-    postalAddress.streetAddress = options["streetAddress"]
-    postalAddress.extendedAddress = options["extendedAddress"]
-    postalAddress.locality = options["city"]
-    postalAddress.postalCode = options["postalCode"]
-    postalAddress.region = options["region"]
-    postalAddress.countryCodeAlpha2 = options["countryCodeAlpha2"]
-    
-    let additionalInfo = BTThreeDSecureAdditionalInformation()
-    additionalInfo.shippingAddress = postalAddress
-    
-    threeDSecureRequest.additionalInformation = additionalInfo
-    threeDSecureRequest.billingAddress = postalAddress
+    // 3. Initialize the ThreeDSecure Request
+    // V7 Order: amount -> nonce -> additionalInformation -> billingAddress -> email
+    let threeDSecureRequest = BTThreeDSecureRequest(
+        amount: options["amount"] ?? "0.00",
+        nonce: options["nonce"] ?? "",
+        additionalInformation: additionalInfo,
+        billingAddress: postalAddress,
+        email: options["email"]
+    )
     
     return threeDSecureRequest
 }
 
+/**
+ * Maps the 3DS result back to React Native.
+ */
 func prepare3DSecureNonceResult(tokenizedCard: BTCardNonce) -> NSDictionary {
     let result = NSMutableDictionary()
-    
     result["nonce"] = tokenizedCard.nonce
-    result["cardNetwork"] = tokenizedCard.cardNetwork == .unknown ? "Unknown" : String(describing: tokenizedCard.cardNetwork)
-    result["lastFour"] = tokenizedCard.lastFour
-    result["lastTwo"] = tokenizedCard.lastTwo
-    result["expirationMonth"] = tokenizedCard.expirationMonth
-    result["expirationYear"] = tokenizedCard.expirationYear
     
-    // CRITICAL: Added threeDSecureInfo so JS knows the status of authentication
-    let info = NSMutableDictionary()
-    info["liabilityShifted"] = tokenizedCard.threeDSecureInfo.liabilityShifted
-    info["liabilityShiftPossible"] = tokenizedCard.threeDSecureInfo.liabilityShiftPossible
-    info["wasVerified"] = tokenizedCard.threeDSecureInfo.wasVerified
-    info["status"] = tokenizedCard.threeDSecureInfo.status
+    // W v7 threeDSecureInfo nie jest opcjonalne (zawsze obecne)
+    let info = tokenizedCard.threeDSecureInfo
+    let infoDict = NSMutableDictionary()
     
-    result["threeDSecureInfo"] = info
+    infoDict["liabilityShifted"] = info.liabilityShifted
+    infoDict["liabilityShiftPossible"] = info.liabilityShiftPossible
+    infoDict["wasVerified"] = info.wasVerified
+    infoDict["status"] = info.status
     
+    result["threeDSecureInfo"] = infoDict
     return result
 }
