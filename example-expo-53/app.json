@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.expobraintreeexample"
+      "bundleIdentifier": "com.payment.test.tool"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.expobraintreeexample"
+      "package": "com.payment.test.tool"
     },
     "web": {
       "favicon": "./assets/favicon.png"

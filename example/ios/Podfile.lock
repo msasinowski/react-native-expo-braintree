@@ -1,22 +1,16 @@
 PODS:
   - boost (1.84.0)
-  - Braintree (6.41.0):
-    - Braintree/Card (= 6.41.0)
-    - Braintree/Core (= 6.41.0)
-    - Braintree/PayPal (= 6.41.0)
-  - Braintree/ApplePay (6.41.0):
+  - Braintree/Card (7.5.0):
     - Braintree/Core
-  - Braintree/Card (6.41.0):
+  - Braintree/Core (7.5.0)
+  - Braintree/DataCollector (7.5.0):
     - Braintree/Core
-  - Braintree/Core (6.41.0)
-  - Braintree/DataCollector (6.41.0):
-    - Braintree/Core
-  - Braintree/PayPal (6.41.0):
+  - Braintree/PayPal (7.5.0):
     - Braintree/Core
     - Braintree/DataCollector
-  - Braintree/ThreeDSecure (6.41.0):
+  - Braintree/ThreeDSecure (7.5.0):
     - Braintree/Card
-  - Braintree/Venmo (6.41.0):
+  - Braintree/Venmo (7.5.0):
     - Braintree/Core
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
@@ -1350,11 +1344,13 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-expo-braintree (3.4.0):
-    - Braintree (= 6.41.0)
-    - Braintree/ApplePay (= 6.41.0)
-    - Braintree/ThreeDSecure (= 6.41.0)
-    - Braintree/Venmo (= 6.41.0)
+  - react-native-expo-braintree (3.6.0-alpha.1):
+    - Braintree/Card (= 7.5.0)
+    - Braintree/Core (= 7.5.0)
+    - Braintree/DataCollector (= 7.5.0)
+    - Braintree/PayPal (= 7.5.0)
+    - Braintree/ThreeDSecure (= 7.5.0)
+    - Braintree/Venmo (= 7.5.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1930,7 +1926,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  Braintree: 1d485e502b06313316f5fae2cee196396935d057
+  Braintree: 56e8980f4934e8858d065c21f4979ed08a3a884a
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 07309209b7b914451b8f822544a18e2a0a85afff
@@ -1968,7 +1964,7 @@ SPEC CHECKSUMS:
   React-logger: 6eca7d3c56341f3b001cf67d40452acfc4be7fa1
   React-Mapbuffer: 14cd6e1e5d4d088b3a8b2260f5aa8bba305462b0
   React-microtasksnativemodule: f3d90da65ab56fb854b77b70e3a8f63561cdabc6
-  react-native-expo-braintree: ff6051dab568378880bcd3daa4566723f083017a
+  react-native-expo-braintree: 22b306cb9c3e5c8940544b08b074805718aa0486
   React-NativeModulesApple: a398af5d9799bb49f0b0fabab09c362a3899d8bc
   React-oscompat: 56b4766e96b06843a3af49a6763ef40992e720aa
   React-perflogger: 75a7a499c3839c839e76e30a175c3c81492135b7

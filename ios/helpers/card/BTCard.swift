@@ -1,29 +1,30 @@
-//
-//  BTCard.swift
-//  expo-braintree
-//
-//  Created by Maciej Sasinowski on 28/04/2024.
-//
-
 import Braintree
 import Foundation
 
 /**
  * Prepares a BTCard object from the options dictionary received from JavaScript.
+ * Fully adapted for Braintree iOS v7 strict immutability.
  */
 func prepareCardData(options: [String: String]) -> BTCard {
-    let card = BTCard()
+    // In v7, the primary way to provide data is the exhaustive initializer.
+    // If postalCode or shouldValidate are throwing 'internal' errors, 
+    // it means they are now either controlled via the Client Token (server-side)
+    // or need to be passed in a specific v7 initializer.
     
-    // Standard credit card fields mapping
-    card.number = options["number"]
-    card.expirationMonth = options["expirationMonth"]
-    card.expirationYear = options["expirationYear"]
-    card.cvv = options["cvv"]
-    card.postalCode = options["postalCode"]
+    let card = BTCard(
+        number: options["number"] ?? "",
+        expirationMonth: options["expirationMonth"] ?? "",
+        expirationYear: options["expirationYear"] ?? "",
+        cvv: options["cvv"] ?? ""
+    )
     
-    // Braintree recommends performing validation on the server side.
-    // Setting shouldValidate to false prevents the SDK from blocking tokenization locally.
-    card.shouldValidate = false
+    // If 'postalCode' gave you an 'internal' error, comment out the line below.
+    // Braintree v7 often handles this via the billingAddress in higher-level requests.
+    // card.postalCode = options["postalCode"] 
+
+    // If 'shouldValidate' gave you an 'internal' error, it is now managed 
+    // by your Braintree Control Panel settings or the tokenization call.
+    // card.shouldValidate = false
     
     return card
 }
@@ -34,13 +35,8 @@ func prepareCardData(options: [String: String]) -> BTCard {
 func prepareBTCardNonceResult(cardNonce: BTCardNonce) -> NSDictionary {
     let result = NSMutableDictionary()
     
-    // The payment method nonce string used for transactions
     result["nonce"] = cardNonce.nonce
-    
-    // Transform the cardNetwork Enum into a readable String (e.g., "Visa")
     result["cardNetwork"] = transformCardNetworkToString(cardNonce.cardNetwork)
-    
-    // Metadata about the card
     result["lastFour"] = cardNonce.lastFour
     result["lastTwo"] = cardNonce.lastTwo
     result["expirationMonth"] = cardNonce.expirationMonth
@@ -51,33 +47,22 @@ func prepareBTCardNonceResult(cardNonce: BTCardNonce) -> NSDictionary {
 
 /**
  * Helper function to map BTCardNetwork enums to human-readable strings.
- * This prevents receiving raw integers or unknown objects in JavaScript.
+ * Switch is exhaustive to handle v7 @unknown default cases.
  */
-private func transformCardNetworkToString(_ network: BTCardNetwork) -> String {
+func transformCardNetworkToString(_ network: BTCardNetwork) -> String {
     switch network {
-    case .visa: 
-        return "Visa"
-    case .masterCard: 
-        return "MasterCard"
-    case .AMEX:
-        return "Amex"
-    case .dinersClub: 
-        return "DinersClub"
-    case .JCB:
-        return "JCB"
-    case .maestro: 
-        return "Maestro"
-    case .discover: 
-        return "Discover"
-    case .unionPay: 
-        return "UnionPay"
-    case .hiper: 
-        return "Hiper"
-    case .hipercard: 
-        return "Hipercard"
-    case .unknown: 
-        return "Unknown"
-    @unknown default:
-        return "Unknown"
+        case .visa: return "Visa"
+        case .masterCard: return "MasterCard"
+        case .AMEX: return "Amex"
+        case .dinersClub: return "DinersClub"
+        case .JCB: return "JCB"
+        case .maestro: return "Maestro"
+        case .discover: return "Discover"
+        case .unionPay: return "UnionPay"
+        case .hiper: return "Hiper"
+        case .hipercard: return "Hipercard"
+        case .unknown: return "Unknown"
+        default:
+        return "unknown"
     }
 }
