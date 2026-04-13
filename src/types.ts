@@ -139,6 +139,7 @@ export type RequestVenmoNonceOptions = {
   totalAmount?: string;
   fallbackToWeb?: BoolValue;
   fallbackUrlScheme?: string;
+  merchantAppLink: string;
 };
 
 export type BTVenmoNonceResult = {
