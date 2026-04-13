@@ -341,7 +341,6 @@ export default function App() {
                     shippingAddressRequired: true,
                     emailRequired: true,
                     allowPrepaidCards: false,
-                    allowCreditCards: true,
                   })
                 )
               }
