@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {
   ScrollView,
@@ -291,7 +292,6 @@ export default function App() {
                   vault: BoolValue.false,
                   paymentMethodUsage: BTVenmoPaymntMethodUsage.singleUse,
                   merchantAppLink: `${merchantAppLink}/braintree-payments/`,
-                  fallbackUrlScheme: 'com.payment.test.tool.braintree',
                 })
               )
             }
@@ -310,7 +310,6 @@ export default function App() {
                   paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
                   vault: BoolValue.true,
                   merchantAppLink: `${merchantAppLink}/braintree-payments/`,
-                  fallbackUrlScheme: 'com.payment.test.tool.braintree',
                 })
               )
             }
