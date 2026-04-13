@@ -20,6 +20,7 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 | Package Version   | Braintree Android | Braintree iOS | Min Android SDK | Min iOS |
 | :---------------- | :---------------: | :-----------: | :-------------: | :-----: |
+| **3.5.0**         |      v5.19.0      |    v7.5.0     |       23        |  15.1   |
 | **3.4.0**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
 | **3.3.0**         |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
 | **3.2.0 - 3.2.2** |      v5.19.0      |    v6.41.0    |       23        |  15.1   |
@@ -41,10 +42,11 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 ### Feature List
 
-| Package Version | Supported Expo SDK       |
-| :-------------- | :----------------------- |
-| **3.4.0**       | Google Pay Feature Added |
-| **3.3.0**       | 3D Secure Feature Added  |
+| Package Version | Supported Expo SDK          |
+| :-------------- | :-------------------------- |
+| **3.5.0**       | Braintree iOS SDK v7 update |
+| **3.4.0**       | Google Pay Feature Added    |
+| **3.3.0**       | 3D Secure Feature Added     |
 
 ---
 
@@ -152,7 +154,7 @@ You can find implementation details in the [Example App](example/src/App.tsx) or
 
 ## Roadmap
 
-- [x] Venmo Integration
+- [x] Venmo Integration (From version 3.5.0, and Braintree SDK v7 There might be some problems around context switch in IOS)
 - [x] 3D-Secure (Implemented in 3.3.0)
 - [x] Google Pay (Implemented in 3.4.0)
 - [ ] Apple Pay (TBD)

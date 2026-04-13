@@ -1,4 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
+/* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {
   ScrollView,
@@ -17,13 +17,17 @@ import {
   tokenizeCardData,
   request3DSecurePaymentCheck,
   requestGooglePayPayment,
+  requestVenmoNonce,
   GOOGLE_PAY_TOTAL_PRICE_STATUS,
+  BTPayPalCheckoutIntent,
+  BoolValue,
+  BTVenmoPaymntMethodUsage,
   type ThreeDSecureCheckOptions,
 } from 'react-native-expo-braintree';
 import { LogView, type LogState } from './LogView';
 
 const merchantAppLink = 'https://braintree-example-app.web.app';
-const clientToken = 'sandbox_x62mvdjj_p8ngm2sczm8248vg';
+const clientToken = 'sandbox_krwbdqfy_b3fgzq5txkj3j5s6';
 
 const T3DS_SCENARIOS = [
   { label: '✅ 3DS Success (No Challenge)', number: '4000000000002701' },
@@ -32,6 +36,7 @@ const T3DS_SCENARIOS = [
 ];
 
 export default function App() {
+  // States for Logging
   const [log1, setLog1] = React.useState<LogState>({
     loading: false,
     result: null,
@@ -52,7 +57,16 @@ export default function App() {
     result: null,
     error: null,
   });
+  const [logVenmo, setLogVenmo] = React.useState<LogState>({
+    loading: false,
+    result: null,
+    error: null,
+  });
 
+  // Functional States
+  const [intent, setIntent] = React.useState<BTPayPalCheckoutIntent>(
+    BTPayPalCheckoutIntent.sale
+  );
   const [dynamic3DSToken, setDynamic3DSToken] = React.useState('');
 
   const exec = async (
@@ -69,11 +83,12 @@ export default function App() {
         error: null,
       });
     } catch (ex: any) {
-      const fullError = JSON.stringify(ex);
+      console.log('FULL ERROR OBJECT:', ex);
+      console.log('ERROR MESSAGE:', ex.message);
       setLog({
         loading: false,
         result: null,
-        error: fullError,
+        error: JSON.stringify(ex),
       });
     }
   };
@@ -117,7 +132,7 @@ export default function App() {
 
       throw new Error(
         tokenized && 'message' in tokenized
-          ? tokenized.message
+          ? (tokenized as any).message
           : 'Tokenization failed - check logs'
       );
     });
@@ -125,7 +140,6 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar />
       <View style={styles.header}>
         <Text style={styles.headerText}>Braintree Test Suite</Text>
       </View>
@@ -134,6 +148,30 @@ export default function App() {
         {/* SECTION 1: CORE & PAYPAL */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Core & PayPal (Static)</Text>
+
+          <Text style={styles.label}>Select PayPal Intent:</Text>
+          <View style={styles.intentContainer}>
+            {Object.values(BTPayPalCheckoutIntent).map((i, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.intentButton,
+                  intent === i && styles.intentButtonActive,
+                ]}
+                onPress={() => setIntent(i)}
+              >
+                <Text
+                  style={[
+                    styles.intentButtonText,
+                    intent === i && styles.intentButtonTextActive,
+                  ]}
+                >
+                  {i.toUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
@@ -144,20 +182,23 @@ export default function App() {
           >
             <Text style={styles.buttonText}>Get Device Data</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
-              exec(setLog1, 'PayPalOneTime', () =>
+              exec(setLog1, `PayPalOneTime (${intent})`, () =>
                 requestOneTimePayment({
                   clientToken,
-                  amount: '5.00',
+                  amount: '50.00',
                   merchantAppLink,
+                  intent: intent,
                 })
               )
             }
           >
-            <Text style={styles.buttonText}>PayPal One Time</Text>
+            <Text style={styles.buttonText}>PayPal One Time ({intent})</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
@@ -166,6 +207,7 @@ export default function App() {
                   clientToken,
                   merchantAppLink,
                   billingAgreementDescription: 'Test Recurring Payment',
+                  displayName: 'Custom Display Name',
                 })
               )
             }
@@ -238,10 +280,54 @@ export default function App() {
           />
         </View>
 
-        {/* SECTION 4: GOOGLE PAY */}
+        {/* SECTION 4: VENMO */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>4. Venmo Payment</Text>
+          <TouchableOpacity
+            style={styles.buttonVenmo}
+            onPress={() =>
+              exec(setLogVenmo, 'VenmoOneTime', () =>
+                requestVenmoNonce({
+                  clientToken,
+                  vault: BoolValue.false,
+                  paymentMethodUsage: BTVenmoPaymntMethodUsage.singleUse,
+                  merchantAppLink: `${merchantAppLink}/braintree-payments/`,
+                })
+              )
+            }
+          >
+            <Text style={styles.buttonText}>Venmo One-Time</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.buttonVenmo,
+              { marginTop: 8, backgroundColor: '#3D95CE' },
+            ]}
+            onPress={() =>
+              exec(setLogVenmo, 'VenmoVault', () =>
+                requestVenmoNonce({
+                  clientToken,
+                  paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
+                  vault: BoolValue.true,
+                  merchantAppLink: `${merchantAppLink}/braintree-payments/`,
+                })
+              )
+            }
+          >
+            <Text style={styles.buttonText}>Venmo Vault (Multi-Use)</Text>
+          </TouchableOpacity>
+          <LogView
+            state={logVenmo}
+            onClear={() =>
+              setLogVenmo({ loading: false, result: null, error: null })
+            }
+          />
+        </View>
+
+        {/* SECTION 5: GOOGLE PAY */}
         {Platform.OS === 'android' && (
           <View style={[styles.section]}>
-            <Text style={styles.sectionTitle}>4. Google Pay</Text>
+            <Text style={styles.sectionTitle}>5. Google Pay</Text>
             <TouchableOpacity
               style={styles.buttonGooglePay}
               onPress={() =>
@@ -255,7 +341,6 @@ export default function App() {
                     shippingAddressRequired: true,
                     emailRequired: true,
                     allowPrepaidCards: false,
-                    allowCreditCards: true,
                   })
                 )
               }
@@ -292,6 +377,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#333',
   },
+  label: { fontSize: 12, color: '#666', marginBottom: 8 },
+  intentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  intentButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#0070ba',
+    borderRadius: 4,
+    marginHorizontal: 2,
+    alignItems: 'center',
+  },
+  intentButtonActive: { backgroundColor: '#0070ba' },
+  intentButtonText: { fontSize: 10, color: '#0070ba', fontWeight: 'bold' },
+  intentButtonTextActive: { color: '#fff' },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -323,13 +426,18 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     alignItems: 'center',
   },
+  buttonVenmo: {
+    padding: 12,
+    backgroundColor: '#3D95CE',
+    borderRadius: 6,
+    alignItems: 'center',
+  },
   buttonDisabled: { backgroundColor: '#ccc' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 13 },
   buttonGooglePay: {
     padding: 12,
     backgroundColor: '#000',
     borderRadius: 6,
-    marginBottom: 6,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#555',

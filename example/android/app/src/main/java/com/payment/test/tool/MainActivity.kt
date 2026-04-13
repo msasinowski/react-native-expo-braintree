@@ -1,4 +1,4 @@
-package com.expobraintreeexample
+package com.payment.test.tool
 
 import android.os.Bundle
 import com.expobraintree.ExpoBraintreeModule

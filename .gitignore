@@ -80,3 +80,5 @@ android/gradle
 android/gradlew
 android/gradlew.bat
 .kotlin/
+
+example/ios/ExpoBraintreeExample.xcodeproj/project.pbxproj

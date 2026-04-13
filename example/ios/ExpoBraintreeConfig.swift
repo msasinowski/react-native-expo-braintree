@@ -1,7 +1,3 @@
-//
-//  ExpoBraintreeConfig.swift
-//
-
 import Braintree
 import Foundation
 
