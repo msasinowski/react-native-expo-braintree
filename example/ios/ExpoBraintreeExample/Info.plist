@@ -20,13 +20,37 @@
 		<string>$(MARKETING_VERSION)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.payment.test.tool.braintree</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.payment.test.tool.braintree</string>
+				</array>
+			</dict>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>com.payment.test.tool.payments</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.payment.test.tool.payments</string>
+				</array>
+			</dict>
+		</array>
 		<key>CFBundleVersion</key>
 		<string>$(CURRENT_PROJECT_VERSION)</string>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>com.venmo.touch.v2</string>
+		</array>
 		<key>LSRequiresIPhoneOS</key>
 		<true />
 		<key>NSAppTransportSecurity</key>
 		<dict>
-			<!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 			<key>NSAllowsArbitraryLoads</key>
 			<false />
 			<key>NSAllowsLocalNetworking</key>
@@ -48,22 +72,5 @@
 		</array>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false />
-		<key>LSApplicationQueriesSchemes</key>
-		<array>
-			<string>com.venmo.touch.v2</string>
-		</array>
-		<key>CFBundleURLTypes</key>
-		<array>
-			<dict>
-				<key>CFBundleTypeRole</key>
-				<string>Editor</string>
-				<key>CFBundleURLName</key>
-				<string>org.reactjs.native.example.ExpoBraintreeExample</string>
-				<key>CFBundleURLSchemes</key>
-				<array>
-					<string>org.reactjs.native.example.ExpoBraintreeExample</string>
-				</array>
-			</dict>
-		</array>
 	</dict>
 </plist>

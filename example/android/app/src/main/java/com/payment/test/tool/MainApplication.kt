@@ -1,4 +1,4 @@
-package com.expobraintreeexample
+package com.payment.test.tool
 
 import android.app.Application
 import com.facebook.react.PackageList

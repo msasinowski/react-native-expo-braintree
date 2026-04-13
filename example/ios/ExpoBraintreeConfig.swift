@@ -11,7 +11,6 @@ public final class ExpoBraintreeConfig {
     }
 
     public static func handleUrl(url: URL) -> Bool {
-        // Updated for Braintree v7
         return BTAppContextSwitcher.sharedInstance.handleOpen(url)
     }
 }

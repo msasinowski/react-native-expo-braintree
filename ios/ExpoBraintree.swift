@@ -84,72 +84,49 @@ class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate {
         }
     }
     
-   @objc(requestVenmoNonce:withResolver:withRejecter:)
-func requestVenmoNonce(
-    options: [String: String], 
-    resolve: @escaping RCTPromiseResolveBlock,
-    reject: @escaping RCTPromiseRejectBlock
-) {
-    NSLog("[BraintreeVenmo] >>> START: requestVenmoNonce")
-    
-    let clientToken = options["clientToken"] ?? ""
-    let appLinkString = options["merchantAppLink"] ?? ""
-    
-    NSLog("[BraintreeVenmo] ClientToken length: %ld", clientToken.count)
-    NSLog("[BraintreeVenmo] MerchantAppLink: %@", appLinkString)
+  @objc(requestVenmoNonce:withResolver:withRejecter:)
+    func requestVenmoNonce(
+        options: [String: String], 
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let clientToken = options["clientToken"] ?? ""
+        let appLinkString = options["merchantAppLink"] ?? ""
 
-    // 1. Walidacja Universal Link (Wymagany w v7)
-    guard let universalLinkURL = URL(string: appLinkString) else {
-        NSLog("[BraintreeVenmo] !!! BŁĄD: Niepoprawny URL: %@", appLinkString)
-        reject("ERR", "Venmo v7: Invalid or missing merchantAppLink", nil)
-        return
-    }
-
-    // 2. Inicjalizacja BTVenmoClient
-    // W v7 używamy: authorization (String) oraz universalLink (URL)
-    let venmoClient = BTVenmoClient(authorization: clientToken, universalLink: universalLinkURL)
-    NSLog("[BraintreeVenmo] BTVenmoClient zainicjalizowany")
-
-    // 3. Przygotowanie BTVenmoRequest
-    // Metoda canLaunchVenmoApp() NIE ISTNIEJE w v7 - usuwamy ją.
-    let venmoRequest = prepareBTVenmoRequest(options: options)
-
-    // 4. Proces Tokenizacji
-    NSLog("[BraintreeVenmo] Wywołuję venmoClient.tokenize...")
-    
-    venmoClient.tokenize(venmoRequest) { (accountNonce, error) in
-        if let error = error {
-            let nsError = error as NSError
-            
-            NSLog("[BraintreeVenmo] !!! BŁĄD TOKENIZACJI")
-            NSLog("[BraintreeVenmo] Description: %@", nsError.localizedDescription)
-            NSLog("[BraintreeVenmo] Domain: %@", nsError.domain)
-            NSLog("[BraintreeVenmo] Code: %ld", Int(nsError.code))
-            
-            // Logowanie błędów systemowych (np. problem z Universal Link)
-            if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-                NSLog("[BraintreeVenmo] Underlying Error: %@", underlyingError.localizedDescription)
-                NSLog("[BraintreeVenmo] Underlying Domain: %@", underlyingError.domain)
-            }
-            
-            self.handleVenmoError(nsError, reject: reject)
+        guard let universalLinkURL = URL(string: appLinkString) else {
+            reject(
+                EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
+                "Venmo v7: Invalid or missing merchantAppLink",
+                nil
+            )
             return
         }
-        
-        if let accountNonce = accountNonce {
-            NSLog("[BraintreeVenmo] SUCCESS: Nonce otrzymany: %@", accountNonce.nonce)
-            resolve([
-                "nonce": accountNonce.nonce,
-                "type": "Venmo",
-                "username": accountNonce.username ?? "",
-                "email": accountNonce.email ?? ""
-            ])
-        } else {
-            NSLog("[BraintreeVenmo] !!! BŁĄD: Brak danych (Unexpected)")
-            reject("ERR", "Unknown Venmo error - no nonce received", nil)
+
+        let venmoClient = BTVenmoClient(authorization: clientToken, universalLink: universalLinkURL)
+        let venmoRequest = prepareBTVenmoRequest(options: options)
+
+        venmoClient.tokenize(venmoRequest) { (accountNonce, error) in
+            if let error = error {
+                self.handleVenmoError(error as NSError, reject: reject)
+                return
+            }
+            
+            if let accountNonce = accountNonce {
+                resolve([
+                    "nonce": accountNonce.nonce,
+                    "type": "Venmo",
+                    "username": accountNonce.username ?? "",
+                    "email": accountNonce.email ?? ""
+                ])
+            } else {
+                reject(
+                    EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
+                    ERROR_TYPES.VENMO_DISABLED_IN_CONFIGURATION_ERROR.rawValue,
+                    nil
+                )
+            }
         }
     }
-}
     
     // MARK: - 3D Secure
     @objc(request3DSecurePaymentCheck:withResolver:withRejecter:)

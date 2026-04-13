@@ -150,8 +150,9 @@ export default function App() {
 
           <Text style={styles.label}>Select PayPal Intent:</Text>
           <View style={styles.intentContainer}>
-            {Object.values(BTPayPalCheckoutIntent).map((i) => (
+            {Object.values(BTPayPalCheckoutIntent).map((i, index) => (
               <TouchableOpacity
+                key={index}
                 style={[
                   styles.intentButton,
                   intent === i && styles.intentButtonActive,
@@ -205,6 +206,7 @@ export default function App() {
                   clientToken,
                   merchantAppLink,
                   billingAgreementDescription: 'Test Recurring Payment',
+                  displayName: 'Custom Display Name',
                 })
               )
             }
@@ -288,9 +290,8 @@ export default function App() {
                   clientToken,
                   vault: BoolValue.false,
                   paymentMethodUsage: BTVenmoPaymntMethodUsage.singleUse,
-                  // merchantAppLink: `${merchantAppLink}/braintree-payments`,
-                  fallbackUrlScheme:
-                    'org.reactjs.native.example.ExpoBraintreeExample',
+                  merchantAppLink: `${merchantAppLink}/braintree-payments/`,
+                  fallbackUrlScheme: 'com.payment.test.tool.braintree',
                 })
               )
             }
@@ -306,9 +307,10 @@ export default function App() {
               exec(setLogVenmo, 'VenmoVault', () =>
                 requestVenmoNonce({
                   clientToken,
-                  paymentMethodUsage: BTVenmoPaymntMethodUsage.singleUse,
-                  merchantAppLink: `${merchantAppLink}/braintree-payments`,
+                  paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
                   vault: BoolValue.true,
+                  merchantAppLink: `${merchantAppLink}/braintree-payments/`,
+                  fallbackUrlScheme: 'com.payment.test.tool.braintree',
                 })
               )
             }
