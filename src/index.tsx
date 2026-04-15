@@ -16,6 +16,9 @@ import type {
   RequestGooglePayOptions,
   BTGooglePayNonceResult,
   BTGooglePayError,
+  RequestApplePayOptions,
+  BTApplePayNonceResult,
+  BTApplePayError,
 } from './types';
 
 const LINKING_ERROR =
@@ -124,6 +127,24 @@ export async function requestGooglePayPayment(
     return result;
   } catch (ex: unknown) {
     return ex as BTGooglePayError;
+  }
+}
+
+/**
+ * Apple Pay Payment Request (iOS only)
+ */
+export async function requestApplePayPayment(
+  options: RequestApplePayOptions
+): Promise<BTApplePayNonceResult | BTApplePayError> {
+  try {
+    if (Platform.OS !== 'ios') {
+      throw new Error('Apple Pay is only supported on iOS.');
+    }
+    const result: BTApplePayNonceResult =
+      await ExpoBraintree.requestApplePay(options);
+    return result;
+  } catch (ex: unknown) {
+    return ex as BTApplePayError;
   }
 }
 
