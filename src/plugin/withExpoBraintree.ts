@@ -59,6 +59,12 @@ export type ExpoBraintreePluginProps = {
    * Flag that determines if we should initialize Google Pay
    */
   initializeGooglePay?: 'true' | 'false';
+  /**
+   * Flag that determines if we should initialize Venmo
+   * Adds the Braintree URL scheme, LSApplicationQueriesSchemes entry,
+   * ExpoBraintreeConfig.swift wrapper, and AppDelegate URL handler.
+   */
+  initializeVenmo?: 'true' | 'false';
 };
 
 export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
@@ -71,12 +77,14 @@ export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
     config = withExpoBraintreeAndroidGradle(config);
   }
   // IOS mods
-  config = withExpoBraintreeAppDelegate(config, props);
-  config = withBraintreeWrapperFile(config, {
-    appDelegateLanguage: props?.appDelegateLanguage || 'swift',
-  });
-  config = withExpoBraintreePlist(config);
-  config = withVenmoScheme(config);
+  if (props?.initializeVenmo === 'true') {
+    config = withExpoBraintreeAppDelegate(config, props);
+    config = withBraintreeWrapperFile(config, {
+      appDelegateLanguage: props?.appDelegateLanguage || 'swift',
+    });
+    config = withExpoBraintreePlist(config);
+    config = withVenmoScheme(config);
+  }
 
   return config;
 };

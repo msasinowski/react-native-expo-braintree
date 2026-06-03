@@ -2,7 +2,6 @@ import {
   AndroidConfig,
   type ConfigPlugin,
   withAndroidManifest,
-  withMainActivity,
   withProjectBuildGradle,
   WarningAggregator,
 } from '@expo/config-plugins';
@@ -10,9 +9,7 @@ import type {
   ManifestIntentFilter,
   StringBoolean,
 } from '@expo/config-plugins/build/android/Manifest';
-import { addImports } from '@expo/config-plugins/build/android/codeMod';
 import {
-  mergeContents,
   createGeneratedHeaderComment,
   type MergeResults,
   removeGeneratedContents,
@@ -32,15 +29,9 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
   WithExpoBraintreeAndroidProps
 > = (
   expoConfig,
-  {
-    host,
-    pathPrefix,
-    addFallbackUrlScheme,
-    initialize3DSecure,
-    initializeGooglePay,
-  }
+  { host, pathPrefix, addFallbackUrlScheme, initialize3DSecure }
 ) => {
-  let newConfig = withAndroidManifest(expoConfig, (config) => {
+  const newConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBraintreeLinks(
       config.modResults,
       host,
@@ -50,48 +41,6 @@ export const withExpoBraintreeAndroid: ConfigPlugin<
     );
     return config;
   });
-  newConfig = withMainActivity(expoConfig, (config) => {
-    const { modResults } = config;
-    const { language } = modResults;
-
-    const withImports = addImports(
-      modResults.contents,
-      ['com.expobraintree.ExpoBraintreeModule'],
-      language === 'java'
-    );
-    const newSrc = [
-      `   ExpoBraintreeModule.init()${language === 'java' ? ';' : ''}`,
-    ];
-
-    if (initialize3DSecure === 'true') {
-      newSrc.push(
-        `   ExpoBraintreeModule.initThreeDSecure(this)${language === 'java' ? ';' : ''}`
-      );
-    }
-
-    if (initializeGooglePay === 'true') {
-      newSrc.push(
-        `   ExpoBraintreeModule.initGooglePay(this)${language === 'java' ? ';' : ''}`
-      );
-    }
-    const withInit = mergeContents({
-      src: withImports,
-      comment: '    // add BraintreeModule import',
-      tag: 'braintree-module-init',
-      offset: 1,
-      anchor: /(?<=^.*super\.onCreate.*$)/m,
-      newSrc: newSrc.join('\n'),
-    });
-
-    return {
-      ...config,
-      modResults: {
-        ...modResults,
-        contents: withInit.contents,
-      },
-    };
-  });
-
   return newConfig;
 };
 

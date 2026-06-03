@@ -1,49 +1,51 @@
 ## Integration
 
-## Package Version 3.x.x
+## Package Version 4.0.0 (Nitro Modules)
 
-### Expo Based Project (EXPO SDK 53+)
+> **Required dependency:** `react-native-nitro-modules` must be installed alongside this library and configured in your project. It provides the Nitro Modules runtime that bridges native code.
 
-Expo based project needs minimum integration from the app perspective.
-In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-braintree plugin into plugins section.
-
-```javascript
-...
-  plugins: [
-    [
-      "react-native-expo-braintree",
-      {
-        xCodeProjectAppName: "xCodeProjectAppName", // Optional if you are still using AppDelegate.mm / AppDelegate.m
-        host: "braintree-example-app.web.app",
-        pathPrefix: "/braintree-payments" // Optional,
-        // Depending on which payment do you really need in the project initialize only required one
-        initialize3DSecure: "true",
-        initializeGooglePay: "true",
-        addFallbackUrlScheme: "true",
-        appDelegateLanguage?: "swift"; // Optional if you are still using AppDelegate.mm / AppDelegate.m
-      },
-    ],
-...
+```sh
+npx expo install react-native-expo-braintree react-native-nitro-modules
 ```
 
-`xCodeProjectAppName` - Name of your xCode project in case of this repository, for example app it will be `ExpoBraintreeExample` (Optional)
+### Expo Based Project (Expo SDK 53+)
 
-`host` - Domain that provide a .well-known/applinks.json, it need to be the same as it is defined in [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md)
+Expo based project needs minimum integration from the app perspective.
+In your `app.config.ts` or `app.config.json` or `app.config.js` add the expo-braintree plugin:
 
-`pathPrefix` - Path prefix, in case of you want to separate path only to handle the context switch (Optional)
-`initialize3DSecure` - Boolean that determines if 3D Secure is used/needed (Values "true" | "false")
-`initializeGooglePay` - Boolean that determines if Google Pay is used/needed (Values "true" | "false")
-`addFallbackUrlScheme` - Boolean that determines if we should add a scheme for a fallback url used in venmo
-`appDelegateLanguage` - Indicator that tell's the plugin logic if you are still using Objective C file for AppDelegate (Optional)
+```javascript
+plugins: [
+  [
+    "react-native-expo-braintree",
+    {
+      host: "braintree-example-app.web.app",
+      pathPrefix: "/braintree-payments", // Optional
+      initialize3DSecure: "true",         // Optional, if you use 3D Secure
+      initializeGooglePay: "true",        // Optional, if you use Google Pay
+      addFallbackUrlScheme: "true",       // Optional, needed for Venmo
+    },
+  ],
+];
+```
 
-#### Android Specific
+### Plugin Options
 
-Currently expo-plugin written for making changes into Android settings files, using one danger modifiers from expo-config-plugins called `withMainActivity`
+| Option | Description |
+| :----- | :---------- |
+| `host` | Domain that serves `.well-known/assetlinks.json` for Android App Links |
+| `pathPrefix` | Path prefix for context switch handling (Optional) |
+| `initialize3DSecure` | Whether to initialize 3D Secure launcher (`"true"` / `"false"`) |
+| `initializeGooglePay` | Whether to initialize Google Pay launcher (`"true"` / `"false"`) |
+| `addFallbackUrlScheme` | Whether to add a fallback URL scheme for Venmo (`"true"` / `"false"`) |
 
-[Plugin Code ](src/plugin/withExpoBraintree.android.ts)
+### Android Specific
 
-#### iOS Specific
+The plugin modifies `AndroidManifest.xml` to add intent filters for App Links and fallback URL scheme.
+It also injects `initGooglePay()` and `initThreeDSecure()` calls into `MainActivity.onCreate()` if enabled.
 
-Currently expo-plugin written for making changes into IOS settings files, using one danger modifier from expo-config-plugins called `withAppDelegate`
+### iOS Specific
 
-[Plugin Code ](src/plugin/withExpoBraintree.ios.ts)
+No AppDelegate modifications needed — Nitro Modules handles native module registration automatically.
+You still need to configure your URL scheme in Xcode (see CLI integration guide for details).
+
+[Plugin Source Code](src/plugin/withExpoBraintree.android.ts)

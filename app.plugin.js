@@ -1,1 +1,1 @@
-module.exports = require('./lib/commonjs/plugin/withExpoBraintree');
+module.exports = require('./lib/module/plugin/withExpoBraintree');
