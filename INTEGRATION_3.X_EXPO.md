@@ -1,51 +1,37 @@
 ## Integration
 
-## Package Version 4.0.0 (Nitro Modules)
+## Package Version 3.x.x
 
-> **Required dependency:** `react-native-nitro-modules` must be installed alongside this library and configured in your project. It provides the Nitro Modules runtime that bridges native code.
+> [!WARNING]
+> **Deprecated Version**
+> This guide is for the legacy **3.x.x** version of the library, which is no longer actively supported.
+> It is highly recommended to migrate your project to **4.x.x** (which features a full native rewrite powered by JSI Nitro Modules). Refer to the corresponding 4.x configuration and usage guides:
+> - Expo integration: [INTEGRATION_4.X_EXPO.md](INTEGRATION_4.X_EXPO.md)
+> - Bare React Native integration: [INTEGRATION_4.X_REACT_NATIVE_CLI.md](INTEGRATION_4.X_REACT_NATIVE_CLI.md)
+> - Usage reference: [USAGE_4.X.md](USAGE_4.X.md)
 
-```sh
-npx expo install react-native-expo-braintree react-native-nitro-modules
-```
-
-### Expo Based Project (Expo SDK 53+)
+### Expo Based Project (EXPO SDK 53+)
 
 Expo based project needs minimum integration from the app perspective.
-In your `app.config.ts` or `app.config.json` or `app.config.js` add the expo-braintree plugin:
+In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-braintree plugin into plugins section.
 
 ```javascript
-plugins: [
-  [
-    "react-native-expo-braintree",
-    {
-      host: "braintree-example-app.web.app",
-      pathPrefix: "/braintree-payments", // Optional
-      initialize3DSecure: "true",         // Optional, if you use 3D Secure
-      initializeGooglePay: "true",        // Optional, if you use Google Pay
-      addFallbackUrlScheme: "true",       // Optional, needed for Venmo
-    },
-  ],
-];
+...
+  plugins: [
+    [
+      "react-native-expo-braintree",
+      {
+        xCodeProjectAppName: "xCodeProjectAppName", // Optional if you are still using AppDelegate.mm / AppDelegate.m
+        host: "braintree-example-app.web.app",
+        pathPrefix: "/braintree-payments" // Optional,
+        // Depending on which payment do you really need in the project initialize only required one
+        initialize3DSecure: "true",
+        initializeGooglePay: "true",
+        addFallbackUrlScheme: "true",
+        appDelegateLanguage?: "swift"; // Optional if you are still using AppDelegate.mm / AppDelegate.m
+      },
+    ],
+...
 ```
 
-### Plugin Options
-
-| Option | Description |
-| :----- | :---------- |
-| `host` | Domain that serves `.well-known/assetlinks.json` for Android App Links |
-| `pathPrefix` | Path prefix for context switch handling (Optional) |
-| `initialize3DSecure` | Whether to initialize 3D Secure launcher (`"true"` / `"false"`) |
-| `initializeGooglePay` | Whether to initialize Google Pay launcher (`"true"` / `"false"`) |
-| `addFallbackUrlScheme` | Whether to add a fallback URL scheme for Venmo (`"true"` / `"false"`) |
-
-### Android Specific
-
-The plugin modifies `AndroidManifest.xml` to add intent filters for App Links and fallback URL scheme.
-It also injects `initGooglePay()` and `initThreeDSecure()` calls into `MainActivity.onCreate()` if enabled.
-
-### iOS Specific
-
-No AppDelegate modifications needed — Nitro Modules handles native module registration automatically.
-You still need to configure your URL scheme in Xcode (see CLI integration guide for details).
-
-[Plugin Source Code](src/plugin/withExpoBraintree.android.ts)
+`xCodeProjectAppName` - Name of your xCode project in case of this repos

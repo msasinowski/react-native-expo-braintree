@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "example-expo-54",
+    "slug": "example-expo-54",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.payment.test.tool"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.payment.test.tool"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-expo-braintree",
+        {
+          "host": "braintree-example-app.web.app",
+          "initialize3DSecure": "true",
+          "initializeGooglePay": "true",
+          "addFallbackUrlScheme": "true"
+        }
+      ]
+    ]
+  }
+}
