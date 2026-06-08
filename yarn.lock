@@ -10056,7 +10056,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-builder-bob@npm:latest":
+"react-native-builder-bob@npm:^0.42.1":
   version: 0.42.1
   resolution: "react-native-builder-bob@npm:0.42.1"
   dependencies:
@@ -10137,7 +10137,7 @@ __metadata:
     prettier: ^3.6.2
     react: 19.1.0
     react-native: 0.81.1
-    react-native-builder-bob: latest
+    react-native-builder-bob: ^0.42.1
     react-native-nitro-modules: ^0.35.7
     release-it: ^19.0.4
     turbo: ^2.5.6
