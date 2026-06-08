@@ -6,10 +6,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-  SafeAreaView,
   TextInput,
   Platform,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   getDeviceDataFromDataCollector,
   requestBillingAgreement,
@@ -139,224 +139,228 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Braintree Test Suite</Text>
-      </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Braintree Test Suite</Text>
+        </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* SECTION 1: CORE & PAYPAL */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>1. Core & PayPal (Static)</Text>
+        <ScrollView contentContainerStyle={styles.container}>
+          {/* SECTION 1: CORE & PAYPAL */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>1. Core & PayPal (Static)</Text>
 
-          <Text style={styles.label}>Select PayPal Intent:</Text>
-          <View style={styles.intentContainer}>
-            {Object.values(BTPayPalCheckoutIntent).map((i, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.intentButton,
-                  intent === i && styles.intentButtonActive,
-                ]}
-                onPress={() => setIntent(i)}
-              >
-                <Text
+            <Text style={styles.label}>Select PayPal Intent:</Text>
+            <View style={styles.intentContainer}>
+              {Object.values(BTPayPalCheckoutIntent).map((i, index) => (
+                <TouchableOpacity
+                  key={index}
                   style={[
-                    styles.intentButtonText,
-                    intent === i && styles.intentButtonTextActive,
+                    styles.intentButton,
+                    intent === i && styles.intentButtonActive,
                   ]}
+                  onPress={() => setIntent(i)}
                 >
-                  {i.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+                  <Text
+                    style={[
+                      styles.intentButtonText,
+                      intent === i && styles.intentButtonTextActive,
+                    ]}
+                  >
+                    {i.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              exec(setLog1, 'DeviceData', () =>
-                getDeviceDataFromDataCollector(clientToken)
-              )
-            }
-          >
-            <Text style={styles.buttonText}>Get Device Data</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              exec(setLog1, `PayPalOneTime (${intent})`, () =>
-                requestOneTimePayment({
-                  clientToken,
-                  amount: '50.00',
-                  merchantAppLink,
-                  intent: intent,
-                })
-              )
-            }
-          >
-            <Text style={styles.buttonText}>PayPal One Time ({intent})</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              exec(setLog1, 'PayPalBilling', () =>
-                requestBillingAgreement({
-                  clientToken,
-                  merchantAppLink,
-                  billingAgreementDescription: 'Test Recurring Payment',
-                  displayName: 'Custom Display Name',
-                })
-              )
-            }
-          >
-            <Text style={styles.buttonText}>PayPal Billing Agreement</Text>
-          </TouchableOpacity>
-          <LogView
-            state={log1}
-            onClear={() =>
-              setLog1({ loading: false, result: null, error: null })
-            }
-          />
-        </View>
-
-        {/* SECTION 2: CARD TOKENIZATION */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>2. Card Tokenization</Text>
-          <TouchableOpacity
-            style={styles.buttonTokenize}
-            onPress={() =>
-              exec(setLog2, 'TokenizeOnly', () =>
-                tokenizeCardData({
-                  clientToken,
-                  number: '4111111111111111',
-                  expirationMonth: '12',
-                  expirationYear: '2030',
-                  cvv: '123',
-                })
-              )
-            }
-          >
-            <Text style={styles.buttonText}>Tokenize Card (No 3DS)</Text>
-          </TouchableOpacity>
-          <LogView
-            state={log2}
-            onClear={() =>
-              setLog2({ loading: false, result: null, error: null })
-            }
-          />
-        </View>
-
-        {/* SECTION 3: 3D SECURE */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. 3D Secure (Dynamic Token)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Paste Fresh Client Token for 3DS..."
-            value={dynamic3DSToken}
-            onChangeText={setDynamic3DSToken}
-            multiline
-          />
-          {T3DS_SCENARIOS.map((s, i) => (
             <TouchableOpacity
-              key={i}
-              style={[
-                styles.button3DS,
-                (!dynamic3DSToken || log3.loading) && styles.buttonDisabled,
-              ]}
-              onPress={() => run3DSTest(s.number)}
-              disabled={!dynamic3DSToken || log3.loading}
-            >
-              <Text style={styles.buttonText}>{s.label}</Text>
-            </TouchableOpacity>
-          ))}
-          <LogView
-            state={log3}
-            onClear={() =>
-              setLog3({ loading: false, result: null, error: null })
-            }
-          />
-        </View>
-
-        {/* SECTION 4: VENMO */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. Venmo Payment</Text>
-          <TouchableOpacity
-            style={styles.buttonVenmo}
-            onPress={() =>
-              exec(setLogVenmo, 'VenmoOneTime', () =>
-                requestVenmoNonce({
-                  clientToken,
-                  vault: BoolValue.false,
-                  paymentMethodUsage: BTVenmoPaymntMethodUsage.singleUse,
-                  merchantAppLink: `${merchantAppLink}/braintree-payments/`,
-                })
-              )
-            }
-          >
-            <Text style={styles.buttonText}>Venmo One-Time</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.buttonVenmo,
-              { marginTop: 8, backgroundColor: '#3D95CE' },
-            ]}
-            onPress={() =>
-              exec(setLogVenmo, 'VenmoVault', () =>
-                requestVenmoNonce({
-                  clientToken,
-                  paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
-                  vault: BoolValue.true,
-                  merchantAppLink: `${merchantAppLink}/braintree-payments/`,
-                })
-              )
-            }
-          >
-            <Text style={styles.buttonText}>Venmo Vault (Multi-Use)</Text>
-          </TouchableOpacity>
-          <LogView
-            state={logVenmo}
-            onClear={() =>
-              setLogVenmo({ loading: false, result: null, error: null })
-            }
-          />
-        </View>
-
-        {/* SECTION 5: GOOGLE PAY */}
-        {Platform.OS === 'android' && (
-          <View style={[styles.section]}>
-            <Text style={styles.sectionTitle}>5. Google Pay</Text>
-            <TouchableOpacity
-              style={styles.buttonGooglePay}
+              style={styles.button}
               onPress={() =>
-                exec(setLogGP, 'GooglePay', () =>
-                  requestGooglePayPayment({
+                exec(setLog1, 'DeviceData', () =>
+                  getDeviceDataFromDataCollector(clientToken)
+                )
+              }
+            >
+              <Text style={styles.buttonText}>Get Device Data</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() =>
+                exec(setLog1, `PayPalOneTime (${intent})`, () =>
+                  requestOneTimePayment({
                     clientToken,
-                    totalPrice: '199.00',
-                    currencyCode: 'USD',
-                    totalPriceStatus: GOOGLE_PAY_TOTAL_PRICE_STATUS.FINAL,
-                    billingAddressRequired: true,
-                    shippingAddressRequired: true,
-                    emailRequired: true,
-                    allowPrepaidCards: false,
+                    amount: '50.00',
+                    merchantAppLink,
+                    intent: intent,
                   })
                 )
               }
             >
-              <Text style={styles.buttonText}>Launch Google Pay</Text>
+              <Text style={styles.buttonText}>PayPal One Time ({intent})</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() =>
+                exec(setLog1, 'PayPalBilling', () =>
+                  requestBillingAgreement({
+                    clientToken,
+                    merchantAppLink,
+                    billingAgreementDescription: 'Test Recurring Payment',
+                    displayName: 'Custom Display Name',
+                  })
+                )
+              }
+            >
+              <Text style={styles.buttonText}>PayPal Billing Agreement</Text>
             </TouchableOpacity>
             <LogView
-              state={logGP}
+              state={log1}
               onClear={() =>
-                setLogGP({ loading: false, result: null, error: null })
+                setLog1({ loading: false, result: null, error: null })
               }
             />
           </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+
+          {/* SECTION 2: CARD TOKENIZATION */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>2. Card Tokenization</Text>
+            <TouchableOpacity
+              style={styles.buttonTokenize}
+              onPress={() =>
+                exec(setLog2, 'TokenizeOnly', () =>
+                  tokenizeCardData({
+                    clientToken,
+                    number: '4111111111111111',
+                    expirationMonth: '12',
+                    expirationYear: '2030',
+                    cvv: '123',
+                  })
+                )
+              }
+            >
+              <Text style={styles.buttonText}>Tokenize Card (No 3DS)</Text>
+            </TouchableOpacity>
+            <LogView
+              state={log2}
+              onClear={() =>
+                setLog2({ loading: false, result: null, error: null })
+              }
+            />
+          </View>
+
+          {/* SECTION 3: 3D SECURE */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              3. 3D Secure (Dynamic Token)
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Paste Fresh Client Token for 3DS..."
+              value={dynamic3DSToken}
+              onChangeText={setDynamic3DSToken}
+              multiline
+            />
+            {T3DS_SCENARIOS.map((s, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.button3DS,
+                  (!dynamic3DSToken || log3.loading) && styles.buttonDisabled,
+                ]}
+                onPress={() => run3DSTest(s.number)}
+                disabled={!dynamic3DSToken || log3.loading}
+              >
+                <Text style={styles.buttonText}>{s.label}</Text>
+              </TouchableOpacity>
+            ))}
+            <LogView
+              state={log3}
+              onClear={() =>
+                setLog3({ loading: false, result: null, error: null })
+              }
+            />
+          </View>
+
+          {/* SECTION 4: VENMO */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>4. Venmo Payment</Text>
+            <TouchableOpacity
+              style={styles.buttonVenmo}
+              onPress={() =>
+                exec(setLogVenmo, 'VenmoOneTime', () =>
+                  requestVenmoNonce({
+                    clientToken,
+                    vault: BoolValue.false,
+                    paymentMethodUsage: BTVenmoPaymntMethodUsage.singleUse,
+                    merchantAppLink: `${merchantAppLink}/braintree-payments/`,
+                  })
+                )
+              }
+            >
+              <Text style={styles.buttonText}>Venmo One-Time</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.buttonVenmo,
+                { marginTop: 8, backgroundColor: '#3D95CE' },
+              ]}
+              onPress={() =>
+                exec(setLogVenmo, 'VenmoVault', () =>
+                  requestVenmoNonce({
+                    clientToken,
+                    paymentMethodUsage: BTVenmoPaymntMethodUsage.multiUse,
+                    vault: BoolValue.true,
+                    merchantAppLink: `${merchantAppLink}/braintree-payments/`,
+                  })
+                )
+              }
+            >
+              <Text style={styles.buttonText}>Venmo Vault (Multi-Use)</Text>
+            </TouchableOpacity>
+            <LogView
+              state={logVenmo}
+              onClear={() =>
+                setLogVenmo({ loading: false, result: null, error: null })
+              }
+            />
+          </View>
+
+          {/* SECTION 5: GOOGLE PAY */}
+          {Platform.OS === 'android' && (
+            <View style={[styles.section]}>
+              <Text style={styles.sectionTitle}>5. Google Pay</Text>
+              <TouchableOpacity
+                style={styles.buttonGooglePay}
+                onPress={() =>
+                  exec(setLogGP, 'GooglePay', () =>
+                    requestGooglePayPayment({
+                      clientToken,
+                      totalPrice: '199.00',
+                      currencyCode: 'USD',
+                      totalPriceStatus: GOOGLE_PAY_TOTAL_PRICE_STATUS.FINAL,
+                      billingAddressRequired: true,
+                      shippingAddressRequired: true,
+                      emailRequired: true,
+                      allowPrepaidCards: false,
+                    })
+                  )
+                }
+              >
+                <Text style={styles.buttonText}>Launch Google Pay</Text>
+              </TouchableOpacity>
+              <LogView
+                state={logGP}
+                onClear={() =>
+                  setLogGP({ loading: false, result: null, error: null })
+                }
+              />
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
