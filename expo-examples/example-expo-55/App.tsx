@@ -6,10 +6,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-  SafeAreaView,
   TextInput,
   Platform,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   getDeviceDataFromDataCollector,
   requestBillingAgreement,
@@ -139,7 +139,8 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Braintree Test Suite</Text>
       </View>
@@ -356,7 +357,8 @@ export default function App() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
