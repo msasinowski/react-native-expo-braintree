@@ -26,5 +26,11 @@
     "strict": true,
     "target": "ESNext",
     "verbatimModuleSyntax": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "lib",
+    "example",
+    "expo-examples"
+  ]
 }
