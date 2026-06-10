@@ -23,6 +23,7 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 > [!NOTE]
 > **Legacy Documentation (v3.x)**
 > If you are still using the legacy version 3.x of this library, you can refer to the following guides:
+>
 > - **Expo Integration**: [INTEGRATION_3.X_EXPO.md](INTEGRATION_3.X_EXPO.md)
 > - **Bare React Native (CLI) Integration**: [INTEGRATION_3.X_REACT_NATIVE_CLI.md](INTEGRATION_3.X_REACT_NATIVE_CLI.md)
 > - **Usage Reference**: [USAGE_3.X.md](USAGE_3.X.md)
@@ -37,15 +38,15 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 ### Supported Payment Methods
 
-| Method | Android | iOS | Details |
-| :--- | :---: | :---: | :--- |
-| **PayPal One-Time Payment** | ✅ | ✅ | Standard checkout flow |
-| **PayPal Billing Agreement** | ✅ | ✅ | Vaulting checkout flow |
-| **Card Tokenization** | ✅ | ✅ | Direct credit card input tokenization |
-| **3D Secure** | ✅ | ✅ | Bank risk check verification |
-| **Venmo** | ✅ | ✅ | Venmo App / Web authentication switch |
-| **Google Pay** | ✅ | N/A | Google Pay sheets integration |
-| **Data Collector** | ✅ | ✅ | Advanced fraud tracking / device data profiling |
+| Method                       |                         Android                         |                           iOS                           | Details                                         |
+| :--------------------------- | :-----------------------------------------------------: | :-----------------------------------------------------: | :---------------------------------------------- |
+| **PayPal One-Time Payment**  |                           ✅                            |                           ✅                            | Standard checkout flow                          |
+| **PayPal Billing Agreement** |                           ✅                            |                           ✅                            | Vaulting checkout flow                          |
+| **Card Tokenization**        |                           ✅                            |                           ✅                            | Direct credit card input tokenization           |
+| **3D Secure**                |                           ✅                            |                           ✅                            | Bank risk check verification                    |
+| **Venmo**                    | Partially Supported (might be some web switch problems) | Partially Supported (might be some web switch problems) | Venmo App / Web authentication switch           |
+| **Google Pay**               |                           ✅                            |                           N/A                           | Google Pay sheets integration                   |
+| **Data Collector**           |                           ✅                            |                           ✅                            | Advanced fraud tracking / device data profiling |
 
 ---
 
@@ -77,12 +78,12 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 
 ### Feature History
 
-| Package Version | Release Key Features & Changes |
-| :-------------- | :----------------------------- |
+| Package Version | Release Key Features & Changes                                                                                                               |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------- |
 | **4.0.0**       | Core native rewrite in Kotlin & Swift powered by Margelo's JSI Nitro Modules (high performance, sync/async invocation, zero bridge-overhead) |
-| **3.5.0**       | Braintree iOS SDK v7 update |
-| **3.4.0**       | Google Pay Feature Added |
-| **3.3.0**       | 3D Secure Feature Added |
+| **3.5.0**       | Braintree iOS SDK v7 update                                                                                                                  |
+| **3.4.0**       | Google Pay Feature Added                                                                                                                     |
+| **3.3.0**       | 3D Secure Feature Added                                                                                                                      |
 
 ---
 
@@ -122,7 +123,9 @@ For complete API listings, TypeScript structures, enums, and quick examples, che
 ## Troubleshooting Guide
 
 ### 1. Required Setup: Android App Links
+
 Braintree Android SDK v5 requires the configuration of App Links rather than legacy custom deep links.
+
 - **Official Setup Instruction**: Refer to the Braintree [App Links setup guide](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md).
 - **Server Configuration**: Your web domain must host a valid association configuration file at `https://your-domain.com/.well-known/assetlinks.json`. An example configuration is available at the [Braintree Example assetlinks.json](https://braintree-example-app.web.app/.well-known/assetlinks.json).
 - **Validation**: Verify that the package association has been verified on the target device:
@@ -134,6 +137,7 @@ Braintree Android SDK v5 requires the configuration of App Links rather than leg
 ### 2. Common Integration Issues
 
 #### A. Missing Fallback Scheme (Android)
+
 - **Symptom**: `TOKENIZE_VAULT_PAYMENT_ERROR` is returned during `requestBillingAgreement` calls on Android devices.
 - **Fix**: Configure `addFallbackUrlScheme` in the Expo plugin properties:
   ```json
@@ -145,9 +149,10 @@ Braintree Android SDK v5 requires the configuration of App Links rather than leg
     }]
   ]
   ```
-  *Note: Ensure the fallback scheme ends with `.braintree` (e.g. `com.your.app.braintree`).*
+  _Note: Ensure the fallback scheme ends with `.braintree` (e.g. `com.your.app.braintree`)._
 
 #### B. 3DSecure Layout Crash (Android 14+)
+
 - **Symptom**: Window layout issues or crashes during the 3D Secure modal trigger on Android 14.
 - **Fix**: Add the following dependency to [build.gradle](android/build.gradle):
   ```gradle
