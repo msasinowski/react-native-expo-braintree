@@ -5,8 +5,7 @@
   "scripts": {
     "start": "expo start",
     "android": "npx expo run:android",
-    "ios": "npx expo run:ios",
-    "postinstall": "patch-package"
+    "ios": "npx expo run:ios"
   },
   "dependencies": {
     "expo": "~55.0.0",
@@ -19,8 +18,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.2.0",
-    "typescript": "~5.8.3",
-    "patch-package": "^8.0.1"
+    "typescript": "~5.8.3"
   },
   "private": true
 }
