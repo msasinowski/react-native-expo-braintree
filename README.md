@@ -5,6 +5,10 @@ A high-performance, native implementation of the [Braintree SDK](https://develop
 > [!NOTE]
 > This package is the successor to `react-native-paypal-reborn`. The name change reflects the addition of first-class Expo support. All future updates and features will be released under `react-native-expo-braintree`.
 
+> [!WARNING]
+> **Version 4.0.0 is in Alpha**
+> Please note that version **4.0.0** is currently in an alpha state. If you run into any issues, bugs, or unexpected behavior, feel free to [create an issue](https://github.com/msasinowski/react-native-expo-braintree/issues) on the GitHub repository.
+
 [![NPM Version](https://img.shields.io/npm/v/react-native-expo-braintree.svg?style=flat-square)](https://www.npmjs.com/package/react-native-expo-braintree)
 [![MIT License](https://img.shields.io/npm/l/react-native-expo-braintree.svg?style=flat-square)](LICENSE)
 [![Platform support](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg?style=flat-square)](README.md)
