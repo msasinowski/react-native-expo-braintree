@@ -22,7 +22,8 @@ plugins: [
       pathPrefix: "/braintree-payments", // Optional
       initialize3DSecure: "true",         // Optional, if you use 3D Secure
       initializeGooglePay: "true",        // Optional, if you use Google Pay
-      addFallbackUrlScheme: "true",       // Optional, needed for Venmo
+      initializeVenmo: "true",            // Optional, if you use Venmo
+      addFallbackUrlScheme: "true",       // Optional, needed for Android Venmo/3DSecure fallback
     },
   ],
 ];
@@ -36,7 +37,8 @@ plugins: [
 | `pathPrefix` | Path prefix for context switch handling (Optional) |
 | `initialize3DSecure` | Whether to initialize 3D Secure launcher (`"true"` / `"false"`) |
 | `initializeGooglePay` | Whether to initialize Google Pay launcher (`"true"` / `"false"`) |
-| `addFallbackUrlScheme` | Whether to add a fallback URL scheme for Venmo (`"true"` / `"false"`) |
+| `initializeVenmo` | Whether to initialize Venmo context switching on iOS (`"true"` / `"false"`) |
+| `addFallbackUrlScheme` | Whether to add a fallback URL scheme for Android Venmo (`"true"` / `"false"`) |
 
 ### Android Specific
 
@@ -45,7 +47,6 @@ It also injects `initGooglePay()` and `initThreeDSecure()` calls into `MainActiv
 
 ### iOS Specific
 
-No AppDelegate modifications needed — Nitro Modules handles native module registration automatically.
-You still need to configure your URL scheme in Xcode (see CLI integration guide for details).
+If `initializeVenmo` is set to `"true"`, the plugin automatically modifies `AppDelegate.swift` to handle URL callbacks for Venmo, configures `Info.plist` schemes, and registers `ExpoBraintreeConfig.swift`. No manual code modifications or Xcode configurations are required.
 
 [withExpoBraintree.android.ts](src/plugin/withExpoBraintree.android.ts)
