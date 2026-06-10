@@ -1,0 +1,24 @@
+{
+  "name": "example-expo-55",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "npx expo run:android",
+    "ios": "npx expo run:ios"
+  },
+  "dependencies": {
+    "expo": "~55.0.0",
+    "expo-dev-client": "~55.0.35",
+    "react": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-expo-braintree": "4.0.0-alpha.4",
+    "react-native-safe-area-context": "~5.7.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.2.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}

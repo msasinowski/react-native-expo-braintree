@@ -1,4 +1,17 @@
 {
   "extends": "./tsconfig",
-  "exclude": ["example", "example-expo-53"]
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true
+  },
+  "exclude": [
+    "example",
+    "lib",
+    "expo-examples",
+    "expo-examples/example-expo-53",
+    "expo-examples/example-expo-54",
+    "expo-examples/example-expo-55",
+    "__tests__"
+  ]
 }

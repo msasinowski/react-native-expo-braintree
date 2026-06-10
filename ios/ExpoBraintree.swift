@@ -1,198 +1,149 @@
 import Braintree
 import Foundation
-import React
+import NitroModules
 
-@objc(ExpoBraintree)
-class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate {
-    
+extension NSDictionary {
+    func toSwiftDict() -> Dictionary<String, String> {
+        var result: [String: String] = [:]
+        for (key, value) in self {
+            guard let key = key as? String else { continue }
+            if let stringValue = value as? String {
+                result[key] = stringValue
+            } else if let boolValue = value as? Bool {
+                result[key] = boolValue ? "true" : "false"
+            } else if let data = try? JSONSerialization.data(withJSONObject: value),
+                      let json = String(data: data, encoding: .utf8) {
+                result[key] = json
+            }
+        }
+        return result
+    }
+}
+
+class ExpoBraintree: HybridExpoBraintreeSpec {
     var threeDSecureClient: BTThreeDSecureClient? = nil
-    
-    // MARK: - PayPal Billing Agreement (Vault)
-    @objc(requestBillingAgreement:withResolver:withRejecter:)
-    func requestBillingAgreement(
-        options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+
+    func requestBillingAgreement(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        let promise = Promise<Dictionary<String, String>>()
         let clientToken = options["clientToken"] ?? ""
         let payPalClient = BTPayPalClient(authorization: clientToken)
         let vaultRequest = prepareBTPayPalVaultRequest(options: options)
-        
-        payPalClient.tokenize(vaultRequest) { (accountNonce, error) in
+        payPalClient.tokenize(vaultRequest) { accountNonce, error in
             if let accountNonce = accountNonce {
-                resolve(prepareBTPayPalAccountNonceResult(accountNonce: accountNonce))
+                promise.resolve(withResult: prepareBTPayPalAccountNonceResult(accountNonce: accountNonce).toSwiftDict())
             } else {
-                self.handlePayPalError(error as NSError?, reject: reject)
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": error?.localizedDescription ?? "Failed to tokenize PayPal billing agreement"])
             }
         }
+        return promise
     }
-    
-    // MARK: - PayPal One Time Payment (Checkout)
-    @objc(requestOneTimePayment:withResolver:withRejecter:)
-    func requestOneTimePayment(
-        options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+
+    func requestOneTimePayment(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        let promise = Promise<Dictionary<String, String>>()
         let clientToken = options["clientToken"] ?? ""
         let payPalClient = BTPayPalClient(authorization: clientToken)
         let checkoutRequest = prepareBTPayPalCheckoutRequest(options: options)
-        
-        payPalClient.tokenize(checkoutRequest) { (accountNonce, error) in
+        payPalClient.tokenize(checkoutRequest) { accountNonce, error in
             if let accountNonce = accountNonce {
-                resolve(prepareBTPayPalAccountNonceResult(accountNonce: accountNonce))
+                promise.resolve(withResult: prepareBTPayPalAccountNonceResult(accountNonce: accountNonce).toSwiftDict())
             } else {
-                self.handlePayPalError(error as NSError?, reject: reject)
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": error?.localizedDescription ?? "Failed to tokenize PayPal one-time payment"])
             }
         }
+        return promise
     }
-    
-    // MARK: - Data Collector
-    @objc(getDeviceDataFromDataCollector:withResolver:withRejecter:)
-    func getDeviceDataFromDataCollector(
-        options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        let clientToken = options["clientToken"] ?? ""
-        let dataCollector = BTDataCollector(authorization: clientToken)
-        
-        dataCollector.collectDeviceData { (deviceData, error) in
-            if let error = error {
-                reject(EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, ERROR_TYPES.DATA_COLLECTOR_ERROR.rawValue, error)
-            } else if let deviceData = deviceData {
-                resolve(deviceData)
-            } else {
-                reject(EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, ERROR_TYPES.DATA_COLLECTOR_ERROR.rawValue, nil)
-            }
-        }
-    }
-    
-    // MARK: - Card Tokenization
-    @objc(tokenizeCardData:withResolver:withRejecter:)
-    func tokenizeCardData(
-        options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+
+    func tokenizeCardData(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        let promise = Promise<Dictionary<String, String>>()
         let clientToken = options["clientToken"] ?? ""
         let cardClient = BTCardClient(authorization: clientToken)
         let card = prepareCardData(options: options)
-        
-        cardClient.tokenize(card) { (cardNonce, error) in
+        cardClient.tokenize(card) { cardNonce, error in
             if let cardNonce = cardNonce {
-                resolve(prepareBTCardNonceResult(cardNonce: cardNonce))
+                promise.resolve(withResult: prepareBTCardNonceResult(cardNonce: cardNonce).toSwiftDict())
             } else {
-                reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue, ERROR_TYPES.CARD_TOKENIZATION_ERROR.rawValue, error)
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.CARD_TOKENIZATION_ERROR.rawValue, "domain": ERROR_TYPES.CARD_TOKENIZATION_ERROR.rawValue, "nativeError": error?.localizedDescription ?? "Failed to tokenize card"])
             }
         }
+        return promise
     }
-    
-  @objc(requestVenmoNonce:withResolver:withRejecter:)
-    func requestVenmoNonce(
-        options: [String: String], 
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+
+    func getDeviceDataFromDataCollector(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        let promise = Promise<Dictionary<String, String>>()
+        let clientToken = options["clientToken"] ?? ""
+        let dataCollector = BTDataCollector(authorization: clientToken)
+        dataCollector.collectDeviceData { deviceData, error in
+            if let error = error {
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.DATA_COLLECTOR_ERROR.rawValue, "domain": ERROR_TYPES.DATA_COLLECTOR_ERROR.rawValue, "nativeError": error.localizedDescription])
+            } else if let deviceData = deviceData {
+                promise.resolve(withResult: ["data": deviceData])
+            } else {
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.DATA_COLLECTOR_ERROR.rawValue, "domain": ERROR_TYPES.DATA_COLLECTOR_ERROR.rawValue, "nativeError": "Failed to collect device data"])
+            }
+        }
+        return promise
+    }
+
+    func requestVenmoNonce(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        let promise = Promise<Dictionary<String, String>>()
         let clientToken = options["clientToken"] ?? ""
         let appLinkString = options["merchantAppLink"] ?? ""
-
         guard let universalLinkURL = URL(string: appLinkString) else {
-            reject(
-                EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
-                "Venmo v7: Invalid or missing merchantAppLink",
-                nil
-            )
-            return
+            promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": "Invalid or missing merchantAppLink"])
+            return promise
         }
-
         let venmoClient = BTVenmoClient(authorization: clientToken, universalLink: universalLinkURL)
         let venmoRequest = prepareBTVenmoRequest(options: options)
-
-        venmoClient.tokenize(venmoRequest) { (accountNonce, error) in
+        venmoClient.tokenize(venmoRequest) { accountNonce, error in
             if let error = error {
-                self.handleVenmoError(error as NSError, reject: reject)
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": error.localizedDescription])
                 return
             }
-            
             if let accountNonce = accountNonce {
-                resolve([
-                    "nonce": accountNonce.nonce,
-                    "type": "Venmo",
-                    "username": accountNonce.username ?? "",
-                    "email": accountNonce.email ?? ""
-                ])
+                promise.resolve(withResult: prepareBTVenmoAccountNonceResult(accountNonce: accountNonce).toSwiftDict())
             } else {
-                reject(
-                    EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
-                    ERROR_TYPES.VENMO_DISABLED_IN_CONFIGURATION_ERROR.rawValue,
-                    nil
-                )
+                promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": "Venmo tokenization returned nil without error"])
             }
         }
+        return promise
     }
-    
-    // MARK: - 3D Secure
-    @objc(request3DSecurePaymentCheck:withResolver:withRejecter:)
-    func request3DSecurePaymentCheck(
-        options: [String: String], resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+
+    func request3DSecurePaymentCheck(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        let promise = Promise<Dictionary<String, String>>()
         let clientToken = options["clientToken"] ?? ""
         let nonce = options["nonce"] ?? ""
         let amount = options["amount"] ?? ""
-        
         if amount.isEmpty || nonce.isEmpty {
-            return reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue, ERROR_TYPES.D_SECURE_CARD_TOKENIZATION_VALIDATION_ERROR.rawValue, nil)
+            promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": "Invalid 3DS parameters: amount and nonce are required"])
+            return promise
         }
-        
         self.threeDSecureClient = BTThreeDSecureClient(authorization: clientToken)
         let threeDSRequest = prepare3DSecureData(options: options)
         threeDSRequest.threeDSecureRequestDelegate = self
-        
-        DispatchQueue.main.async {
-            // FIX for v7: method is renamed from 'startPaymentFlow' to 'start'
-            self.threeDSecureClient?.start(threeDSRequest) { (result, error) in
+        DispatchQueue.main.async { [self] in
+            self.threeDSecureClient?.start(threeDSRequest) { result, error in
                 if let tokenizedCard = result?.tokenizedCard {
                     if tokenizedCard.threeDSecureInfo.liabilityShifted {
-                        resolve(prepare3DSecureNonceResult(tokenizedCard: tokenizedCard))
+                        promise.resolve(withResult: prepare3DSecureNonceResult(tokenizedCard: tokenizedCard).toSwiftDict())
                     } else {
-                        reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue, ERROR_TYPES.D_SECURE_LIABILITY_NOT_SHIFTED.rawValue, nil)
+                        promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": "Liability not shifted"])
                     }
                 } else {
-                    reject(EXCEPTION_TYPES.TOKENIZE_EXCEPTION.rawValue, ERROR_TYPES.PAYMENT_3D_SECURE_FAILED.rawValue, error)
+                    promise.resolve(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": error?.localizedDescription ?? "3DS verification failed"])
                 }
             }
         }
+        return promise
     }
 
-    // MARK: - BTThreeDSecureRequestDelegate
+    func requestGooglePayPayment(options: Dictionary<String, String>) throws -> Promise<Dictionary<String, String>> {
+        return Promise.resolved(withResult: ["error": "true", "code": EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "message": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "domain": ERROR_TYPES.TOKENIZE_VAULT_PAYMENT_ERROR.rawValue, "nativeError": "Google Pay is not supported on iOS"])
+    }
+
+}
+
+extension ExpoBraintree: BTThreeDSecureRequestDelegate {
     func onLookupComplete(_ request: BTThreeDSecureRequest, lookupResult: BTThreeDSecureResult, next: @escaping () -> Void) {
         next()
-    }
-    
-    // MARK: - Error Handling
-    private func handlePayPalError(_ error: NSError?, reject: @escaping RCTPromiseRejectBlock) {
-        guard let error = error else {
-            reject(EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "Unknown PayPal Error", nil)
-            return
-        }
-        
-        // FIX for v7: Use .errorCode comparison or check against static errorDomain
-        if error.domain == BTPayPalError.errorDomain && error.code == BTPayPalError.canceled.errorCode {
-            return reject(EXCEPTION_TYPES.USER_CANCEL_EXCEPTION.rawValue, ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.rawValue, error)
-        }
-        
-        reject(EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, error.localizedDescription, error)
-    }
-
-    private func handleVenmoError(_ error: NSError?, reject: @escaping RCTPromiseRejectBlock) {
-        guard let error = error else {
-            reject(EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, "Unknown Venmo Error", nil)
-            return
-        }
-        
-        // FIX for v7: Use .errorCode comparison
-        if error.domain == BTVenmoError.errorDomain && error.code == BTVenmoError.canceled.errorCode {
-            return reject(EXCEPTION_TYPES.USER_CANCEL_EXCEPTION.rawValue, ERROR_TYPES.USER_CANCEL_TRANSACTION_ERROR.rawValue, error)
-        }
-        
-        reject(EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue, error.localizedDescription, error)
     }
 }

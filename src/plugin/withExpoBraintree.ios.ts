@@ -1,4 +1,3 @@
-/* eslint-disable no-bitwise */
 import {
   IOSConfig,
   WarningAggregator,
@@ -8,17 +7,28 @@ import {
   type ExportedConfigWithProps,
 } from '@expo/config-plugins';
 import eol from 'eol';
-import type { ExpoBraintreePluginProps } from './withExpoBraintree';
 import type { AppDelegateProjectFile } from '@expo/config-plugins/build/ios/Paths';
-
-export type AppleLanguage = 'objc' | 'objcpp' | 'swift' | 'rb';
 
 /*
  * Mods for Info.plist
  */
 export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
   return withInfoPlist(expoConfig, (config) => {
-    const bundleIdentifier = config.ios?.bundleIdentifier ?? '';
+    let bundleIdentifier = '';
+    try {
+      bundleIdentifier =
+        IOSConfig.BundleIdentifier.getBundleIdentifier(config) ?? '';
+    } catch {
+      bundleIdentifier = config.ios?.bundleIdentifier ?? '';
+    }
+
+    if (!bundleIdentifier) {
+      WarningAggregator.addWarningIOS(
+        'withExpoBraintree',
+        'ios.bundleIdentifier is not defined in your Expo config (app.json). The Braintree URL scheme cannot be generated correctly.'
+      );
+    }
+
     const bundleIdentifierWithBraintreeSchema = `${bundleIdentifier}.braintree`;
     const bundleUrlTypes = config.modResults.CFBundleURLTypes ?? [];
 
@@ -30,7 +40,7 @@ export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
     });
 
     // If Braintree entry doesn't exist, add a new one
-    if (isBraintreeEntryNotExist) {
+    if (isBraintreeEntryNotExist && bundleIdentifier) {
       bundleUrlTypes.push({
         CFBundleURLSchemes: [bundleIdentifierWithBraintreeSchema],
       });
@@ -65,42 +75,16 @@ export const withVenmoScheme: ConfigPlugin = (expoConfig) => {
   });
 };
 
-/*
- * Mods for Info.plist
- */
-
 /**
  * Mods for AppDelegate.swift React Native above 0.77.x and Expo above 53
  */
-
 export const modifyAppDelegateSwift = (
   config: ExportedConfigWithProps<AppDelegateProjectFile>
 ) => {
   const appDelegate = config.modResults;
   let contents = eol.split(appDelegate.contents);
 
-  // Step 1 Add method to properly handle openUrl method in AppDelegate.m
-  //   func application(
-  //   _ application: UIApplication,
-  //   open url: URL,
-  //   options: [UIApplication.OpenURLOptionsKey : Any] = [:]
-  // ) -> Bool {
-
-  //   if url.scheme?.localizedCaseInsensitiveCompare(
-  //     ExpoBraintreeConfig.paymentURLScheme
-  //   ) == .orderedSame {
-  //     return ExpoBraintreeConfig.handleUrl(url: url)
-  //   }
-
-  //   return RCTLinkingManager.application(
-  //     application,
-  //     open: url,
-  //     options: options
-  //   )
-  // }
-  // Step 1.1
-  // We need to try to find if in AppDelegate.swift there is already an application method to handle url
-  // we also need to be sure that we do not break other plugins as well
+  // Step 1 Add method to properly handle openUrl method in AppDelegate.swift
   const openUrlIdentifier = `options: [UIApplication.OpenURLOptionsKey: Any] = [:]`;
 
   const expoBraintreeConfigHandleUrl = `return ExpoBraintreeConfig.handleUrl(url: url)`;
@@ -116,11 +100,11 @@ export const modifyAppDelegateSwift = (
   const openUrlIdentifierElementIndex = contents.findIndex((content) =>
     content.includes(openUrlIdentifier)
   );
+
   // Step 2 If openUrlIdentifierElementIndex exist in AppDelegate.swift then we only need to add expoBraintreeOpenUrlLines at the top of that method
-  /* eslint-disable no-extra-boolean-cast */
-  if (!!~openUrlIdentifierElementIndex) {
+  if (openUrlIdentifierElementIndex !== -1) {
     contents.splice(
-      // We are adding +1 to the index to insert content after ') -> Bool {' block
+      // We are adding +2 to the index to insert content after ') -> Bool {' block
       openUrlIdentifierElementIndex + 2,
       0,
       ...expoBraintreeOpenUrlLines
@@ -130,7 +114,7 @@ export const modifyAppDelegateSwift = (
   else {
     WarningAggregator.addWarningIOS(
       'withExpoBraintree',
-      `Unable to find  "options: [UIApplication.OpenURLOptionsKey: Any] = [:]" in AppDelegate.swift, automatic changes not applied expo-braintree might not working as expected`
+      `Unable to find "options: [UIApplication.OpenURLOptionsKey: Any] = [:]" in AppDelegate.swift, automatic changes not applied expo-braintree might not working as expected`
     );
   }
 
@@ -138,136 +122,33 @@ export const modifyAppDelegateSwift = (
     (content) => content.includes(expoBraintreeConfigHandleUrl)
   );
 
-  // If openUrlMethodElementIndex exist in AppDelegate.mm and expoBraintreeOpenUrlLineIndex do not exist
-  if (!~expoBraintreeConfigHandleUrlElementIndex) {
+  if (expoBraintreeConfigHandleUrlElementIndex === -1) {
     WarningAggregator.addWarningIOS(
       'withExpoBraintree',
-      `Unable to find  "return ExpoBraintreeConfig.handleUrl(url: url)" in AppDelegate.swift, automatic changes not applied expo-braintree might not working as expected`
+      `Unable to find "return ExpoBraintreeConfig.handleUrl(url: url)" in AppDelegate.swift, automatic changes not applied expo-braintree might not working as expected`
     );
   }
   return contents;
 };
 
-/**
- * Mods for AppDelegate.swift
- */
-
-/**
- * Mods for AppDelegate.mm / AppDelegate.m React Native below 0.77.x and Expo below 53
- */
-
-export const modifyAppDelegateObjectiveC = (
-  config: ExportedConfigWithProps<AppDelegateProjectFile>,
-  xCodeProjectAppName?: string
-) => {
-  if (!xCodeProjectAppName) {
-    WarningAggregator.addWarningIOS(
-      'withExpoBraintree',
-      `xCodeProjectAppName props not provided but in case of using plugin in objective c world it is required`
-    );
-  }
-  const appDelegate = config.modResults;
-  let contents = eol.split(appDelegate.contents);
-  // Step 1 Edit Import part
-  // Editing import part for -swift.h file to be able to use Braintree
-  const importSwiftHeaderFileContent = `#import "${xCodeProjectAppName}-Swift.h"`;
-  const importSwiftHeaderFileIndex = contents.findIndex((content) =>
-    content.includes(importSwiftHeaderFileContent)
-  );
-  // If importSwiftHeaderFileContent do not exist in AppDelegate.mm
-  if (!~importSwiftHeaderFileIndex) {
-    contents = [importSwiftHeaderFileContent, ...contents];
-  }
-  const importExpoModulesSwiftHeader = `#import "ExpoModulesCore-Swift.h"`;
-  const importExpoModulesSwiftHeaderFileIndex = contents.findIndex((content) =>
-    content.includes(importExpoModulesSwiftHeader)
-  );
-  // If importExpoModulesSwiftHeader do not exist in AppDelegate.mm
-  if (!~importExpoModulesSwiftHeaderFileIndex) {
-    contents = [importExpoModulesSwiftHeader, ...contents];
-  }
-  // Step 2 Add method to properly handle openUrl method in AppDelegate.m
-  const openUrlMethod =
-    '- (BOOL)application:(UIApplication *)application openURL';
-  const expoBraintreeOpenUrlLines = [
-    '  if ([url.scheme localizedCaseInsensitiveCompare:[BraintreeExpoConfig getPaymentUrlScheme]] == NSOrderedSame) {',
-    '    return [BraintreeExpoConfig handleUrl:url];',
-    '  }',
-  ];
-  const openUrlMethodElementIndex = contents.findIndex((content) =>
-    content.includes(openUrlMethod)
-  );
-  const expoBraintreeOpenUrlLineIndex = contents.findIndex((content) =>
-    content.includes(expoBraintreeOpenUrlLines?.[0] ?? '')
-  );
-  // If openUrlMethodElementIndex exist in AppDelegate.mm and expoBraintreeOpenUrlLineIndex do not exist
-  if (!~expoBraintreeOpenUrlLineIndex && !!~openUrlMethodElementIndex) {
-    contents.splice(
-      // We are adding +1 to the index to insert content after '{' block
-      openUrlMethodElementIndex + 1,
-      0,
-      ...expoBraintreeOpenUrlLines
-    );
-  }
-  return contents;
-};
-
-/**
- * Mods for AppDelegate.mm
- */
-
-export const withExpoBraintreeAppDelegate: ConfigPlugin<
-  ExpoBraintreePluginProps
-> = (expoConfig, { xCodeProjectAppName }) => {
-  let appDelegateLanguage: AppleLanguage | null = null;
+export const withExpoBraintreeAppDelegate: ConfigPlugin = (expoConfig) => {
   return withAppDelegate(expoConfig, (config) => {
-    appDelegateLanguage = config.modResults.language;
-    switch (appDelegateLanguage) {
-      case 'objc':
-      case 'objcpp':
-        const resultObjectiVeC = modifyAppDelegateObjectiveC(
-          config,
-          xCodeProjectAppName
-        );
-        config.modResults.contents = resultObjectiVeC.join('\n');
-        return config;
-      case 'swift':
-        const resultSwift = modifyAppDelegateSwift(config);
-        config.modResults.contents = resultSwift.join('\n');
-        return config;
-      default:
-        WarningAggregator.addWarningIOS(
-          'withExpoBraintree',
-          `${appDelegateLanguage} AppDelegate file is not supported yet`
-        );
-        return config;
+    const appDelegateLanguage = config.modResults.language;
+    if (appDelegateLanguage === 'swift') {
+      const resultSwift = modifyAppDelegateSwift(config);
+      config.modResults.contents = resultSwift.join('\n');
+    } else {
+      WarningAggregator.addWarningIOS(
+        'withExpoBraintree',
+        `Objective-C/Objective-C++ AppDelegate (${appDelegateLanguage}) is not supported in version 4.0.0. Please upgrade your project to a Swift AppDelegate.`
+      );
     }
+    return config;
   });
 };
 
 // Add a new wrapper Swift file to the Xcode project for Swift compatibility.
-export const withBraintreeWrapperFile: ConfigPlugin<{
-  appDelegateLanguage: AppleLanguage | null;
-}> = (config, { appDelegateLanguage }) => {
-  const braintreeWrapperObjectiveC = [
-    'import Braintree',
-    'import Foundation',
-    '',
-    '@objc public class BraintreeExpoConfig: NSObject {',
-    '',
-    '@objc(getPaymentUrlScheme)',
-    'public static func getPaymentUrlScheme() -> String {',
-    '  let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""',
-    '  return bundleIdentifier + ".braintree"',
-    '}',
-    '',
-    '@objc(handleUrl:)',
-    'public static func handleUrl(url: URL) -> Bool {',
-    '  return BTAppContextSwitcher.sharedInstance.handleOpen(url)',
-    '}',
-    '}',
-  ];
-
+export const withBraintreeWrapperFile: ConfigPlugin = (config) => {
   const braintreeWrapperSwift = [
     'import Braintree',
     'import Foundation',
@@ -287,23 +168,8 @@ export const withBraintreeWrapperFile: ConfigPlugin<{
     '}',
   ];
 
-  switch (appDelegateLanguage) {
-    case 'objc':
-    case 'objcpp':
-      return IOSConfig.XcodeProjectFile.withBuildSourceFile(config, {
-        filePath: 'ExpoBraintreeConfig.swift',
-        contents: braintreeWrapperObjectiveC.join('\n'),
-      });
-    case 'swift':
-      return IOSConfig.XcodeProjectFile.withBuildSourceFile(config, {
-        filePath: 'ExpoBraintreeConfig.swift',
-        contents: braintreeWrapperSwift.join('\n'),
-      });
-    default:
-      WarningAggregator.addWarningIOS(
-        'withExpoBraintree',
-        `${appDelegateLanguage} AppDelegate file is not supported yet`
-      );
-      return config;
-  }
+  return IOSConfig.XcodeProjectFile.withBuildSourceFile(config, {
+    filePath: 'ExpoBraintreeConfig.swift',
+    contents: braintreeWrapperSwift.join('\n'),
+  });
 };

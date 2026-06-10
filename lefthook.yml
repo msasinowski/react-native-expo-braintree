@@ -6,4 +6,9 @@ pre-commit:
       run: npx eslint {staged_files}
     types:
       glob: "*.{js,ts, jsx, tsx}"
-      run: npx tsc --noEmit
+      run: npx tsc
+commit-msg:
+  parallel: true
+  commands:
+    commitlint:
+      run: npx commitlint --edit

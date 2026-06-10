@@ -2,6 +2,14 @@
 
 ## Package Version 3.x.x
 
+> [!WARNING]
+> **Deprecated Version**
+> This guide is for the legacy **3.x.x** version of the library, which is no longer actively supported.
+> It is highly recommended to migrate your project to **4.x.x** (which features a full native rewrite powered by JSI Nitro Modules). Refer to the corresponding 4.x configuration and usage guides:
+> - Expo integration: [INTEGRATION_4.X_EXPO.md](INTEGRATION_4.X_EXPO.md)
+> - Bare React Native integration: [INTEGRATION_4.X_REACT_NATIVE_CLI.md](INTEGRATION_4.X_REACT_NATIVE_CLI.md)
+> - Usage reference: [USAGE_4.X.md](USAGE_4.X.md)
+
 ### Expo Based Project (EXPO SDK 53+)
 
 Expo based project needs minimum integration from the app perspective.
@@ -26,24 +34,4 @@ In Your `app.config.ts` or `app.config.json` or `app.config.js` please add expo-
 ...
 ```
 
-`xCodeProjectAppName` - Name of your xCode project in case of this repository, for example app it will be `ExpoBraintreeExample` (Optional)
-
-`host` - Domain that provide a .well-known/applinks.json, it need to be the same as it is defined in [Set Up App Links](https://github.com/braintree/braintree_android/blob/main/APP_LINK_SETUP.md)
-
-`pathPrefix` - Path prefix, in case of you want to separate path only to handle the context switch (Optional)
-`initialize3DSecure` - Boolean that determines if 3D Secure is used/needed (Values "true" | "false")
-`initializeGooglePay` - Boolean that determines if Google Pay is used/needed (Values "true" | "false")
-`addFallbackUrlScheme` - Boolean that determines if we should add a scheme for a fallback url used in venmo
-`appDelegateLanguage` - Indicator that tell's the plugin logic if you are still using Objective C file for AppDelegate (Optional)
-
-#### Android Specific
-
-Currently expo-plugin written for making changes into Android settings files, using one danger modifiers from expo-config-plugins called `withMainActivity`
-
-[Plugin Code ](src/plugin/withExpoBraintree.android.ts)
-
-#### iOS Specific
-
-Currently expo-plugin written for making changes into IOS settings files, using one danger modifier from expo-config-plugins called `withAppDelegate`
-
-[Plugin Code ](src/plugin/withExpoBraintree.ios.ts)
+`xCodeProjectAppName` - Name of your xCode project in case of this repos

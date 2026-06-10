@@ -8,6 +8,10 @@ export enum PAYPAL_EXCEPTION_TYPES {
   PAYPAL_DISABLED_IN_CONFIGURATION = 'ExpoBraintree:`Paypal disabled in configuration',
 }
 
+export enum DATA_COLLECTOR_EXCEPTION_TYPES {
+  DATA_COLLECTOR_ERROR = 'ExpoBraintree:`Data Collector error',
+}
+
 export enum VENMO_EXCEPTION_TYPES {
   VENMO_DISABLED_IN_CONFIGURATION = 'ExpoBraintree:`VENMO disabled in configuration',
 }
@@ -23,6 +27,10 @@ export enum ERROR_TYPES {
   USER_CANCEL_TRANSACTION_ERROR = 'USER_CANCEL_TRANSACTION_ERROR',
   DATA_COLLECTOR_ERROR = 'DATA_COLLECTOR_ERROR',
   CARD_TOKENIZATION_ERROR = 'CARD_TOKENIZATION_ERROR',
+}
+
+export enum DATA_COLLECTOR_ERROR_TYPES {
+  DATA_COLLECTOR_ERROR = 'DATA_COLLECTOR_ERROR',
 }
 
 export enum PAYPAL_ERROR_TYPES {
@@ -156,22 +164,32 @@ export type BTVenmoNonceResult = {
 
 export type BTPayPalGetDeviceDataResult = string;
 
+export type BTDataCollectorError = {
+  code?: EXCEPTION_TYPES | DATA_COLLECTOR_EXCEPTION_TYPES;
+  message?: ERROR_TYPES | DATA_COLLECTOR_ERROR_TYPES | string;
+  domain?: ERROR_TYPES | DATA_COLLECTOR_ERROR_TYPES;
+  nativeError?: string;
+};
+
 export type BTPayPalError = {
   code?: EXCEPTION_TYPES | PAYPAL_EXCEPTION_TYPES;
   message?: ERROR_TYPES | PAYPAL_ERROR_TYPES | string;
   domain?: ERROR_TYPES | PAYPAL_ERROR_TYPES;
+  nativeError?: string;
 };
 
 export type BTVenmoError = {
   code?: EXCEPTION_TYPES | VENMO_EXCEPTION_TYPES;
   message?: ERROR_TYPES | VENMO_ERROR_TYPES | string;
   domain?: ERROR_TYPES | VENMO_ERROR_TYPES;
+  nativeError?: string;
 };
 
 export type BTThreeDError = {
   code?: EXCEPTION_TYPES | VENMO_EXCEPTION_TYPES;
   message?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES | string;
   domain?: ERROR_TYPES | THREE_D_SECURE_ERROR_TYPES;
+  nativeError?: string;
 };
 
 export type ThreeDSecureInfo = {
@@ -258,4 +276,5 @@ export type BTGooglePayNonceResult = {
 export type BTGooglePayError = {
   code?: EXCEPTION_TYPES | GOOGLE_PAY_ERROR_TYPES;
   message?: string;
+  nativeError?: string;
 };

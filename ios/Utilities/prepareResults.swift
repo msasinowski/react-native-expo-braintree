@@ -1,0 +1,38 @@
+import Braintree
+import Foundation
+func prepareAddressResult(address: BTPostalAddress?) -> NSMutableDictionary {
+    let addressResult = NSMutableDictionary()
+    addressResult["recipientName"] = address?.recipientName ?? ""
+    addressResult["streetAddress"] = address?.streetAddress ?? ""
+    addressResult["extendedAddress"] = address?.extendedAddress ?? ""
+    addressResult["locality"] = address?.locality ?? ""
+    addressResult["countryCodeAlpha2"] = address?.countryCodeAlpha2 ?? ""
+    addressResult["postalCode"] = address?.postalCode ?? ""
+    addressResult["region"] = address?.region ?? ""
+    return addressResult
+}
+func prepareBTPayPalAccountNonceResult(accountNonce: BTPayPalAccountNonce) -> NSDictionary {
+    let result = NSMutableDictionary()
+    result["nonce"] = accountNonce.nonce
+    result["payerID"] = accountNonce.payerID ?? ""
+    result["email"] = accountNonce.email ?? ""
+    result["phone"] = accountNonce.phone ?? ""
+    result["firstName"] = accountNonce.firstName ?? ""
+    result["lastName"] = accountNonce.lastName ?? ""
+    result["billingAddress"] = prepareAddressResult(address: accountNonce.billingAddress)
+    result["shippingAddress"] = prepareAddressResult(address: accountNonce.shippingAddress)
+    return result
+}
+func prepareBTVenmoAccountNonceResult(accountNonce: BTVenmoAccountNonce) -> NSDictionary {
+    let result = NSMutableDictionary()
+    result["nonce"] = accountNonce.nonce
+    result["username"] = accountNonce.username ?? ""
+    result["externalID"] = accountNonce.externalID ?? ""
+    result["email"] = accountNonce.email ?? ""
+    result["phoneNumber"] = accountNonce.phoneNumber ?? ""
+    result["firstName"] = accountNonce.firstName ?? ""
+    result["lastName"] = accountNonce.lastName ?? ""
+    result["billingAddress"] = prepareAddressResult(address: accountNonce.billingAddress)
+    result["shippingAddress"] = prepareAddressResult(address: accountNonce.shippingAddress)
+    return result
+}

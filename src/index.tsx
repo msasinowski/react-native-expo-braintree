@@ -1,4 +1,7 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { NitroModules } from 'react-native-nitro-modules';
+import type { ExpoBraintree } from './ExpoBraintree.nitro';
+
 import type {
   BTCardTokenizationNonceResult,
   BTPayPalAccountNonceResult,
@@ -16,115 +19,152 @@ import type {
   RequestGooglePayOptions,
   BTGooglePayNonceResult,
   BTGooglePayError,
+  BTDataCollectorError,
 } from './types';
+import { GOOGLE_PAY_TOTAL_PRICE_STATUS } from './types';
+import { catchError, handleResult } from './utils';
 
-const LINKING_ERROR =
-  `The package 'expo-braintree' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
+const ExpoBraintreeHybridObject =
+  NitroModules.createHybridObject<ExpoBraintree>('ExpoBraintree');
 
-const ExpoBraintree = NativeModules.ExpoBraintree
-  ? NativeModules.ExpoBraintree
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-export async function requestBillingAgreement(
+export const requestBillingAgreement = async (
   options: RequestBillingAgreementOptions
-): Promise<BTPayPalAccountNonceResult | BTPayPalError> {
+): Promise<BTPayPalAccountNonceResult | BTPayPalError> => {
   try {
-    const result: BTPayPalAccountNonceResult =
-      ExpoBraintree.requestBillingAgreement(options);
-    return result;
+    const result = await ExpoBraintreeHybridObject.requestBillingAgreement(
+      options as unknown as Record<string, string>
+    );
+    return handleResult<BTPayPalAccountNonceResult>(result, [
+      'billingAddress',
+      'shippingAddress',
+    ]);
   } catch (ex: unknown) {
-    return ex as BTPayPalError;
+    return catchError(ex) as BTPayPalError;
   }
-}
+};
 
-export async function requestOneTimePayment(
+export const requestOneTimePayment = async (
   options: RequestOneTimePaymentOptions
-): Promise<BTPayPalAccountNonceResult | BTPayPalError> {
+): Promise<BTPayPalAccountNonceResult | BTPayPalError> => {
   try {
-    const result: BTPayPalAccountNonceResult =
-      await ExpoBraintree.requestOneTimePayment(options);
-    return result;
+    const result = await ExpoBraintreeHybridObject.requestOneTimePayment(
+      options as unknown as Record<string, string>
+    );
+    return handleResult<BTPayPalAccountNonceResult>(result, [
+      'billingAddress',
+      'shippingAddress',
+    ]);
   } catch (ex: unknown) {
-    return ex as BTPayPalError;
+    return catchError(ex) as BTPayPalError;
   }
-}
+};
 
-export async function getDeviceDataFromDataCollector(
+export const getDeviceDataFromDataCollector = async (
   clientToken: string,
   hasUserLocationConsent?: boolean,
   riskCorrelationId?: string
-): Promise<BTPayPalGetDeviceDataResult | BTPayPalError> {
-  try {
-    const result: BTPayPalGetDeviceDataResult =
-      await ExpoBraintree.getDeviceDataFromDataCollector({
-        clientToken,
-        hasUserLocationConsent,
-        riskCorrelationId,
-      });
-    return result;
-  } catch (ex: unknown) {
-    return ex as BTPayPalError;
+): Promise<BTPayPalGetDeviceDataResult | BTDataCollectorError> => {
+  const options: Record<string, string> = { clientToken };
+  if (hasUserLocationConsent !== undefined) {
+    options.hasUserLocationConsent = String(hasUserLocationConsent);
   }
-}
+  if (riskCorrelationId !== undefined) {
+    options.riskCorrelationId = riskCorrelationId;
+  }
+  try {
+    const result =
+      await ExpoBraintreeHybridObject.getDeviceDataFromDataCollector(options);
+    handleResult(result);
+    return (result.data || '') as BTPayPalGetDeviceDataResult;
+  } catch (ex: unknown) {
+    return catchError(ex) as BTDataCollectorError;
+  }
+};
 
-export async function tokenizeCardData(
+export const tokenizeCardData = async (
   options: TokenizeCardOptions
-): Promise<BTCardTokenizationNonceResult | BTPayPalError> {
+): Promise<BTCardTokenizationNonceResult | BTPayPalError> => {
   try {
-    const result: BTCardTokenizationNonceResult =
-      await ExpoBraintree.tokenizeCardData(options);
-    return result;
+    const result = await ExpoBraintreeHybridObject.tokenizeCardData(
+      options as unknown as Record<string, string>
+    );
+    return handleResult<BTCardTokenizationNonceResult>(result);
   } catch (ex: unknown) {
-    return ex as BTPayPalError;
+    return catchError(ex) as BTPayPalError;
   }
-}
+};
 
-export async function requestVenmoNonce(
+export const requestVenmoNonce = async (
   options: RequestVenmoNonceOptions
-): Promise<BTVenmoNonceResult | BTVenmoError> {
+): Promise<BTVenmoNonceResult | BTVenmoError> => {
   try {
-    const result: BTVenmoNonceResult =
-      await ExpoBraintree.requestVenmoNonce(options);
-    return result;
+    const result = await ExpoBraintreeHybridObject.requestVenmoNonce(
+      options as unknown as Record<string, string>
+    );
+    return handleResult<BTVenmoNonceResult>(result, [
+      'billingAddress',
+      'shippingAddress',
+    ]);
   } catch (ex: unknown) {
-    return ex as BTVenmoError;
+    return catchError(ex) as BTVenmoError;
   }
-}
+};
 
-export async function request3DSecurePaymentCheck(
+export const request3DSecurePaymentCheck = async (
   options: ThreeDSecureCheckOptions
-): Promise<BTCardTokenization3DSNonceResult | BTThreeDError> {
+): Promise<BTCardTokenization3DSNonceResult | BTThreeDError> => {
   try {
-    const result: BTCardTokenization3DSNonceResult =
-      await ExpoBraintree.request3DSecurePaymentCheck(options);
-    return result;
+    const result = await ExpoBraintreeHybridObject.request3DSecurePaymentCheck(
+      options as unknown as Record<string, string>
+    );
+    return handleResult<BTCardTokenization3DSNonceResult>(result, [
+      'threeDSecureInfo',
+    ]);
   } catch (ex: unknown) {
-    return ex as BTThreeDError;
+    return catchError(ex) as BTThreeDError;
   }
-}
-export async function requestGooglePayPayment(
+};
+
+export const requestGooglePayPayment = async (
   options: RequestGooglePayOptions
-): Promise<BTGooglePayNonceResult | BTGooglePayError> {
+): Promise<BTGooglePayNonceResult | BTGooglePayError> => {
   try {
     if (Platform.OS !== 'android') {
-      throw new Error('Google Pay is only supported on Android.');
+      return {
+        error: 'true',
+        message: 'Google Pay is only supported on Android.',
+      } as unknown as BTGooglePayError;
     }
-    const result: BTGooglePayNonceResult =
-      await ExpoBraintree.requestGooglePayPayment(options);
-    return result;
+    const nativeOptions: Record<string, string> = {
+      clientToken: options.clientToken,
+    };
+    nativeOptions.totalPrice = options.totalPrice;
+    nativeOptions.currencyCode = options.currencyCode;
+    nativeOptions.totalPriceStatus = String(
+      options.totalPriceStatus ?? GOOGLE_PAY_TOTAL_PRICE_STATUS.FINAL
+    );
+    if (options.googleMerchantName)
+      nativeOptions.googleMerchantName = options.googleMerchantName;
+    nativeOptions.billingAddressRequired = String(
+      options.billingAddressRequired ?? false
+    );
+    nativeOptions.emailRequired = String(options.emailRequired ?? false);
+    nativeOptions.phoneNumberRequired = String(
+      options.phoneNumberRequired ?? false
+    );
+    nativeOptions.shippingAddressRequired = String(
+      options.shippingAddressRequired ?? false
+    );
+    nativeOptions.allowPrepaidCards = String(options.allowPrepaidCards ?? true);
+    const result =
+      await ExpoBraintreeHybridObject.requestGooglePayPayment(nativeOptions);
+    return handleResult<BTGooglePayNonceResult>(result, [
+      'details',
+      'billingAddress',
+    ]);
   } catch (ex: unknown) {
-    return ex as BTGooglePayError;
+    return catchError(ex) as BTGooglePayError;
   }
-}
+};
 
 export * from './types';

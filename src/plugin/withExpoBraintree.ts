@@ -8,23 +8,11 @@ import {
   withVenmoScheme,
   withExpoBraintreeAppDelegate,
   withBraintreeWrapperFile,
-  type AppleLanguage,
 } from './withExpoBraintree.ios';
 
 const pkg = require('react-native-expo-braintree/package.json');
 
 export type ExpoBraintreePluginProps = {
-  /**
-   * xCode project name, used for importing the swift expo braintree config header
-   */
-  xCodeProjectAppName?: string;
-
-  /**
-   * Indicator that tell the plugin if you still use AppDelegate Objective C
-   * Optional Default = "swift"
-   */
-  appDelegateLanguage?: AppleLanguage;
-
   /**
    * Android AppLink host
    */
@@ -59,6 +47,12 @@ export type ExpoBraintreePluginProps = {
    * Flag that determines if we should initialize Google Pay
    */
   initializeGooglePay?: 'true' | 'false';
+  /**
+   * Flag that determines if we should initialize Venmo
+   * Adds the Braintree URL scheme, LSApplicationQueriesSchemes entry,
+   * ExpoBraintreeConfig.swift wrapper, and AppDelegate URL handler.
+   */
+  initializeVenmo?: 'true' | 'false';
 };
 
 export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
@@ -71,12 +65,20 @@ export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
     config = withExpoBraintreeAndroidGradle(config);
   }
   // IOS mods
-  config = withExpoBraintreeAppDelegate(config, props);
-  config = withBraintreeWrapperFile(config, {
-    appDelegateLanguage: props?.appDelegateLanguage || 'swift',
-  });
-  config = withExpoBraintreePlist(config);
-  config = withVenmoScheme(config);
+  const needsBraintreeIosUrlScheme =
+    props?.initializeVenmo === 'true' ||
+    props?.initialize3DSecure === 'true' ||
+    props?.addFallbackUrlScheme === 'true';
+
+  if (needsBraintreeIosUrlScheme) {
+    config = withExpoBraintreeAppDelegate(config);
+    config = withBraintreeWrapperFile(config);
+    config = withExpoBraintreePlist(config);
+  }
+
+  if (props?.initializeVenmo === 'true') {
+    config = withVenmoScheme(config);
+  }
 
   return config;
 };

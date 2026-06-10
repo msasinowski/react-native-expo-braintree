@@ -1,0 +1,17 @@
+{
+  "cxxNamespace": ["expobraintree"],
+  "ios": {
+    "iosModuleName": "ExpoBraintree"
+  },
+  "android": {
+    "androidNamespace": ["expobraintree"],
+    "androidCxxLibName": "expobraintree"
+  },
+  "autolinking": {
+    "ExpoBraintree": {
+      "ios": { "language": "swift", "implementationClassName": "ExpoBraintree" },
+      "android": { "language": "kotlin", "implementationClassName": "ExpoBraintree" }
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
