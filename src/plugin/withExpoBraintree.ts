@@ -65,10 +65,18 @@ export const withExpoBraintreePlugin: ConfigPlugin<ExpoBraintreePluginProps> = (
     config = withExpoBraintreeAndroidGradle(config);
   }
   // IOS mods
-  if (props?.initializeVenmo === 'true') {
+  const needsBraintreeIosUrlScheme =
+    props?.initializeVenmo === 'true' ||
+    props?.initialize3DSecure === 'true' ||
+    props?.addFallbackUrlScheme === 'true';
+
+  if (needsBraintreeIosUrlScheme) {
     config = withExpoBraintreeAppDelegate(config);
     config = withBraintreeWrapperFile(config);
     config = withExpoBraintreePlist(config);
+  }
+
+  if (props?.initializeVenmo === 'true') {
     config = withVenmoScheme(config);
   }
 

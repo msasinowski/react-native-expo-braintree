@@ -14,7 +14,21 @@ import type { AppDelegateProjectFile } from '@expo/config-plugins/build/ios/Path
  */
 export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
   return withInfoPlist(expoConfig, (config) => {
-    const bundleIdentifier = config.ios?.bundleIdentifier ?? '';
+    let bundleIdentifier = '';
+    try {
+      bundleIdentifier =
+        IOSConfig.BundleIdentifier.getBundleIdentifier(config) ?? '';
+    } catch {
+      bundleIdentifier = config.ios?.bundleIdentifier ?? '';
+    }
+
+    if (!bundleIdentifier) {
+      WarningAggregator.addWarningIOS(
+        'withExpoBraintree',
+        'ios.bundleIdentifier is not defined in your Expo config (app.json). The Braintree URL scheme cannot be generated correctly.'
+      );
+    }
+
     const bundleIdentifierWithBraintreeSchema = `${bundleIdentifier}.braintree`;
     const bundleUrlTypes = config.modResults.CFBundleURLTypes ?? [];
 
@@ -26,7 +40,7 @@ export const withExpoBraintreePlist: ConfigPlugin = (expoConfig) => {
     });
 
     // If Braintree entry doesn't exist, add a new one
-    if (isBraintreeEntryNotExist) {
+    if (isBraintreeEntryNotExist && bundleIdentifier) {
       bundleUrlTypes.push({
         CFBundleURLSchemes: [bundleIdentifierWithBraintreeSchema],
       });
