@@ -58,6 +58,11 @@ export default function App() {
     result: null,
     error: null,
   });
+  const [logAP, setLogAP] = React.useState<LogState>({
+    loading: false,
+    result: null,
+    error: null,
+  });
   const [logVenmo, setLogVenmo] = React.useState<LogState>({
     loading: false,
     result: null,
