@@ -2,6 +2,7 @@ export enum EXCEPTION_TYPES {
   KOTLIN_EXCEPTION = 'ExpoBraintree:`KotlinException',
   USER_CANCEL_EXCEPTION = 'ExpoBraintree:`UserCancelException',
   TOKENIZE_EXCEPTION = 'ExpoBraintree:`TokenizeException',
+  APPLE_PAY_EXCEPTION = 'ExpoBraintree:`ApplePayException',
 }
 
 export enum PAYPAL_EXCEPTION_TYPES {
@@ -23,6 +24,8 @@ export enum ERROR_TYPES {
   USER_CANCEL_TRANSACTION_ERROR = 'USER_CANCEL_TRANSACTION_ERROR',
   DATA_COLLECTOR_ERROR = 'DATA_COLLECTOR_ERROR',
   CARD_TOKENIZATION_ERROR = 'CARD_TOKENIZATION_ERROR',
+  APPLE_PAY_NOT_AVAILABLE = 'APPLE_PAY_NOT_AVAILABLE',
+  APPLE_PAY_TOKENIZATION_ERROR = 'APPLE_PAY_TOKENIZATION_ERROR',
 }
 
 export enum PAYPAL_ERROR_TYPES {
@@ -258,4 +261,28 @@ export type BTGooglePayNonceResult = {
 export type BTGooglePayError = {
   code?: EXCEPTION_TYPES | GOOGLE_PAY_ERROR_TYPES;
   message?: string;
+};
+
+export type RequestApplePayOptions = {
+  clientToken: string;
+  merchantId: string;
+  countryCode?: string;
+  currencyCode?: string;
+  amount: string;
+  companyName?: string;
+};
+
+export type BTApplePayNonceResult = {
+  nonce: string;
+  type: 'ApplePay';
+  isDefault: boolean;
+  cardNetwork?: string;
+  lastTwo?: string;
+  lastFour?: string;
+};
+
+export type BTApplePayError = {
+  code?: EXCEPTION_TYPES | ERROR_TYPES;
+  message?: string;
+  domain?: string;
 };
