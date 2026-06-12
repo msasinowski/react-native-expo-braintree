@@ -10,7 +10,7 @@ class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate, PKPaymentAuthoriza
     // Properties to store Apple Pay state
     private var applePayResolve: RCTPromiseResolveBlock? = nil
     private var applePayReject: RCTPromiseRejectBlock? = nil
-    private var applePayApiClient: BTAPIClient? = nil
+    private var applePayClientToken: String? = nil
     
     // MARK: - PayPal Billing Agreement (Vault)
     @objc(requestBillingAgreement:withResolver:withRejecter:)
@@ -209,20 +209,19 @@ class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate, PKPaymentAuthoriza
       ) {
           let clientToken = options["clientToken"] as? String ?? ""
           
-          guard let apiClient = BTAPIClient(authorization: clientToken) else {
+          if clientToken.isEmpty {
               return reject(
                   EXCEPTION_TYPES.SWIFT_EXCEPTION.rawValue,
                   ERROR_TYPES.API_CLIENT_INITIALIZATION_ERROR.rawValue,
                   nil)
           }
           
-          self.applePayApiClient = apiClient
+          self.applePayClientToken = clientToken
           self.applePayResolve = resolve
           self.applePayReject = reject
           
-          let applePayClient = BTApplePayClient(apiClient: apiClient)
+          let applePayClient = BTApplePayClient(authorization: clientToken)
           
-          // FIXED: Method name in v6 is 'paymentRequest', not 'makePaymentRequest'
           applePayClient.makePaymentRequest() { (paymentRequest, error) in
               guard let paymentRequest = paymentRequest else {
                   self.cleanupApplePay()
@@ -269,15 +268,14 @@ class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate, PKPaymentAuthoriza
       // MARK: - PKPaymentAuthorizationViewControllerDelegate
       func paymentAuthorizationViewController(_ controller: PKPaymentAuthorizationViewController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
           
-          guard let apiClient = self.applePayApiClient else {
+          guard let clientToken = self.applePayClientToken else {
               completion(PKPaymentAuthorizationResult(status: .failure, errors: nil))
               return
           }
           
-          let applePayClient = BTApplePayClient(apiClient: apiClient)
+          let applePayClient = BTApplePayClient(authorization: clientToken)
           
-          // FIXED: Method name in v6 is 'tokenizeApplePayPayment', not 'tokenize'
-          applePayClient.tokenize(payment) { (nonce, error) in
+           applePayClient.tokenize(payment) { (nonce, error) in
               if let error = error {
                   self.applePayReject?(
                       EXCEPTION_TYPES.APPLE_PAY_EXCEPTION.rawValue,
@@ -285,6 +283,9 @@ class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate, PKPaymentAuthoriza
                       error
                   )
                   completion(PKPaymentAuthorizationResult(status: .failure, errors: [error]))
+                  
+                  self.applePayResolve = nil
+                  self.applePayReject = nil
               } else if let nonce = nonce {
                   self.applePayResolve?(self.prepareBTApplePayNonceResult(nonce: nonce))
                   completion(PKPaymentAuthorizationResult(status: .success, errors: nil))
@@ -320,6 +321,7 @@ class ExpoBraintree: NSObject, BTThreeDSecureRequestDelegate, PKPaymentAuthoriza
     private func cleanupApplePay() {
         self.applePayResolve = nil
         self.applePayReject = nil
+        self.applePayClientToken = nil
     }
 
 }

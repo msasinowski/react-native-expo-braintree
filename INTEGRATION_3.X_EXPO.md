@@ -47,3 +47,25 @@ Currently expo-plugin written for making changes into Android settings files, us
 Currently expo-plugin written for making changes into IOS settings files, using one danger modifier from expo-config-plugins called `withAppDelegate`
 
 [Plugin Code ](src/plugin/withExpoBraintree.ios.ts)
+
+#### Apple Pay (iOS Only)
+
+To integrate Apple Pay, you must configure the Apple Pay Entitlement in your `app.json` under the `ios` section:
+
+```json
+"ios": {
+  "supportsTablet": true,
+  "bundleIdentifier": "com.yourdomain.app",
+  "entitlements": {
+    "com.apple.developer.in-app-payments": [
+      "merchant.com.yourdomain"
+    ]
+  }
+}
+```
+
+Make sure that you have:
+1. Created a Merchant Identifier in your Apple Developer account.
+2. Enabled Apple Pay in your App ID configuration.
+3. Configured Apple Pay in your Braintree Control Panel (under Settings > Processing > Apple Pay).
+

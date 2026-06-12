@@ -67,3 +67,19 @@ const nonce = await requestVenmoNonce({
     totalAmount: '5',
 });
 ```
+
+## Request Apple Pay Payment (iOS Only)
+```javascript
+import {
+  requestApplePayPayment,
+} from "react-native-expo-braintree";
+
+const result: BTApplePayNonceResult | BTApplePayError = await requestApplePayPayment({
+    clientToken: "Token",
+    merchantId: "merchant.com.yourdomain",
+    amount: "49.99",
+    companyName: "My Awesome Store",
+    countryCode: "US", // Optional, defaults to "PL"
+    currencyCode: "USD", // Optional, defaults to "PLN"
+});
+```

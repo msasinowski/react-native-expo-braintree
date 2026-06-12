@@ -43,7 +43,7 @@ export async function requestBillingAgreement(
 ): Promise<BTPayPalAccountNonceResult | BTPayPalError> {
   try {
     const result: BTPayPalAccountNonceResult =
-      ExpoBraintree.requestBillingAgreement(options);
+      await ExpoBraintree.requestBillingAgreement(options);
     return result;
   } catch (ex: unknown) {
     return ex as BTPayPalError;
